@@ -30,8 +30,7 @@ pub fn get_netctl_config_contents(
         if let Some(ek) = encryption_key {
             format!("Key='{}'", ek)
         } else {
-            // We shouldn't have reached this point ever
-            "Key=''".to_string()
+            unreachable!("We should have set the encryption key if wpa is set.");
         }
     } else {
         "".to_string()
