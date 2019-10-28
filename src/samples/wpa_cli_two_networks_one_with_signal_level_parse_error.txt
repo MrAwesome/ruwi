@@ -1,0 +1,4 @@
+Selected interface 'wlp3s0'
+bssid / frequency / signal level / flags / ssid
+f4:28:53:fe:a5:d0	2437	-66	[WPA2-PSK-CCMP+TKIP][WPS][ESS]	Valparaiso_Guest_House 1
+68:72:51:68:73:da	2457	-xx	[WPA2-PSK-CCMP][ESS]	Valparaiso_Guest_House 2

@@ -1,0 +1,9 @@
+Selected interface 'wlp3s0'
+bssid / frequency / signal level / flags / ssid
+78:8a:20:e3:9d:62	2412	-41	[WPA2-PSK-CCMP][ESS]	Nima Lodge
+fc:3f:db:a1:5e:b0	2437	-68	[WPA2-PSK-CCMP][ESS][P2P]	DIRECT-AF-HP DeskJet 3830 series
+fc:ec:da:69:e0:3e	2462	-85	[WPA2-PSK-CCMP][ESS]	Nima Lodge
+fe:ec:da:69:e0:3e	2462	-85	[WPA2-PSK-CCMP][ESS]	
+ba:69:f4:1f:2d:15	5540	-89	[ESS]	WISPerNET-George-Sentraal1
+b8:69:f4:1f:2d:15	5540	-89	[ESS]	WISPerNET-Bosplaas-SW-802.11
+7a:8a:20:e3:9d:62	2412	-39	[WPA2-PSK-CCMP][ESS]	
