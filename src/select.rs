@@ -4,9 +4,9 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 pub fn run_dmenu(
-    options: Options,
-    prompt: String,
-    elements: Vec<String>,
+    options: &Options,
+    prompt: &String,
+    elements: &Vec<String>,
 ) -> Result<String, SelectionError> {
     let input_text = elements.join("\n");
     let mut child = Command::new("dmenu")

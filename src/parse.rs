@@ -1,71 +1,18 @@
 use crate::structs::*;
-use regex::Regex;
 
-type FullParseResult = Result<ParseResult, ParseError>;
-
-pub fn parse_result(_options: Options, scan_result: ScanResult) -> FullParseResult {
+pub fn parse_result(
+    options: &Options,
+    scan_result: &ScanResult,
+) -> Result<ParseResult, ParseError> {
     // TODO: if scan type isn't specified, and parsing or scanning fails, try another scan type
-    // TODO: implement
     match &scan_result.scan_type {
         ScanType::IW => Err(ParseError::NotImplemented),
         ScanType::IWList => Err(ParseError::NotImplemented),
-        ScanType::WpaCli => parse_wpa_cli_scan(scan_result.output),
+        ScanType::WpaCli => parse_wpa_cli_scan(&scan_result.output),
     }
 }
 
-pub fn split_iw_output_into_chunks(output: String) -> Vec<Vec<String>> {
-    let lines = output
-        .lines()
-        .map(|x| x.to_string())
-        .collect::<Vec<String>>();
-
-    let bss = Regex::new("^BSS ((\\w\\w:){5}\\w\\w)").unwrap();
-
-    let mut iw_network_line_groups = vec![];
-
-    let mut linenum = 0;
-
-    while linenum < lines.len() {
-        let mut line_group_lines = vec![];
-
-        line_group_lines.push(lines[linenum].clone());
-        //linenum += 1;
-
-        while linenum < lines.len() {
-            let line = lines[linenum].trim();
-            let lawl = bss.is_match(line);
-
-            println!("{:?} {}", lawl, line);
-            linenum += 1;
-        }
-
-        iw_network_line_groups.push(line_group_lines);
-    }
-
-    vec![]
-    //    lines = iw_scan_output.split("\n")
-    //
-    //    iw_network_line_groups = []
-    //    linenum = 0
-    //    while linenum < len(lines):
-    //        iw_network_line_groups.append([])
-    //        network = iw_network_line_groups[-1]
-    //
-    //        network.append(lines[linenum])
-    //        linenum += 1
-    //
-    //        while linenum < len(lines):
-    //            line = lines[linenum]
-    //            if re.match(IW_NETWORK_START_REGEX, line):
-    //                break
-    //            else:
-    //                network.append(line)
-    //                linenum += 1
-    //
-    //    return iw_network_line_groups
-}
-
-pub fn parse_wpa_cli_scan(output: String) -> FullParseResult {
+pub fn parse_wpa_cli_scan(output: &String) -> Result<ParseResult, ParseError> {
     let mut lines = output.lines().map(|x| x.to_string());
     let mut networks = vec![];
     let mut line_parse_errors = vec![];
@@ -119,9 +66,6 @@ pub fn parse_wpa_line_into_network(line: String) -> Result<WirelessNetwork, Indi
 mod tests {
     use super::*;
 
-    // pub static IW_ONE_NETWORK: &'static str = include_str!("samples/iw_one_network.txt");
-    // pub static IW_TWO_DIFFERENT_NETWORKS: &'static str =
-    //  include_str!("samples/iw_two_different_networks.txt");
     pub static WPA_CLI_TWO_DIFFERENT_NETWORKS: &'static str =
         include_str!("samples/wpa_cli_two_different_networks.txt");
     pub static WPA_CLI_SEVEN_NETWORKS_TWO_DUPLICATE_TWO_EMPTY: &'static str =
@@ -145,8 +89,6 @@ mod tests {
 
     #[derive(Debug, Copy, Clone, Eq, PartialEq)]
     enum NetworkTextType {
-        // IWOneNetwork,
-        // IWTwoDifferentNetworks,
         WpaCliTwoDifferentNetworks,
         WpaCliSevenNetworksTwoDuplicateTwoEmpty,
         WpaCliTwoLinesMissingInfo,
@@ -156,8 +98,6 @@ mod tests {
 
     fn get_text(text_type: NetworkTextType) -> String {
         match text_type {
-            // NetworkTextType::IWOneNetwork => self::IW_ONE_NETWORK.to_string(),
-            // NetworkTextType::IWTwoDifferentNetworks => self::IW_TWO_DIFFERENT_NETWORKS.to_string(),
             NetworkTextType::WpaCliTwoDifferentNetworks => {
                 self::WPA_CLI_TWO_DIFFERENT_NETWORKS.to_string()
             }
@@ -174,37 +114,8 @@ mod tests {
         }
     }
 
-    fn get_expected_result(text_type: NetworkTextType) -> FullParseResult {
+    fn get_expected_result(text_type: NetworkTextType) -> Result<ParseResult, ParseError> {
         match text_type {
-            // NetworkTextType::IWOneNetwork => Ok(ParseResult {
-            //     scan_type: ScanType::IW,
-            //     seen_networks: vec![WirelessNetwork {
-            //         essid: "Pee Pee Poo Poo Man".to_string(),
-            //         wpa: true,
-            //         bssid: Some("32:ac:a3:7b:ab:0b".to_string()),
-            //         signal_strength: Some(-38),
-            //         channel_utilisation: None,
-            //     }],
-            // }),
-            // NetworkTextType::IWTwoDifferentNetworks => Ok(ParseResult {
-            //     scan_type: ScanType::IW,
-            //     seen_networks: vec![
-            //         WirelessNetwork {
-            //             essid: "Valparaiso_Guest_House 1".to_string(),
-            //             wpa: true,
-            //             bssid: Some("f4:28:53:fe:a5:d0".to_string()),
-            //             signal_strength: Some(-65),
-            //             channel_utilisation: None,
-            //         },
-            //         WirelessNetwork {
-            //             essid: "Valparaiso_Guest_House 2".to_string(),
-            //             wpa: true,
-            //             bssid: Some("68:72:51:68:73:da".to_string()),
-            //             signal_strength: Some(-46),
-            //             channel_utilisation: None,
-            //         },
-            //     ],
-            // }),
             NetworkTextType::WpaCliTwoDifferentNetworks => Ok(ParseResult {
                 scan_type: ScanType::WpaCli,
                 seen_networks: vec![
@@ -322,7 +233,7 @@ mod tests {
             output: contents,
         };
 
-        let full_parse_result = parse_result(options, scan_result);
+        let full_parse_result = parse_result(&options, &scan_result);
 
         // TODO: match here - if both aren't errors, unwrap and compare
         //                    if both are errors, make sure they're the same
@@ -340,20 +251,6 @@ mod tests {
             }
         }
     }
-
-    // Broken
-    // #[test]
-    // fn test_single_iw_result() {
-    //     let text_type = NetworkTextType::IWOneNetwork;
-    //     let options = Options {
-    //         scan_type: ScanType::IW,
-    //         interface: "some_fake_name".to_string(),
-    //         output_types: vec![],
-    //         connect_via: None,
-    //     };
-    //
-    //     compare_parsed_result_to_expected_result(text_type, options);
-    // }
 
     #[test]
     fn test_wpa_cli_two_different_networks() {

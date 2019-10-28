@@ -3,18 +3,18 @@ use std::fs::File;
 use std::io::Write;
 
 pub fn netctl_config_write(
-    options: Options,
-    network: WirelessNetwork,
-    encryption_key: Option<String>,
+    options: &Options,
+    network: &WirelessNetwork,
+    encryption_key: &Option<String>,
 ) -> Result<OutputResult, OutputError> {
-    let contents = get_netctl_config_contents(options, network.clone(), encryption_key.clone())?;
+    let contents = get_netctl_config_contents(options, network, encryption_key)?;
 
     let netctl_file_name = network.essid.replace(" ", "_");
     let netctl_location = "/etc/netctl/".to_string();
 
     let fullpath = netctl_location + &netctl_file_name;
     let config_file = File::create(fullpath);
-    let lawl = config_file
+    config_file
         .or(Err(OutputError::CouldNotOpenConfigurationFileForWriting))?
         .write_all(contents.as_bytes())
         .or(Err(OutputError::CouldNotWriteConfigurationFile))?;
@@ -24,9 +24,9 @@ pub fn netctl_config_write(
 }
 
 pub fn get_netctl_config_contents(
-    options: Options,
-    network: WirelessNetwork,
-    encryption_key: Option<String>,
+    options: &Options,
+    network: &WirelessNetwork,
+    encryption_key: &Option<String>,
 ) -> Result<String, OutputError> {
     let formatted = format!(
         "Description='{} wifi - {}'

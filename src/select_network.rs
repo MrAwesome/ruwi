@@ -4,15 +4,14 @@ use std::collections::HashSet;
 
 // TODO: implement errors etc here
 pub fn select_network(
-    options: Options,
-    sorted_available_networks: Vec<WirelessNetwork>,
+    options: &Options,
+    sorted_available_networks: &Vec<WirelessNetwork>,
 ) -> Result<WirelessNetwork, SelectionError> {
-    let sorted_unique_network_names =
-        get_ordered_unique_network_names(sorted_available_networks.clone());
+    let sorted_unique_network_names = get_ordered_unique_network_names(&sorted_available_networks);
     let selected_network_name = run_dmenu(
-        options,
-        "Select a network:".to_string(),
-        sorted_unique_network_names,
+        &options,
+        &"Select a network:".to_string(),
+        &sorted_unique_network_names,
     )?;
 
     let selected_network = sorted_available_networks
@@ -31,12 +30,12 @@ pub fn select_network(
 }
 
 pub fn get_ordered_unique_network_names(
-    sorted_available_networks: Vec<WirelessNetwork>,
+    sorted_available_networks: &Vec<WirelessNetwork>,
 ) -> Vec<String> {
     let mut seen_network_names = HashSet::new();
     let mut sorted_unique_network_names = vec![];
     for nw in sorted_available_networks {
-        let essid = nw.essid;
+        let essid = nw.essid.clone();
         if !seen_network_names.contains(&essid) {
             seen_network_names.insert(essid.clone());
             sorted_unique_network_names.push(essid);
@@ -81,7 +80,7 @@ mod tests {
                 channel_utilisation: None,
             },
         ];
-        let unique_network_names = get_ordered_unique_network_names(sorted_available_networks);
+        let unique_network_names = get_ordered_unique_network_names(&sorted_available_networks);
         let expected_names = vec!["DOOK".to_string(), "BOYS".to_string(), "YES".to_string()];
 
         assert_eq![unique_network_names, expected_names];

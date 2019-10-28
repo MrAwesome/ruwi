@@ -12,15 +12,16 @@ fn main() {
     let options = Options {
         scan_type: ScanType::WpaCli,
         selection_method: SelectionMethod::Dmenu,
-        output_types: vec![OutputType::ListAllNetworks],
+        output_types: vec![OutputType::NetctlConfig],
         interface: "wlp3s0".to_string(),
         connect_via: Some(ConnectionType::Netctl),
     };
 
-    let scan_result = wifi_scan(options.clone()).unwrap();
+    // TODO: handle instead of unwrap
+    let scan_result = wifi_scan(&options).unwrap();
     // TODO: push the result handling back into the parser? or have an overall error handler
     // which prints diagnostics when fatal errors are encountered
-    let parse_results = parse_result(options.clone(), scan_result.clone());
+    let parse_results = parse_result(&options, &scan_result);
     let mut available_networks = parse_results
         .clone()
         .expect("Failed to parse!")
@@ -29,16 +30,16 @@ fn main() {
     available_networks.sort();
     available_networks.reverse();
     let rev_sorted_available_networks = available_networks;
-    let selected_network = select_network(options.clone(), rev_sorted_available_networks.clone());
+    let selected_network = select_network(&options, &rev_sorted_available_networks);
 
     // TODO: handle intelligently:
     let selected_network = selected_network.unwrap();
-    let encryption_key = get_password(options.clone(), selected_network.clone());
+    let encryption_key = get_password(&options, &selected_network);
 
     // TODO: handle intelligently:
     let encryption_key = encryption_key.unwrap();
-    let output_results = send_outputs(options.clone(), selected_network.clone(), encryption_key);
-    let connection_result = connect_to_network(options.clone(), selected_network.clone());
+    let output_results = send_outputs(&options, &selected_network, &encryption_key);
+    let connection_result = connect_to_network(&options, &selected_network);
     dbg!(scan_result);
     dbg!(parse_results);
     dbg!(rev_sorted_available_networks);
