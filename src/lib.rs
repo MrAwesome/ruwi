@@ -6,10 +6,10 @@ pub mod password_prompt;
 pub mod scan;
 pub mod select;
 pub mod select_network;
+pub mod sort_networks;
 pub mod structs;
 
 #[cfg(test)]
 mod tests {
     // use super::*;
-
 }

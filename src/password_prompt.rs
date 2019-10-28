@@ -1,10 +1,11 @@
 use crate::select::*;
 use crate::structs::*;
+use std::io;
 
 pub fn get_password(
     options: &Options,
     selected_network: &WirelessNetwork,
-) -> Result<Option<String>, SelectionError> {
+) -> io::Result<Option<String>> {
     if selected_network.wpa {
         let pw = prompt_for_password(&options, &selected_network.essid)?;
         Ok(Some(pw))
@@ -13,14 +14,11 @@ pub fn get_password(
     }
 }
 
-pub fn prompt_for_password(
-    options: &Options,
-    network_name: &String,
-) -> Result<String, SelectionError> {
+pub fn prompt_for_password(options: &Options, network_name: &String) -> io::Result<String> {
     match &options.selection_method {
         SelectionMethod::Dmenu => {
             run_dmenu(options, &format!("Password for {}:", network_name), &vec![])
         }
-        SelectionMethod::Fzf => Err(SelectionError::NotImplemented),
+        x @ SelectionMethod::Fzf => Err(nie(x)),
     }
 }

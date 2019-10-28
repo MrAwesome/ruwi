@@ -1,32 +1,41 @@
 use crate::select::*;
 use crate::structs::*;
 use std::collections::HashSet;
+use std::io;
 
 // TODO: implement errors etc here
 pub fn select_network(
     options: &Options,
     sorted_available_networks: &Vec<WirelessNetwork>,
-) -> Result<WirelessNetwork, SelectionError> {
+) -> io::Result<WirelessNetwork> {
     let sorted_unique_network_names = get_ordered_unique_network_names(&sorted_available_networks);
-    let selected_network_name = run_dmenu(
-        &options,
-        &"Select a network:".to_string(),
-        &sorted_unique_network_names,
-    )?;
+    let selected_network_name = match &options.selection_method {
+        SelectionMethod::Dmenu => run_dmenu(
+            &options,
+            &"Select a network:".to_string(),
+            &sorted_unique_network_names,
+        ),
+        x @ SelectionMethod::Fzf => Err(nie(x)),
+    }?;
 
     let selected_network = sorted_available_networks
         .iter()
         .filter(|nw| nw.essid == selected_network_name)
         .next();
 
-    match selected_network {
+    let res = match selected_network {
         Some(nw) => Ok(nw.clone()),
-        None => Err(SelectionError::NoMatchingNetworkFromSelection),
+        None => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "No matching networks for selection",
+        )),
+    };
+
+    if options.debug {
+        dbg!(&res);
     }
-    // let network_name = match &options.selection_method {
-    //     SelectionMethod::Dmenu => run_dmenu(options.clone(), sorted_available_networks),
-    //     SelectionMethod::Fzf => (),
-    // };
+
+    res
 }
 
 pub fn get_ordered_unique_network_names(

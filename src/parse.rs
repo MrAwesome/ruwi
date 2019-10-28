@@ -1,23 +1,35 @@
 use crate::structs::*;
+use std::io;
 
-pub fn parse_result(
-    options: &Options,
-    scan_result: &ScanResult,
-) -> Result<ParseResult, ParseError> {
+pub fn parse_result(options: &Options, scan_result: &ScanResult) -> io::Result<ParseResult> {
     // TODO: if scan type isn't specified, and parsing or scanning fails, try another scan type
-    match &scan_result.scan_type {
-        ScanType::IW => Err(ParseError::NotImplemented),
-        ScanType::IWList => Err(ParseError::NotImplemented),
+    let res = match &scan_result.scan_type {
+        x @ ScanType::IW => Err(nie(x)),
+        x @ ScanType::IWList => Err(nie(x)),
         ScanType::WpaCli => parse_wpa_cli_scan(&scan_result.output),
+    };
+
+    if options.debug {
+        dbg!(&res);
     }
+
+    res
 }
 
-pub fn parse_wpa_cli_scan(output: &String) -> Result<ParseResult, ParseError> {
+pub(crate) fn missing_cli_header() -> io::Error {
+    io::Error::new(
+        io::ErrorKind::InvalidInput,
+        "`wpa_cli scan_results` header malformed or missing",
+    )
+}
+
+pub fn parse_wpa_cli_scan(output: &String) -> io::Result<ParseResult> {
     let mut lines = output.lines().map(|x| x.to_string());
     let mut networks = vec![];
     let mut line_parse_errors = vec![];
-    let _header1 = lines.next().ok_or(ParseError::MissingWpaCliHeader)?;
-    let _header2 = lines.next().ok_or(ParseError::MissingWpaCliHeader)?;
+
+    let _header1 = lines.next().ok_or(missing_cli_header())?;
+    let _header2 = lines.next().ok_or(missing_cli_header())?;
     for line in lines {
         let res = parse_wpa_line_into_network(line.to_string());
         match res {
@@ -84,6 +96,7 @@ mod tests {
             selection_method: SelectionMethod::Dmenu,
             output_types: vec![],
             connect_via: None,
+            debug: true,
         }
     }
 
@@ -114,7 +127,7 @@ mod tests {
         }
     }
 
-    fn get_expected_result(text_type: NetworkTextType) -> Result<ParseResult, ParseError> {
+    fn get_expected_result(text_type: NetworkTextType) -> io::Result<ParseResult> {
         match text_type {
             NetworkTextType::WpaCliTwoDifferentNetworks => Ok(ParseResult {
                 scan_type: ScanType::WpaCli,
@@ -220,7 +233,7 @@ mod tests {
                     IndividualParseError::FailedToParseSignalLevel,
                 )],
             }),
-            NetworkTextType::BrokenInputTwoWords => Err(ParseError::MissingWpaCliHeader),
+            NetworkTextType::BrokenInputTwoWords => Err(missing_cli_header()),
         }
     }
 
@@ -242,7 +255,12 @@ mod tests {
                 assert_eq![parse_result, expected_result];
             }
             (Err(parse_error), Err(expected_error)) => {
-                assert_eq![parse_error, expected_error];
+                let parse_desc = parse_error.to_string();
+                let expct_desc = expected_error.to_string();
+                assert_eq![parse_desc, expct_desc];
+                let parse_kind = parse_error.kind();
+                let expct_kind = expected_error.kind();
+                assert_eq![parse_kind, expct_kind];
             }
             (_, _) => {
                 println!("Full parse result: {:?}", full_parse_result);
