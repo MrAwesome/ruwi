@@ -1,4 +1,5 @@
 #![deny(warnings)]
+#![deny(clippy::all)]
 pub mod connect;
 pub mod netctl_config_writer;
 pub mod output;
