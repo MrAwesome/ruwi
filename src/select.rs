@@ -4,11 +4,7 @@ use std::io;
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-pub fn run_dmenu(
-    _options: &Options,
-    prompt: &String,
-    elements: &Vec<String>,
-) -> io::Result<String> {
+pub fn run_dmenu(_options: &Options, prompt: &str, elements: &[String]) -> io::Result<String> {
     let input_text = elements.join("\n");
     let mut child = Command::new("dmenu")
         .arg("-i")
@@ -18,10 +14,10 @@ pub fn run_dmenu(
         .stdout(Stdio::piped())
         .spawn()?;
 
-    let stdin = child.stdin.as_mut().ok_or(io::Error::new(
-        io::ErrorKind::InvalidInput,
-        "Stdin to prompt failed",
-    ))?;
+    let stdin = child
+        .stdin
+        .as_mut()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "Stdin to prompt failed"))?;
 
     stdin.write_all(input_text.as_bytes())?;
 

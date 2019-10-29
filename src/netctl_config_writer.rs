@@ -22,7 +22,7 @@ pub fn netctl_config_write(
     })
 }
 
-pub(crate) fn get_netctl_file_name(essid: &String) -> String {
+pub(crate) fn get_netctl_file_name(essid: &str) -> String {
     essid.replace(" ", "_")
 }
 

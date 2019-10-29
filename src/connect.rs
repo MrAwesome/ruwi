@@ -11,7 +11,7 @@ pub fn connect_to_network(
 ) -> io::Result<ConnectionResult> {
     // TODO: implement
     let res = match &options.connect_via {
-        Some(ConnectionType::Netctl) => connect_via_netctl(&options, &selected_network),
+        Some(ConnectionType::Netctl) => connect_via_netctl(options, selected_network),
         x @ Some(_) => Err(nie(x)),
         None => Ok(ConnectionResult {
             connection_type: ConnectionType::None,

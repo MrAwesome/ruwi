@@ -6,12 +6,12 @@ use std::io;
 // TODO: implement errors etc here
 pub fn select_network(
     options: &Options,
-    sorted_available_networks: &Vec<WirelessNetwork>,
+    sorted_available_networks: &[WirelessNetwork],
 ) -> io::Result<WirelessNetwork> {
-    let sorted_unique_network_names = get_ordered_unique_network_names(&sorted_available_networks);
+    let sorted_unique_network_names = get_ordered_unique_network_names(sorted_available_networks);
     let selected_network_name = match &options.selection_method {
         SelectionMethod::Dmenu => run_dmenu(
-            &options,
+            options,
             &"Select a network:".to_string(),
             &sorted_unique_network_names,
         ),
@@ -20,8 +20,7 @@ pub fn select_network(
 
     let selected_network = sorted_available_networks
         .iter()
-        .filter(|nw| nw.essid == selected_network_name)
-        .next();
+        .find(|nw| nw.essid == selected_network_name);
 
     let res = match selected_network {
         Some(nw) => Ok(nw.clone()),
@@ -39,7 +38,7 @@ pub fn select_network(
 }
 
 pub fn get_ordered_unique_network_names(
-    sorted_available_networks: &Vec<WirelessNetwork>,
+    sorted_available_networks: &[WirelessNetwork],
 ) -> Vec<String> {
     let mut seen_network_names = HashSet::new();
     let mut sorted_unique_network_names = vec![];

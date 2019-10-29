@@ -30,6 +30,6 @@ pub fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
     let output = String::from_utf8_lossy(&res.stdout).to_string();
     Ok(ScanResult {
         scan_type: ScanType::WpaCli,
-        output: output,
+        output,
     })
 }

@@ -24,7 +24,7 @@ fn send_output(
     // TODO: match output types
     let res = match output_type {
         OutputType::NetctlConfig => netctl_config_write(options, network, encryption_key),
-        x @ _ => Err(nie(x)),
+        x => Err(nie(x)),
     };
 
     if options.debug {

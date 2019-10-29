@@ -23,13 +23,13 @@ pub(crate) fn missing_cli_header() -> io::Error {
     )
 }
 
-pub fn parse_wpa_cli_scan(output: &String) -> io::Result<ParseResult> {
+pub fn parse_wpa_cli_scan(output: &str) -> io::Result<ParseResult> {
     let mut lines = output.lines().map(|x| x.to_string());
     let mut networks = vec![];
     let mut line_parse_errors = vec![];
 
-    let _header1 = lines.next().ok_or(missing_cli_header())?;
-    let _header2 = lines.next().ok_or(missing_cli_header())?;
+    let _header1 = lines.next().ok_or_else(missing_cli_header)?;
+    let _header2 = lines.next().ok_or_else(missing_cli_header)?;
     for line in lines {
         let res = parse_wpa_line_into_network(line.to_string());
         match res {
@@ -41,7 +41,7 @@ pub fn parse_wpa_cli_scan(output: &String) -> io::Result<ParseResult> {
     Ok(ParseResult {
         scan_type: ScanType::WpaCli,
         seen_networks: networks,
-        line_parse_errors: line_parse_errors,
+        line_parse_errors,
     })
 }
 
@@ -66,8 +66,8 @@ pub fn parse_wpa_line_into_network(line: String) -> Result<WirelessNetwork, Indi
         .or(Err(IndividualParseError::FailedToParseSignalLevel))?;
 
     Ok(WirelessNetwork {
-        essid: essid.to_string(),
-        wpa: wpa,
+        essid,
+        wpa,
         bssid: Some(bssid.to_string()),
         signal_strength: Some(signal_strength),
         channel_utilisation: None,
