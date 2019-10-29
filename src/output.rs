@@ -20,8 +20,6 @@ fn send_output(
     network: &WirelessNetwork,
     encryption_key: &Option<String>,
 ) -> io::Result<OutputResult> {
-    // TODO: implement
-    // TODO: match output types
     let res = match output_type {
         OutputType::NetctlConfig => netctl_config_write(options, network, encryption_key),
         x => Err(nie(x)),

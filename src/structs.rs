@@ -72,7 +72,7 @@ pub enum IndividualParseError {
     FailedToParseSignalLevel,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WirelessNetwork {
     pub essid: String,
     pub wpa: bool,
@@ -91,7 +91,12 @@ pub struct OutputResult {
 pub struct ConnectionResult {
     pub connection_type: ConnectionType,
     pub cmd_output: Option<Output>,
-    //pub result: Result<String, String>,
     //ipv4_addr: Option<String>,
     //ipv6_addr: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct RuwiResult {
+    pub output_results: Vec<io::Result<OutputResult>>,
+    pub connection_result: io::Result<ConnectionResult>,
 }
