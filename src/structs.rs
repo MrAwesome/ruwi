@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 use std::io;
+use std::process::Output;
 
 pub fn nie<T: Debug>(prog: T) -> io::Error {
     println!();
@@ -18,6 +19,7 @@ pub enum ScanType {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum OutputType {
+    None,
     ListAllNetworks,
     PrintAllNetworksInfo,
     PrintSelectedNetwork,
@@ -36,6 +38,7 @@ pub enum SelectionMethod {
 pub enum ConnectionType {
     Netctl,
     NetworkManager,
+    None,
 }
 
 #[derive(Debug, Clone)]
@@ -81,12 +84,14 @@ pub struct WirelessNetwork {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OutputResult {
     pub output_type: OutputType,
+    pub output_output: Option<Output>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConnectionResult {
     pub connection_type: ConnectionType,
-    pub result: Result<String, String>,
+    pub cmd_output: Option<Output>,
+    //pub result: Result<String, String>,
     //ipv4_addr: Option<String>,
     //ipv6_addr: Option<String>,
 }

@@ -7,8 +7,6 @@ use ruwi::select_network::*;
 use ruwi::sort_networks::*;
 use ruwi::structs::*;
 
-// TODO: During debugging only
-#[allow(unused_must_use)]
 fn main() {
     let options = Options {
         scan_type: ScanType::WpaCli,
@@ -26,6 +24,6 @@ fn main() {
     let available_networks = get_and_sort_available_networks(&options, &parse_results);
     let selected_network = select_network(&options, &available_networks).unwrap();
     let encryption_key = get_password(&options, &selected_network).unwrap();
-    let output_results = send_outputs(&options, &selected_network, &encryption_key);
-    let connection_result = connect_to_network(&options, &selected_network);
+    let _output_results = send_outputs(&options, &selected_network, &encryption_key);
+    let _connection_result = connect_to_network(&options, &selected_network);
 }

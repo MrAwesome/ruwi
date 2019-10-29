@@ -1,3 +1,4 @@
+#![deny(warnings)]
 pub mod connect;
 pub mod netctl_config_writer;
 pub mod output;

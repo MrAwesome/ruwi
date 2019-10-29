@@ -10,7 +10,7 @@ pub fn netctl_config_write(
 ) -> io::Result<OutputResult> {
     let contents = get_netctl_config_contents(options, network, encryption_key);
 
-    let netctl_file_name = network.essid.replace(" ", "_");
+    let netctl_file_name = get_netctl_file_name(&network.essid);
     let netctl_location = "/etc/netctl/".to_string();
 
     let fullpath = netctl_location + &netctl_file_name;
@@ -18,7 +18,12 @@ pub fn netctl_config_write(
     File::create(fullpath)?.write_all(contents.as_bytes())?;
     Ok(OutputResult {
         output_type: OutputType::NetctlConfig,
+        output_output: None,
     })
+}
+
+pub(crate) fn get_netctl_file_name(essid: &String) -> String {
+    essid.replace(" ", "_")
 }
 
 pub fn get_netctl_config_contents(
