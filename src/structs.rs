@@ -18,7 +18,7 @@ impl Default for ScanType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, EnumString)]
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
 #[strum(serialize_all = "snake_case")]
 pub enum OutputType {
     None,
@@ -31,19 +31,39 @@ pub enum OutputType {
     NetworkManagerConfig,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, EnumString)]
+impl Default for OutputType {
+    fn default() -> Self {
+        // TODO: come up with a better value
+        OutputType::NetctlConfig
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
 #[strum(serialize_all = "snake_case")]
 pub enum SelectionMethod {
     Dmenu,
     Fzf,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, EnumString)]
+// TODO: determine more intelligently?
+impl Default for SelectionMethod {
+    fn default() -> Self {
+        SelectionMethod::Dmenu
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
 #[strum(serialize_all = "snake_case")]
 pub enum ConnectionType {
     Netctl,
     NetworkManager,
     None,
+}
+
+impl Default for ConnectionType {
+    fn default() -> Self {
+        ConnectionType::Netctl
+    }
 }
 
 #[derive(Debug, Clone)]

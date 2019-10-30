@@ -12,7 +12,7 @@ where
     E::iter().map(|x| x.as_static()).collect::<Vec<_>>()
 }
 
-fn get_val<T: FromStr + Default>(m: ArgMatches, arg: &str) -> T
+fn get_val<T: FromStr + Default>(m: &ArgMatches, arg: &str) -> T
 where
     <T as std::str::FromStr>::Err: std::fmt::Debug,
 {
@@ -35,9 +35,16 @@ fn get_matches<'a>() -> ArgMatches<'a> {
     let scan_type = Arg::with_name("scan_type")
         .short("t")
         .long("scan_type")
-        .default_value("wpa_cli")
+        .default_value(&ScanType::default().as_static())
         .possible_values(&possible_vals::<ScanType, _>())
-        .help("The scanning method to use. Only wpa_cli is currently implemented.");
+        .help("The wifi scanning program to use under the hood.");
+
+    let selection_method = Arg::with_name("selection_method")
+        .short("s")
+        .long("selection_method")
+        .default_value(&SelectionMethod::default().as_static())
+        .possible_values(&possible_vals::<SelectionMethod, _>())
+        .help("The program to use to prompt for input.");
 
     App::new("Rust Wireless Manager")
         .version("0.2")
@@ -45,6 +52,7 @@ fn get_matches<'a>() -> ArgMatches<'a> {
         .about("Finds, selects, and configures new wireless networks.")
         .subcommand(list_networks)
         .arg(debug)
+        .arg(selection_method)
         .arg(scan_type)
         .get_matches()
 }
@@ -54,15 +62,12 @@ pub fn get_options() -> Options {
 
     let debug = m.is_present("debug");
 
-    let x = match m.value_of("scan_type") {
-        Some(x) => ScanType::from_str(x).expect(&format!("Failed to parse {}", "scan_type")),
-        None => ScanType::default(),
-    };
-    let scan_type = get_val::<ScanType>(m, "scan_type");
+    let scan_type = get_val::<ScanType>(&m, "scan_type");
+    let selection_method = get_val::<SelectionMethod>(&m, "selection_method");
 
     let opts = Options {
         scan_type,
-        selection_method: SelectionMethod::Dmenu,
+        selection_method,
         output_types: vec![OutputType::NetctlConfig],
         interface: "wlp3s0".to_string(),
         connect_via: Some(ConnectionType::Netctl),
