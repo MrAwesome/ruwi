@@ -14,7 +14,11 @@ pub fn select_network(
             &"Select a network:".to_string(),
             &sorted_unique_network_names,
         ),
-        x @ SelectionMethod::Fzf => Err(nie(x)),
+        SelectionMethod::Fzf => run_fzf(
+            options,
+            &"Select a network:".to_string(),
+            &sorted_unique_network_names,
+        ),
     }?;
 
     let selected_network = sorted_available_networks

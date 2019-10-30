@@ -4,15 +4,26 @@ use std::io;
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-pub fn run_dmenu(_options: &Options, prompt: &str, elements: &[String]) -> io::Result<String> {
+pub fn run_dmenu(options: &Options, prompt: &str, elements: &[String]) -> io::Result<String> {
+    let mut cmd = Command::new("dmenu");
+    let cmd = cmd.arg("-i").arg("-p").arg(prompt);
+    run_prompt_cmd(options, prompt, elements, cmd)
+}
+
+pub fn run_fzf(options: &Options, prompt: &str, elements: &[String]) -> io::Result<String> {
+    let mut cmd = Command::new("fzf");
+    let cmd = cmd.arg(&format!("--prompt={}", prompt));
+    run_prompt_cmd(options, prompt, elements, cmd)
+}
+
+fn run_prompt_cmd(
+    _options: &Options,
+    _prompt: &str,
+    elements: &[String],
+    cmd: &mut Command,
+) -> io::Result<String> {
     let input_text = elements.join("\n");
-    let mut child = Command::new("dmenu")
-        .arg("-i")
-        .arg("-p")
-        .arg(prompt)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .spawn()?;
+    let mut child = cmd.stdin(Stdio::piped()).stdout(Stdio::piped()).spawn()?;
 
     let stdin = child
         .stdin
