@@ -1,18 +1,8 @@
 use crate::structs::*;
 use clap::{App, Arg, ArgMatches, SubCommand};
+use std::str::FromStr;
 use strum::AsStaticRef;
 use strum::IntoEnumIterator;
-
-//fn get_all_vals<'a, T: Iterator<Item = AsStaticRef>>(lawl: T) -> &'a [&'static str] {
-//fn get_all_vals<'a, T: AsStaticRef, I: Iterator<Item = T>>(iter: I) -> &'a [&'static str] {
-//    //let lawl = ScanType::iter();
-//    &iter.map(|x| x.as_static()).collect::<Vec<_>>()[..]
-//}
-
-fn lawl() {
-    let lawl: Vec<&'static str> = possible_vals::<ScanType, _>();
-    dbg!(lawl);
-}
 
 fn possible_vals<'a, E, I>() -> Vec<&'static str>
 where
@@ -22,8 +12,18 @@ where
     E::iter().map(|x| x.as_static()).collect::<Vec<_>>()
 }
 
+fn get_val<T: FromStr + Default>(m: ArgMatches, arg: &str) -> T
+where
+    <T as std::str::FromStr>::Err: std::fmt::Debug,
+{
+    let scan_type = match m.value_of(arg) {
+        Some(x) => T::from_str(x).expect("Failed to parse!"),
+        None => T::default(),
+    };
+    scan_type
+}
+
 fn get_matches<'a>() -> ArgMatches<'a> {
-    lawl();
     let debug = Arg::with_name("debug")
         .short("d")
         .long("debug")
@@ -54,16 +54,11 @@ pub fn get_options() -> Options {
 
     let debug = m.is_present("debug");
 
-    let nm = m.value_of("scan_type").or(Some("wpa_cli"));
-    //dbg!(ScanType::iter());
-
-    //let lawl = ScanType::from_str(nm);
-    //ScanType.default_value();
-    //dbg!(lawl);
-    let lawl = ScanType::iter().collect::<Vec<_>>();
-    dbg!(lawl);
-
-    let scan_type = ScanType::WpaCli;
+    let x = match m.value_of("scan_type") {
+        Some(x) => ScanType::from_str(x).expect(&format!("Failed to parse {}", "scan_type")),
+        None => ScanType::default(),
+    };
+    let scan_type = get_val::<ScanType>(m, "scan_type");
 
     let opts = Options {
         scan_type,
