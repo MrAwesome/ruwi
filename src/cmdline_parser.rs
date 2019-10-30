@@ -14,7 +14,7 @@ where
 
 fn get_val<T: FromStr + Default>(m: &ArgMatches, arg: &str) -> T
 where
-    <T as std::str::FromStr>::Err: std::fmt::Debug,
+    T::Err: std::fmt::Debug,
 {
     let scan_type = match m.value_of(arg) {
         Some(x) => T::from_str(x).expect(&format!("Failed to parse: {}", arg)),
