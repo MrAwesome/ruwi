@@ -11,12 +11,13 @@ pub fn connect_to_network(
 ) -> io::Result<ConnectionResult> {
     // TODO: implement
     let res = match &options.connect_via {
-        Some(ConnectionType::Netctl) => connect_via_netctl(options, selected_network),
-        x @ Some(_) => Err(nie(x)),
-        None => Ok(ConnectionResult {
+        ConnectionType::Netctl => connect_via_netctl(options, selected_network),
+        ConnectionType::None => Ok(ConnectionResult {
             connection_type: ConnectionType::None,
             cmd_output: None,
         }),
+        // TODO: implement
+        x @ _ => Err(nie(x)),
     };
     if options.debug {
         dbg!(&res);

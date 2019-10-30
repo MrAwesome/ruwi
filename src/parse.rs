@@ -94,8 +94,8 @@ mod tests {
             scan_type: ScanType::WpaCli,
             interface: "some_fake_name".to_string(),
             selection_method: SelectionMethod::Dmenu,
-            output_types: vec![],
-            connect_via: None,
+            output_type: OutputType::None,
+            connect_via: ConnectionType::None,
             debug: true,
         }
     }

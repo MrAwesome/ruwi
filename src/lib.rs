@@ -37,10 +37,10 @@ pub fn run_ruwi(options: &Options) -> RuwiResult {
     let available_networks = get_and_sort_available_networks(&options, &parse_results);
     let selected_network = select_network(&options, &available_networks).unwrap();
     let encryption_key = get_password(&options, &selected_network).unwrap();
-    let output_results = send_outputs(&options, &selected_network, &encryption_key);
+    let output_result = send_output(&options, &selected_network, &encryption_key);
     let connection_result = connect_to_network(&options, &selected_network);
     RuwiResult {
-        output_results,
+        output_result,
         connection_result,
     }
 }

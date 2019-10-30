@@ -34,7 +34,7 @@ pub enum OutputType {
 impl Default for OutputType {
     fn default() -> Self {
         // TODO: come up with a better value
-        OutputType::NetctlConfig
+        OutputType::None
     }
 }
 
@@ -55,9 +55,9 @@ impl Default for SelectionMethod {
 #[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
 #[strum(serialize_all = "snake_case")]
 pub enum ConnectionType {
+    None,
     Netctl,
     NetworkManager,
-    None,
 }
 
 impl Default for ConnectionType {
@@ -72,8 +72,8 @@ pub struct Options {
     pub selection_method: SelectionMethod,
     // TODO: make Option, and scan for interface if not given
     pub interface: String,
-    pub output_types: Vec<OutputType>,
-    pub connect_via: Option<ConnectionType>,
+    pub output_type: OutputType,
+    pub connect_via: ConnectionType,
     pub debug: bool,
 }
 
@@ -122,7 +122,7 @@ pub struct ConnectionResult {
 
 #[derive(Debug)]
 pub struct RuwiResult {
-    pub output_results: Vec<io::Result<OutputResult>>,
+    pub output_result: io::Result<OutputResult>,
     pub connection_result: io::Result<ConnectionResult>,
 }
 
