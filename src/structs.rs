@@ -1,40 +1,45 @@
 use std::fmt::Debug;
 use std::io;
 use std::process::Output;
+use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
-pub fn nie<T: Debug>(prog: T) -> io::Error {
-    println!();
-    io::Error::new(
-        io::ErrorKind::InvalidInput,
-        format!("Not implemented: {:?}", prog),
-    )
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[strum(serialize_all = "snake_case")]
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
 pub enum ScanType {
     IW,
+    #[strum(serialize = "iwlist")]
     IWList,
     WpaCli,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+impl Default for ScanType {
+    fn default() -> Self {
+        ScanType::WpaCli
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, EnumString)]
+#[strum(serialize_all = "snake_case")]
 pub enum OutputType {
     None,
     ListAllNetworks,
-    PrintAllNetworksInfo,
+    PrintInfoForAllNetworks,
     PrintSelectedNetwork,
     PrintSelectedNetworkInfo,
     NetctlConfig,
+    #[strum(serialize = "networkmanager_config")]
     NetworkManagerConfig,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, EnumString)]
+#[strum(serialize_all = "snake_case")]
 pub enum SelectionMethod {
     Dmenu,
     Fzf,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, EnumString)]
+#[strum(serialize_all = "snake_case")]
 pub enum ConnectionType {
     Netctl,
     NetworkManager,
@@ -99,4 +104,12 @@ pub struct ConnectionResult {
 pub struct RuwiResult {
     pub output_results: Vec<io::Result<OutputResult>>,
     pub connection_result: io::Result<ConnectionResult>,
+}
+
+pub fn nie<T: Debug>(prog: T) -> io::Error {
+    println!();
+    io::Error::new(
+        io::ErrorKind::InvalidInput,
+        format!("Not implemented: {:?}", prog),
+    )
 }

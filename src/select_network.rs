@@ -3,7 +3,6 @@ use crate::structs::*;
 use std::collections::HashSet;
 use std::io;
 
-// TODO: implement errors etc here
 pub fn select_network(
     options: &Options,
     sorted_available_networks: &[WirelessNetwork],

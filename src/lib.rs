@@ -1,5 +1,11 @@
-#![deny(warnings)]
-#![deny(clippy::all)]
+// #![deny(warnings)]
+// #![deny(clippy::all)]
+
+extern crate clap;
+extern crate strum;
+extern crate strum_macros;
+
+pub mod cmdline_parser;
 pub mod connect;
 pub mod netctl_config_writer;
 pub mod output;
@@ -19,6 +25,9 @@ use scan::*;
 use select_network::*;
 use sort_networks::*;
 use structs::*;
+
+// TODO: come up with subcommands which only run specified pieces
+// TODO: make sure fzf and dmenu are listed as dependencies
 
 pub fn run_ruwi(options: &Options) -> RuwiResult {
     // TODO: push the result handling back into the parser? or have an overall error handler
