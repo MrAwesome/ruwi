@@ -62,7 +62,7 @@ pub enum ConnectionType {
 
 impl Default for ConnectionType {
     fn default() -> Self {
-        ConnectionType::Netctl
+        ConnectionType::None
     }
 }
 

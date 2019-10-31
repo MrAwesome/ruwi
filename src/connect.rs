@@ -7,11 +7,16 @@ use std::process::{Command, Stdio};
 
 pub fn connect_to_network(
     options: &Options,
-    selected_network: &WirelessNetwork,
+    selected_network: &Option<WirelessNetwork>,
 ) -> io::Result<ConnectionResult> {
     // TODO: implement
     let res = match &options.connect_via {
-        ConnectionType::Netctl => connect_via_netctl(options, selected_network),
+        ConnectionType::Netctl => connect_via_netctl(
+            options,
+            selected_network
+                .as_ref()
+                .expect("Network should be defined for netctl connection."),
+        ),
         ConnectionType::None => Ok(ConnectionResult {
             connection_type: ConnectionType::None,
             cmd_output: None,

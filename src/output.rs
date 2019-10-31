@@ -17,11 +17,17 @@ use std::io;
 
 pub fn send_output(
     options: &Options,
-    network: &WirelessNetwork,
+    network: &Option<WirelessNetwork>,
     encryption_key: &Option<String>,
 ) -> io::Result<OutputResult> {
     let res = match &options.output_type {
-        OutputType::NetctlConfig => netctl_config_write(options, network, encryption_key),
+        OutputType::NetctlConfig => netctl_config_write(
+            options,
+            network
+                .as_ref()
+                .expect("Network should be defined for netctl config output."),
+            encryption_key,
+        ),
         OutputType::None => Ok(OutputResult {
             output_type: OutputType::None,
             output_output: None,

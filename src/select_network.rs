@@ -6,6 +6,22 @@ use std::io;
 pub fn select_network(
     options: &Options,
     sorted_available_networks: &[WirelessNetwork],
+) -> io::Result<Option<WirelessNetwork>> {
+    match options.output_type {
+        OutputType::NetctlConfig
+        | OutputType::NetworkManagerConfig
+        | OutputType::PrintSelectedNetwork
+        | OutputType::PrintSelectedNetworkInfo => {
+            let nw = select_network_impl(options, sorted_available_networks)?;
+            Ok(Some(nw))
+        }
+        _ => Ok(None),
+    }
+}
+
+pub fn select_network_impl(
+    options: &Options,
+    sorted_available_networks: &[WirelessNetwork],
 ) -> io::Result<WirelessNetwork> {
     let sorted_unique_network_names = get_ordered_unique_network_names(sorted_available_networks);
     let selected_network_name = match &options.selection_method {

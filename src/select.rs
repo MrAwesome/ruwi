@@ -1,6 +1,7 @@
 use crate::structs::*;
 
 use std::io;
+use std::io::BufRead;
 use std::io::Write;
 use std::process::{Command, Stdio};
 
@@ -14,6 +15,22 @@ pub fn run_fzf(options: &Options, prompt: &str, elements: &[String]) -> io::Resu
     let mut cmd = Command::new("fzf");
     let cmd = cmd.arg(&format!("--prompt={}", prompt));
     run_prompt_cmd(options, prompt, elements, cmd)
+}
+
+pub fn run_stdin_prompt_single_line(
+    _options: &Options,
+    prompt: &str,
+    _elements: &[String],
+) -> io::Result<String> {
+    print!("{}", prompt);
+    io::stdout().flush()?;
+    let stdin = io::stdin();
+    let line = stdin
+        .lock()
+        .lines()
+        .next()
+        .expect("Failed to read line from stdin!");
+    line
 }
 
 fn run_prompt_cmd(
