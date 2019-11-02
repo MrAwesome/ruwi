@@ -5,7 +5,7 @@ use std::process::{Command, Stdio};
 
 // TODO: start netctl/networkmanager if they aren't already running and connection is requested
 
-pub fn connect_to_network(
+pub(crate) fn connect_to_network(
     options: &Options,
     selected_network: &Option<WirelessNetwork>,
 ) -> io::Result<ConnectionResult> {
@@ -31,7 +31,7 @@ pub fn connect_to_network(
     res
 }
 
-pub fn connect_via_netctl(
+pub(crate) fn connect_via_netctl(
     _options: &Options,
     selected_network: &WirelessNetwork,
 ) -> io::Result<ConnectionResult> {

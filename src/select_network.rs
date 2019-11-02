@@ -3,7 +3,7 @@ use crate::structs::*;
 use std::collections::HashSet;
 use std::io;
 
-pub fn select_network(
+pub(crate) fn select_network(
     options: &Options,
     sorted_available_networks: &[WirelessNetwork],
 ) -> io::Result<Option<WirelessNetwork>> {
@@ -19,7 +19,7 @@ pub fn select_network(
     }
 }
 
-pub fn select_network_impl(
+pub(crate) fn select_network_impl(
     options: &Options,
     sorted_available_networks: &[WirelessNetwork],
 ) -> io::Result<WirelessNetwork> {
@@ -56,7 +56,7 @@ pub fn select_network_impl(
     res
 }
 
-pub fn get_ordered_unique_network_names(
+pub(crate) fn get_ordered_unique_network_names(
     sorted_available_networks: &[WirelessNetwork],
 ) -> Vec<String> {
     let mut seen_network_names = HashSet::new();

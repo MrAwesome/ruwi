@@ -126,7 +126,7 @@ pub struct RuwiResult {
     pub connection_result: io::Result<ConnectionResult>,
 }
 
-pub fn nie<T: Debug>(prog: T) -> io::Error {
+pub(crate) fn nie<T: Debug>(prog: T) -> io::Error {
     println!();
     io::Error::new(
         io::ErrorKind::InvalidInput,

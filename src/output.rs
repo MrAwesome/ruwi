@@ -3,7 +3,7 @@ use crate::structs::*;
 use std::io;
 
 // For multiple outputs:
-//pub fn send_outputs(
+//pub(crate) fn send_outputs(
 //    options: &Options,
 //    network: &WirelessNetwork,
 //    encryption_key: &Option<String>,
@@ -15,7 +15,7 @@ use std::io;
 //        .collect()
 //}
 
-pub fn send_output(
+pub(crate) fn send_output(
     options: &Options,
     network: &Option<WirelessNetwork>,
     encryption_key: &Option<String>,

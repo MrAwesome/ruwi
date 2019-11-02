@@ -14,7 +14,7 @@ impl PartialOrd for WirelessNetwork {
     }
 }
 
-pub fn get_and_sort_available_networks(
+pub(crate) fn get_and_sort_available_networks(
     options: &Options,
     parse_results: &ParseResult,
 ) -> Vec<WirelessNetwork> {
@@ -28,7 +28,7 @@ pub fn get_and_sort_available_networks(
     sorted_networks
 }
 
-pub fn put_strongest_networks_first(networks: &mut Vec<WirelessNetwork>) {
+pub(crate) fn put_strongest_networks_first(networks: &mut Vec<WirelessNetwork>) {
     networks.sort();
     networks.reverse();
 }

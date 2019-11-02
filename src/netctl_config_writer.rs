@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io;
 use std::io::Write;
 
-pub fn netctl_config_write(
+pub(crate) fn netctl_config_write(
     options: &Options,
     network: &WirelessNetwork,
     encryption_key: &Option<String>,
@@ -26,7 +26,7 @@ pub(crate) fn get_netctl_file_name(essid: &str) -> String {
     essid.replace(" ", "_")
 }
 
-pub fn get_netctl_config_contents(
+pub(crate) fn get_netctl_config_contents(
     options: &Options,
     network: &WirelessNetwork,
     encryption_key: &Option<String>,

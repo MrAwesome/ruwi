@@ -2,7 +2,7 @@ use crate::select::*;
 use crate::structs::*;
 use std::io;
 
-pub fn get_password(
+pub(crate) fn get_password(
     options: &Options,
     selected_network: &Option<WirelessNetwork>,
 ) -> io::Result<Option<String>> {
@@ -29,7 +29,7 @@ pub fn get_password(
     pw
 }
 
-pub fn prompt_for_password(options: &Options, network_name: &str) -> io::Result<String> {
+pub(crate) fn prompt_for_password(options: &Options, network_name: &str) -> io::Result<String> {
     match &options.selection_method {
         SelectionMethod::Dmenu => {
             run_dmenu(options, &format!("Password for {}: ", network_name), &[])

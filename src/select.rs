@@ -5,19 +5,23 @@ use std::io::BufRead;
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-pub fn run_dmenu(options: &Options, prompt: &str, elements: &[String]) -> io::Result<String> {
+pub(crate) fn run_dmenu(
+    options: &Options,
+    prompt: &str,
+    elements: &[String],
+) -> io::Result<String> {
     let mut cmd = Command::new("dmenu");
     let cmd = cmd.arg("-i").arg("-p").arg(prompt);
     run_prompt_cmd(options, prompt, elements, cmd)
 }
 
-pub fn run_fzf(options: &Options, prompt: &str, elements: &[String]) -> io::Result<String> {
+pub(crate) fn run_fzf(options: &Options, prompt: &str, elements: &[String]) -> io::Result<String> {
     let mut cmd = Command::new("fzf");
     let cmd = cmd.arg(&format!("--prompt={}", prompt));
     run_prompt_cmd(options, prompt, elements, cmd)
 }
 
-pub fn run_stdin_prompt_single_line(
+pub(crate) fn run_stdin_prompt_single_line(
     _options: &Options,
     prompt: &str,
     _elements: &[String],

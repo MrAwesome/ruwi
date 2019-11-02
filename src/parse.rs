@@ -1,7 +1,7 @@
 use crate::structs::*;
 use std::io;
 
-pub fn parse_result(options: &Options, scan_result: &ScanResult) -> io::Result<ParseResult> {
+pub(crate) fn parse_result(options: &Options, scan_result: &ScanResult) -> io::Result<ParseResult> {
     // TODO: if scan type isn't specified, and parsing or scanning fails, try another scan type
     let res = match &scan_result.scan_type {
         x @ ScanType::IW => Err(nie(x)),
@@ -23,7 +23,7 @@ pub(crate) fn missing_cli_header() -> io::Error {
     )
 }
 
-pub fn parse_wpa_cli_scan(output: &str) -> io::Result<ParseResult> {
+pub(crate) fn parse_wpa_cli_scan(output: &str) -> io::Result<ParseResult> {
     let mut lines = output.lines().map(|x| x.to_string());
     let mut networks = vec![];
     let mut line_parse_errors = vec![];
@@ -45,7 +45,9 @@ pub fn parse_wpa_cli_scan(output: &str) -> io::Result<ParseResult> {
     })
 }
 
-pub fn parse_wpa_line_into_network(line: String) -> Result<WirelessNetwork, IndividualParseError> {
+pub(crate) fn parse_wpa_line_into_network(
+    line: String,
+) -> Result<WirelessNetwork, IndividualParseError> {
     let mut fields = line.split_ascii_whitespace();
 
     let fieldmiss = IndividualParseError::MissingWpaCliResultField;
