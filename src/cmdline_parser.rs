@@ -1,9 +1,12 @@
-use crate::select_interface::get_default_interface;
+use crate::get_default_interface::get_default_interface;
 use crate::structs::*;
 use crate::strum_utils::{get_val, possible_vals};
 use clap::{App, Arg, SubCommand};
+use std::error::Error;
+use std::process::exit;
 use strum::AsStaticRef;
 
+// TODO: allow network name to be provided with -n XXX
 // TODO: detect if run in interactive terminal mode, and use fzf if so - dmenu otherwise
 fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
     let debug = Arg::with_name("debug")
@@ -68,7 +71,14 @@ pub fn get_options() -> Options {
 
     let interface = match m.value_of("interface") {
         Some(val) => String::from(val),
-        None => get_default_interface(debug),
+        None => match get_default_interface(debug) {
+            Ok(int) => int,
+            Err(err) => {
+                // TODO: make a helper function to do this
+                eprintln!("{}", err.description());
+                exit(1);
+            }
+        },
     };
 
     let scan_type = get_val::<ScanType>(&m, "scan_type");

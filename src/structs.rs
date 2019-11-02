@@ -34,7 +34,7 @@ pub enum OutputType {
 impl Default for OutputType {
     fn default() -> Self {
         // TODO: come up with a better value
-        OutputType::None
+        OutputType::NetctlConfig
     }
 }
 
@@ -62,7 +62,7 @@ pub enum ConnectionType {
 
 impl Default for ConnectionType {
     fn default() -> Self {
-        ConnectionType::None
+        ConnectionType::Netctl
     }
 }
 
@@ -70,7 +70,6 @@ impl Default for ConnectionType {
 pub struct Options {
     pub scan_type: ScanType,
     pub selection_method: SelectionMethod,
-    // TODO: make Option, and scan for interface if not given
     pub interface: String,
     pub output_type: OutputType,
     pub connect_via: ConnectionType,

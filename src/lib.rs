@@ -7,13 +7,13 @@ extern crate strum_macros;
 
 pub mod cmdline_parser;
 pub mod connect;
+pub mod get_default_interface;
 pub mod netctl_config_writer;
 pub mod output;
 pub mod parse;
 pub mod password_prompt;
 pub mod scan;
 pub mod select;
-pub mod select_interface;
 pub mod select_network;
 pub mod sort_networks;
 pub mod structs;

@@ -1,7 +1,7 @@
 use crate::structs::*;
 
 use std::io;
-use std::process::{Command, Stdio};
+use std::process::{exit, Command, Stdio};
 
 pub fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
     let res = match &options.scan_type {
@@ -18,17 +18,55 @@ pub fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
 }
 
 // NOTE: interface is ignored for this command
-pub fn run_wpa_cli_scan(_options: &Options) -> io::Result<ScanResult> {
-    let res = Command::new("wpa_cli")
+pub fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
+    let output_res = Command::new("wpa_cli")
         .arg("scan_results")
         .stdout(Stdio::piped())
-        .output()
-        // TODO: Figure out the exit code of dev/resource busy and handle it appropriately
-        ?;
-    // TODO: check for exit status and return scanerror if nonzero
-    let output = String::from_utf8_lossy(&res.stdout).to_string();
+        .output();
+
+    // TODO: CLEANUP
+
+    if options.debug {
+        dbg!(&output_res);
+    }
+
+    let output = match &output_res {
+        Ok(o) => o,
+        Err(_e) => {
+            eprintln!("Failed to scan with wpa_cli. Is it installed?");
+            exit(1);
+        }
+    };
+
+    match output.status.code() {
+        Some(num) => match num {
+            2 | 127 => {
+                eprintln!(concat!(
+                    "`wpa_cli` is not available for scanning interfaces.",
+                    "Please install it, select a different scanning method with -s,",
+                    "or manually specify a network with -n.",
+                ));
+                exit(1);
+            }
+            _ => "",
+        },
+        None => {
+            eprintln!("Failed to scan with wpa_cli. Is it installed?");
+            exit(1);
+        }
+    };
+
+    let output = String::from_utf8_lossy(&output.stdout).to_string();
     Ok(ScanResult {
         scan_type: ScanType::WpaCli,
         output,
     })
+}
+
+fn generic_wpa_cli_scan_failure() -> ! {
+    eprintln!(concat!("Failed to scan with wpa_cli. Is it installed? ",
+                    "Please install it and ensure it's in your $PATH, select a different scanning method with -s,",
+                    "or manually specify a network with -n.",
+    ));
+    exit(1);
 }
