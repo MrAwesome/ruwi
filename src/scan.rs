@@ -17,11 +17,10 @@ pub fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
     res
 }
 
-pub fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
+// NOTE: interface is ignored for this command
+pub fn run_wpa_cli_scan(_options: &Options) -> io::Result<ScanResult> {
     let res = Command::new("wpa_cli")
         .arg("scan_results")
-        // NOTE: this is not required, make interface optional for this command but not for iw
-        .arg(&options.interface)
         .stdout(Stdio::piped())
         .output()
         // TODO: Figure out the exit code of dev/resource busy and handle it appropriately

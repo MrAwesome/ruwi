@@ -13,9 +13,11 @@ pub mod parse;
 pub mod password_prompt;
 pub mod scan;
 pub mod select;
+pub mod select_interface;
 pub mod select_network;
 pub mod sort_networks;
 pub mod structs;
+pub mod strum_utils;
 
 use connect::*;
 use output::*;
