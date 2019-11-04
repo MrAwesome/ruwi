@@ -93,6 +93,9 @@ pub struct ParseResult {
 pub enum IndividualParseError {
     SplitError,
     MissingWpaCliResultField,
+    MissingIWSSIDField,
+    ZeroLengthIWChunk,
+    MalformedIWBSSLine,
     FailedToParseSignalLevel,
 }
 

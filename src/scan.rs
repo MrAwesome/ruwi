@@ -1,12 +1,12 @@
 use crate::structs::*;
 
 use std::io;
-use std::process::{exit, Command, Stdio};
+use std::process::{Command, Stdio};
 
-pub fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
+pub(crate) fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
     let res = match &options.scan_type {
         ScanType::WpaCli => run_wpa_cli_scan(options),
-        x @ ScanType::IW => Err(nie(x)),
+        ScanType::IW => run_iw_scan(options),
         x @ ScanType::IWList => Err(nie(x)),
     };
 
@@ -18,55 +18,56 @@ pub fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
 }
 
 // NOTE: interface is ignored for this command
-pub fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
+fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
     let output_res = Command::new("wpa_cli")
         .arg("scan_results")
         .stdout(Stdio::piped())
         .output();
 
-    // TODO: CLEANUP
+    if options.debug {
+        dbg!(&output_res);
+    }
+
+    match &output_res {
+        Ok(o) => Ok(ScanResult {
+            scan_type: ScanType::WpaCli,
+            output: String::from_utf8_lossy(&o.stdout).to_string(),
+        }),
+        Err(_e) => Err(io::Error::new(
+            io::ErrorKind::Other,
+            concat!(
+                "Failed to scan with `wpa_cli scan_results`. ",
+                "Is wpa_supplicant running? Is it installed? ",
+                "You can also select a different scanning method with -s (try 'iw' or 'iwlist'),",
+                "or you can manually specify an essid with -e.",
+            ),
+        )),
+    }
+}
+
+fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
+    let output_res = Command::new("iw")
+        .arg(&options.interface)
+        .arg("scan")
+        .stdout(Stdio::piped())
+        .output();
 
     if options.debug {
         dbg!(&output_res);
     }
 
-    let output = match &output_res {
-        Ok(o) => o,
-        Err(_e) => {
-            eprintln!("Failed to scan with wpa_cli. Is it installed?");
-            exit(1);
-        }
-    };
-
-    match output.status.code() {
-        Some(num) => match num {
-            2 | 127 => {
-                eprintln!(concat!(
-                    "`wpa_cli` is not available for scanning interfaces.",
-                    "Please install it, select a different scanning method with -s,",
-                    "or manually specify a network with -n.",
-                ));
-                exit(1);
-            }
-            _ => "",
-        },
-        None => {
-            eprintln!("Failed to scan with wpa_cli. Is it installed?");
-            exit(1);
-        }
-    };
-
-    let output = String::from_utf8_lossy(&output.stdout).to_string();
-    Ok(ScanResult {
-        scan_type: ScanType::WpaCli,
-        output,
-    })
-}
-
-fn generic_wpa_cli_scan_failure() -> ! {
-    eprintln!(concat!("Failed to scan with wpa_cli. Is it installed? ",
-                    "Please install it and ensure it's in your $PATH, select a different scanning method with -s,",
-                    "or manually specify a network with -n.",
-    ));
-    exit(1);
+    match &output_res {
+        Ok(o) => Ok(ScanResult {
+            scan_type: ScanType::IW,
+            output: String::from_utf8_lossy(&o.stdout).to_string(),
+        }),
+        Err(_e) => Err(io::Error::new(
+            io::ErrorKind::Other,
+            concat!(
+                "Failed to scan with `iw`. Is it installed?",
+                "You can also select a different scanning method with -s (try 'iw' or 'iwlist'),",
+                "or you can manually specify an essid with -e.",
+            ),
+        )),
+    }
 }

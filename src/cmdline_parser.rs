@@ -1,12 +1,13 @@
 use crate::get_default_interface::get_default_interface;
 use crate::structs::*;
 use crate::strum_utils::{get_val, possible_vals};
-use clap::{App, Arg, SubCommand};
-use std::error::Error;
-use std::process::exit;
+use clap::{App, Arg};
+use std::io;
 use strum::AsStaticRef;
 
-// TODO: allow network name to be provided with -n XXX
+// TODO: allow essid to be provided with -e XXX
+// TODO: use subcommands for configurations of options, but still go through all functions always?
+//       or just run certain functions for certain subcommands?
 // TODO: detect if run in interactive terminal mode, and use fzf if so - dmenu otherwise
 fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
     let debug = Arg::with_name("debug")
@@ -14,21 +15,19 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .long("debug")
         .help("Print out debug information on what ruwi sees.");
 
-    let list_networks = SubCommand::with_name("list_networks")
-        .about("Scan and print out the visible SSIDs, with no additional information.");
-
+    // Global Args
     let interface = Arg::with_name("interface")
         .short("i")
         .long("interface")
         .takes_value(true)
-        .help("The wifi scanning program to use under the hood. If none given, will be inferred using wpa_cli.");
+        .help("The wireless device interface (e.g. wlp3s0) to use. Will attempt to use wpa_cli to infer it, if none given.");
 
     let scan_type = Arg::with_name("scan_type")
         .short("t")
         .long("scan-type")
         .default_value(&ScanType::default().as_static())
         .possible_values(&possible_vals::<ScanType, _>())
-        .help("The wifi scanning program to use under the hood.");
+        .help("The wifi scanning program to use under the hood. If none given, will be inferred using wpa_cli.");
 
     let selection_method = Arg::with_name("selection_method")
         .short("s")
@@ -55,7 +54,6 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .version("0.2")
         .author("Glenn Hope <glenn.alexander.hope@gmail.com>")
         .about("Finds, selects, and configures new wireless networks.")
-        .subcommand(list_networks)
         .arg(connect_via)
         .arg(debug)
         .arg(interface)
@@ -64,21 +62,14 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .arg(selection_method)
 }
 
-pub fn get_options() -> Options {
+pub fn get_options() -> io::Result<Options> {
     let m = get_arg_app().get_matches();
 
     let debug = m.is_present("debug");
 
     let interface = match m.value_of("interface") {
         Some(val) => String::from(val),
-        None => match get_default_interface(debug) {
-            Ok(int) => int,
-            Err(err) => {
-                // TODO: make a helper function to do this
-                eprintln!("{}", err.description());
-                exit(1);
-            }
-        },
+        None => get_default_interface(debug)?,
     };
 
     let scan_type = get_val::<ScanType>(&m, "scan_type");
@@ -98,7 +89,7 @@ pub fn get_options() -> Options {
     if opts.debug {
         dbg!(&opts);
     }
-    opts
+    Ok(opts)
 }
 
 // It would be better if these tests just checked the Options returned,
