@@ -66,7 +66,6 @@ fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
     match &output_res {
         Ok(o) => {
             let output = String::from_utf8_lossy(&o.stdout).to_string();
-            dbg!(&output);
             Ok(ScanResult {
                 scan_type: ScanType::IW,
                 output,

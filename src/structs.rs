@@ -91,15 +91,15 @@ pub struct ParseResult {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IndividualParseError {
-    SplitError,
-    MissingWpaCliResultField,
-    MissingIWSSIDField,
-    NoDecimalInIWSignalLevel,
-    MissingIWCapabilityField,
-    ZeroLengthIWChunk,
-    MalformedIWBSSLine,
-    FailedToUnescapeSSIDField,
     FailedToParseSignalLevel,
+    FailedToUnescapeSSIDField,
+    MalformedIWBSSLine,
+    MissingIWCapabilityField,
+    MissingIWSSIDField,
+    MissingWpaCliResultField,
+    NoDecimalInIWSignalLevel,
+    SplitError,
+    ZeroLengthIWChunk,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -127,8 +127,8 @@ pub struct ConnectionResult {
 
 #[derive(Debug)]
 pub struct RuwiResult {
-    pub output_result: io::Result<OutputResult>,
-    pub connection_result: io::Result<ConnectionResult>,
+    pub output_result: OutputResult,
+    pub connection_result: ConnectionResult,
 }
 
 pub(crate) fn nie<T: Debug>(prog: T) -> io::Error {

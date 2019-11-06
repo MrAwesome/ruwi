@@ -11,6 +11,8 @@ pub(crate) fn connect_to_network(
     selected_network: &Option<WirelessNetwork>,
 ) -> io::Result<ConnectionResult> {
     // TODO: implement
+    dbg!("jjjjjjjjjjjjjjj");
+    dbg!(&selected_network);
     let res = match &options.connect_via {
         ConnectionType::Netctl => connect_via_netctl(
             options,
@@ -43,7 +45,14 @@ pub(crate) fn connect_via_netctl(
         .arg(&netctl_file_name)
         .stdout(Stdio::piped())
         .output()?;
-    // TODO: check for exit status and return scanerror if nonzero
+
+    if !output.status.success() {
+        Err(io::Error::new(
+            io::ErrorKind::NotConnected,
+            "Failed to connect. Check `journalctl -xe` for details, or try running again with -d to see more information.",
+        ))?
+    }
+
     Ok(ConnectionResult {
         connection_type: ConnectionType::Netctl,
         cmd_output: Some(output),

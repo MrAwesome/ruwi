@@ -7,15 +7,24 @@ pub(crate) fn select_network(
     options: &Options,
     sorted_available_networks: &[WirelessNetwork],
 ) -> io::Result<Option<WirelessNetwork>> {
-    match options.output_type {
+    let output_type_needs_selection = match options.output_type {
         OutputType::NetctlConfig
         | OutputType::NetworkManagerConfig
         | OutputType::PrintSelectedNetwork
-        | OutputType::PrintSelectedNetworkInfo => {
-            let nw = select_network_impl(options, sorted_available_networks)?;
-            Ok(Some(nw))
-        }
-        _ => Ok(None),
+        | OutputType::PrintSelectedNetworkInfo => true,
+        _ => false,
+    };
+
+    let connection_type_needs_selection = match options.connect_via {
+        ConnectionType::None => false,
+        _ => true,
+    };
+
+    if output_type_needs_selection || connection_type_needs_selection {
+        let nw = select_network_impl(options, sorted_available_networks)?;
+        Ok(Some(nw))
+    } else {
+        Ok(None)
     }
 }
 

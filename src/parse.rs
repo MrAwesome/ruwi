@@ -113,13 +113,12 @@ fn parse_iw_chunk_into_network(
         .iter()
         .filter(|line| line.starts_with("signal: "))
         .filter_map(|line| {
-            // TODO: tidy
-            let x = line.trim_start_matches("signal: ");
-            let x = x.trim_end_matches(" dBm");
-            let x = x.split(".").next()?;
-            let x = x.parse::<i32>();
-            dbg!(&x);
-            x.ok()
+            line.trim_start_matches("signal: ")
+                .trim_end_matches(" dBm")
+                .split(".")
+                .next()?
+                .parse::<i32>()
+                .ok()
         })
         .next();
 

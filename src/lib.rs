@@ -43,7 +43,6 @@ use std::io;
 // TODO: make sure fzf and dmenu are listed as dependencies
 
 pub fn run_ruwi(options: &Options) -> io::Result<RuwiResult> {
-    // TODO: push the result handling back into the parser? or have an overall error handler
     // TODO: bring up interface for scan if needed, take down before netctl switch-to
     // TODO: if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick
     // the default
@@ -53,8 +52,8 @@ pub fn run_ruwi(options: &Options) -> io::Result<RuwiResult> {
     let available_networks = get_and_sort_available_networks(&options, &parse_results);
     let selected_network = select_network(&options, &available_networks)?;
     let encryption_key = get_password(&options, &selected_network)?;
-    let output_result = send_output(&options, &selected_network, &encryption_key);
-    let connection_result = connect_to_network(&options, &selected_network);
+    let output_result = send_output(&options, &selected_network, &encryption_key)?;
+    let connection_result = connect_to_network(&options, &selected_network)?;
     Ok(RuwiResult {
         output_result,
         connection_result,

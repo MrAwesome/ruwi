@@ -12,7 +12,7 @@ fn main() {
     match res {
         Ok(int) => int,
         Err(err) => {
-            eprintln!("{}", err.description());
+            eprintln!("[ERROR]: {}", err.description());
             exit(1);
         }
     };
