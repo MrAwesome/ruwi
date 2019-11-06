@@ -1,5 +1,7 @@
 use crate::interface_management::bring_interface_up;
 use crate::structs::*;
+use std::thread;
+use std::time::Duration;
 
 use std::io;
 use std::process::{Command, Stdio};
@@ -46,8 +48,11 @@ fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
     }
 }
 
+// TODO: [] do iw scan dump if results are already available
+//       [] add a flag for 'force refresh'
 fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
     bring_interface_up(options)?;
+    thread::sleep(Duration::from_secs(1));
     let output_res = Command::new("iw")
         .arg(&options.interface)
         .arg("scan")

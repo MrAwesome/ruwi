@@ -36,56 +36,6 @@ fn parse_iw_scan(options: &Options, output: &str) -> io::Result<ParseResult> {
     })
 }
 
-fn parse_iw_chunk_into_network(
-    chunk: &Vec<String>,
-) -> Result<WirelessNetwork, IndividualParseError> {
-    let essid = unescape(
-        chunk
-            .iter()
-            .filter(|line| line.starts_with("SSID: "))
-            .map(|line| line.trim_start_matches("SSID: "))
-            .next()
-            .ok_or(IndividualParseError::MissingIWSSIDField)?,
-    )
-    .ok_or(IndividualParseError::FailedToUnescapeSSIDField)?;
-
-    // TODO: Figure out why valparaiso didn't show up as wpa, WPA: isn't in output
-    let wpa = chunk
-        .iter()
-        .filter(|line| line.starts_with("WPA:"))
-        .next()
-        .is_some();
-
-    let bssid = chunk
-        .first()
-        .ok_or(IndividualParseError::ZeroLengthIWChunk)?
-        .trim_start_matches("BSS ")
-        .split("(")
-        .map(|x| x.to_string())
-        .next();
-
-    let signal_strength = chunk
-        .iter()
-        .filter(|line| line.starts_with("signal: "))
-        .filter_map(|line| {
-            line.trim_start_matches("signal: ")
-                .trim_end_matches(" dBm")
-                .parse::<i32>()
-                .ok()
-        })
-        .next();
-
-    let channel_utilisation = None; // TODO: implement if needed
-
-    Ok(WirelessNetwork {
-        essid,
-        wpa,
-        bssid,
-        signal_strength,
-        channel_utilisation,
-    })
-}
-
 fn break_iw_output_into_chunks_per_network(
     options: &Options,
     output: &str,
@@ -125,6 +75,63 @@ fn break_iw_output_into_chunks_per_network(
         }
     }
     Ok(iw_network_line_groups)
+}
+
+fn parse_iw_chunk_into_network(
+    chunk: &Vec<String>,
+) -> Result<WirelessNetwork, IndividualParseError> {
+    let essid = unescape(
+        chunk
+            .iter()
+            .filter(|line| line.starts_with("SSID: "))
+            .map(|line| line.trim_start_matches("SSID: "))
+            .next()
+            .ok_or(IndividualParseError::MissingIWSSIDField)?,
+    )
+    .ok_or(IndividualParseError::FailedToUnescapeSSIDField)?;
+
+    // TODO: Figure out why valparaiso didn't show up as wpa, WPA: isn't in output
+    // TODO: look for "privacy"
+    let wpa = chunk
+        .iter()
+        .filter(|line| line.starts_with("capability:"))
+        .next()
+        .ok_or(IndividualParseError::MissingIWCapabilityField)?
+        .split_ascii_whitespace()
+        .collect::<Vec<&str>>()
+        .contains(&"Privacy");
+
+    let bssid = chunk
+        .first()
+        .ok_or(IndividualParseError::ZeroLengthIWChunk)?
+        .trim_start_matches("BSS ")
+        .split("(")
+        .map(|x| x.to_string())
+        .next();
+
+    let signal_strength = chunk
+        .iter()
+        .filter(|line| line.starts_with("signal: "))
+        .filter_map(|line| {
+            // TODO: tidy
+            let x = line.trim_start_matches("signal: ");
+            let x = x.trim_end_matches(" dBm");
+            let x = x.split(".").next()?;
+            let x = x.parse::<i32>();
+            dbg!(&x);
+            x.ok()
+        })
+        .next();
+
+    let channel_utilisation = None; // TODO: implement if needed
+
+    Ok(WirelessNetwork {
+        essid,
+        wpa,
+        bssid,
+        signal_strength,
+        channel_utilisation,
+    })
 }
 
 fn get_iw_bss_regex() -> Regex {

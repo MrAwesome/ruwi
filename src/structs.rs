@@ -94,6 +94,8 @@ pub enum IndividualParseError {
     SplitError,
     MissingWpaCliResultField,
     MissingIWSSIDField,
+    NoDecimalInIWSignalLevel,
+    MissingIWCapabilityField,
     ZeroLengthIWChunk,
     MalformedIWBSSLine,
     FailedToUnescapeSSIDField,

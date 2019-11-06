@@ -32,22 +32,24 @@ fn get_wpa_cli_ifname_interface(debug: bool) -> io::Result<String> {
                 .filter_map(|line| line.split_ascii_whitespace().last())
                 .collect::<Vec<&str>>();
             // TODO: provide a way to select from multiple interfaces
+
+            if interfaces.len() > 1 {
+                eprintln!(concat!(
+                    "[NOTE]: Multiple interfaces detected with `iw`. Will use the first. ",
+                    "Manually specify with -i if you need another interface."
+                ));
+            }
             if let Some(intf) = interfaces.first() {
                 return Ok(intf.to_string());
             }
         }
     }
 
-    get_generic_wpa_cli_ifname_failure()
-}
-
-fn get_generic_wpa_cli_ifname_failure() -> io::Result<String> {
     Err(io::Error::new(
         io::ErrorKind::Other,
         concat!(
             "Failed to determine interface name with iw. Is it installed?\n",
-            "Check the output of `iw dev`, or try providing an interface manually with -i.",
-            "",
+            "Check the output of `iw dev`, or provide an interface manually with -i.",
         ),
     ))
 }
