@@ -1,3 +1,4 @@
+use crate::interface_management::bring_interface_up;
 use crate::structs::*;
 
 use std::io;
@@ -46,6 +47,7 @@ fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
 }
 
 fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
+    bring_interface_up(options)?;
     let output_res = Command::new("iw")
         .arg(&options.interface)
         .arg("scan")
@@ -57,10 +59,14 @@ fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
     }
 
     match &output_res {
-        Ok(o) => Ok(ScanResult {
-            scan_type: ScanType::IW,
-            output: String::from_utf8_lossy(&o.stdout).to_string(),
-        }),
+        Ok(o) => {
+            let output = String::from_utf8_lossy(&o.stdout).to_string();
+            dbg!(&output);
+            Ok(ScanResult {
+                scan_type: ScanType::IW,
+                output,
+            })
+        }
         Err(_e) => Err(io::Error::new(
             io::ErrorKind::Other,
             concat!(

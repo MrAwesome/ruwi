@@ -96,6 +96,7 @@ pub enum IndividualParseError {
     MissingIWSSIDField,
     ZeroLengthIWChunk,
     MalformedIWBSSLine,
+    FailedToUnescapeSSIDField,
     FailedToParseSignalLevel,
 }
 

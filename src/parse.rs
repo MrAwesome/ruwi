@@ -1,6 +1,7 @@
 use crate::structs::*;
 use regex::Regex;
 use std::io;
+use unescape::unescape;
 
 pub(crate) fn parse_result(options: &Options, scan_result: &ScanResult) -> io::Result<ParseResult> {
     // TODO: if scan type isn't specified, and parsing or scanning fails, try another scan type
@@ -38,13 +39,15 @@ fn parse_iw_scan(options: &Options, output: &str) -> io::Result<ParseResult> {
 fn parse_iw_chunk_into_network(
     chunk: &Vec<String>,
 ) -> Result<WirelessNetwork, IndividualParseError> {
-    let essid = chunk
-        .iter()
-        .filter(|line| line.starts_with("SSID: "))
-        .map(|line| line.trim_start_matches("SSID: "))
-        .next()
-        .ok_or(IndividualParseError::MissingIWSSIDField)?
-        .to_string();
+    let essid = unescape(
+        chunk
+            .iter()
+            .filter(|line| line.starts_with("SSID: "))
+            .map(|line| line.trim_start_matches("SSID: "))
+            .next()
+            .ok_or(IndividualParseError::MissingIWSSIDField)?,
+    )
+    .ok_or(IndividualParseError::FailedToUnescapeSSIDField)?;
 
     // TODO: Figure out why valparaiso didn't show up as wpa, WPA: isn't in output
     let wpa = chunk

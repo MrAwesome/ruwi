@@ -14,6 +14,7 @@ pub mod cmdline_parser;
 pub mod connect;
 pub mod get_default_interface;
 pub mod initialize;
+pub mod interface_management;
 pub mod netctl_config_writer;
 pub mod output;
 pub mod parse;

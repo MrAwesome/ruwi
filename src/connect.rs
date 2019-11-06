@@ -1,3 +1,4 @@
+use crate::interface_management::bring_interface_down;
 use crate::netctl_config_writer::get_netctl_file_name;
 use crate::structs::*;
 use std::io;
@@ -32,9 +33,10 @@ pub(crate) fn connect_to_network(
 }
 
 pub(crate) fn connect_via_netctl(
-    _options: &Options,
+    options: &Options,
     selected_network: &WirelessNetwork,
 ) -> io::Result<ConnectionResult> {
+    bring_interface_down(options)?;
     let netctl_file_name = get_netctl_file_name(&selected_network.essid);
     let output = Command::new("netctl")
         .arg("switch-to")
