@@ -45,6 +45,7 @@ use std::io;
 // TODO: add colors to output, maybe use a real logging library
 // TODO: if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
 // TODO: add mode for selecting existing netctl networks and switching to one
+// TODO: find a way to unit test without actually running commands. maybe with cfg(test)?
 
 // TODO: make selected network not optional, have different logic flows for different subcommands?
 pub fn get_selected_network(options: &Options) -> io::Result<Option<WirelessNetwork>> {

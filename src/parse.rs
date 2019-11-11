@@ -235,6 +235,8 @@ mod tests {
             output_type: OutputType::None,
             connect_via: ConnectionType::None,
             debug: true,
+            given_essid: None,
+            given_password: None,
         }
     }
 
@@ -246,6 +248,8 @@ mod tests {
             output_type: OutputType::None,
             connect_via: ConnectionType::None,
             debug: true,
+            given_essid: None,
+            given_password: None,
         }
     }
 
