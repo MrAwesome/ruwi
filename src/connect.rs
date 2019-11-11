@@ -4,15 +4,10 @@ use crate::structs::*;
 use std::io;
 use std::process::{Command, Stdio};
 
-// TODO: start netctl/networkmanager if they aren't already running and connection is requested
-
 pub(crate) fn connect_to_network(
     options: &Options,
     selected_network: &Option<WirelessNetwork>,
 ) -> io::Result<ConnectionResult> {
-    // TODO: implement
-    dbg!("jjjjjjjjjjjjjjj");
-    dbg!(&selected_network);
     let res = match &options.connect_via {
         ConnectionType::Netctl => connect_via_netctl(
             options,
@@ -24,7 +19,6 @@ pub(crate) fn connect_to_network(
             connection_type: ConnectionType::None,
             cmd_output: None,
         }),
-        // TODO: implement
         x @ _ => Err(nie(x)),
     };
     if options.debug {

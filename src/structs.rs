@@ -74,6 +74,8 @@ pub struct Options {
     pub output_type: OutputType,
     pub connect_via: ConnectionType,
     pub debug: bool,
+    pub given_essid: Option<String>,
+    pub given_password: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

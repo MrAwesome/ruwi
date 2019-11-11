@@ -32,7 +32,6 @@ pub(crate) fn send_output(
             output_type: OutputType::None,
             output_output: None,
         }),
-        // TODO: implement
         x => Err(nie(x)),
     };
 

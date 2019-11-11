@@ -1,5 +1,6 @@
 use crate::interface_management::bring_interface_up;
 use crate::structs::*;
+use crate::wpa_cli_initialize::initialize_wpa_cli;
 use std::thread;
 use std::time::Duration;
 
@@ -22,6 +23,7 @@ pub(crate) fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
 
 // NOTE: interface is ignored for this command
 fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
+    initialize_wpa_cli(options)?;
     let output_res = Command::new("wpa_cli")
         .arg("scan_results")
         .stdout(Stdio::piped())

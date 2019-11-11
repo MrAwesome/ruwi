@@ -5,11 +5,14 @@ use clap::{App, Arg};
 use std::io;
 use strum::AsStaticRef;
 
+// TODO: fail if not run as root
 // TODO: allow essid to be provided with -e XXX
 // TODO: use subcommands for configurations of options, but still go through all functions always?
 //       or just run certain functions for certain subcommands?
 // TODO: detect if run in interactive terminal mode, and use fzf if so - dmenu otherwise
+// TODO: arg for not connecting?
 fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
+    // TODO: move these to be subcommand args for only the relevant subcommands
     let debug = Arg::with_name("debug")
         .short("d")
         .long("debug")
@@ -21,6 +24,18 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .long("interface")
         .takes_value(true)
         .help("The wireless device interface (e.g. wlp3s0) to use. Will attempt to use wpa_cli to infer it, if none given.");
+
+    let essid = Arg::with_name("essid")
+        .short("e")
+        .long("essid")
+        .takes_value(true)
+        .help("Manually specify wireless network name (aka SSID or ESSID). Will be asked for if not given.");
+
+    let password = Arg::with_name("password")
+        .short("p")
+        .long("password")
+        .takes_value(true)
+        .help("Manually specify encryption key (aka password). To read from a file, try \"$(cat your/file/name)\".");
 
     let scan_type = Arg::with_name("scan_type")
         .short("t")
@@ -53,13 +68,15 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
     App::new("Rust Wireless Manager")
         .version("0.2")
         .author("Glenn Hope <glenn.alexander.hope@gmail.com>")
-        .about("Finds, selects, and configures new wireless networks.")
+        .about("Finds, selects, configures, and connects to new wireless networks.")
         .arg(connect_via)
         .arg(debug)
         .arg(interface)
         .arg(output_type)
         .arg(scan_type)
         .arg(selection_method)
+        .arg(essid)
+        .arg(password)
 }
 
 pub fn get_options() -> io::Result<Options> {
@@ -71,6 +88,9 @@ pub fn get_options() -> io::Result<Options> {
         Some(val) => String::from(val),
         None => get_default_interface(debug)?,
     };
+
+    let given_essid = m.value_of("essid").map(String::from);
+    let given_password = m.value_of("password").map(String::from);
 
     let scan_type = get_val::<ScanType>(&m, "scan_type");
     let selection_method = get_val::<SelectionMethod>(&m, "selection_method");
@@ -84,6 +104,8 @@ pub fn get_options() -> io::Result<Options> {
         interface,
         connect_via,
         debug,
+        given_essid,
+        given_password,
     };
 
     if opts.debug {

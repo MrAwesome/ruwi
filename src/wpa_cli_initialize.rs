@@ -12,16 +12,7 @@ update_config=1
 
 See https://wiki.archlinux.org/index.php/WPA_supplicant#Connecting_with_wpa_cli for more info.";
 
-// TODO: bring up interface for iw
-
-pub(crate) fn initialize(options: &Options) -> io::Result<()> {
-    match options.scan_type {
-        ScanType::WpaCli => initialize_wpa_cli(options),
-        _ => Ok(()),
-    }
-}
-
-fn initialize_wpa_cli(options: &Options) -> io::Result<()> {
+pub(crate) fn initialize_wpa_cli(options: &Options) -> io::Result<()> {
     //        /etc/wpa_supplicant/wpa_supplicant.conf
     //    ctrl_interface=/run/wpa_supplicant
     //    ctrl_interface_group=wheel
