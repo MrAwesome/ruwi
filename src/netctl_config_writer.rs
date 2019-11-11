@@ -31,7 +31,7 @@ pub(crate) fn get_netctl_config_contents(
     network: &WirelessNetwork,
     encryption_key: &Option<String>,
 ) -> String {
-    let wpa_line = if network.wpa {
+    let wpa_line = if network.is_encrypted {
         if let Some(ek) = encryption_key {
             format!("Key='{}'", ek)
         } else {
@@ -51,9 +51,9 @@ IP=dhcp
 {}
 ",
         network.essid,
-        if network.wpa { "wpa" } else { "open" },
+        if network.is_encrypted { "wpa" } else { "open" },
         options.interface,
-        if network.wpa { "wpa" } else { "none" },
+        if network.is_encrypted { "wpa" } else { "none" },
         network.essid,
         wpa_line,
     )

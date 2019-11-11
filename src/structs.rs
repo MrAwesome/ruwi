@@ -107,7 +107,7 @@ pub enum IndividualParseError {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WirelessNetwork {
     pub essid: String,
-    pub wpa: bool,
+    pub is_encrypted: bool,
     pub bssid: Option<String>,
     pub signal_strength: Option<i32>,
     pub channel_utilisation: Option<String>,

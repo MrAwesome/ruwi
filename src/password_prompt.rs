@@ -16,7 +16,7 @@ pub(crate) fn get_password(
         None => match selected_network {
             Some(nw) => match options.output_type {
                 OutputType::NetctlConfig | OutputType::NetworkManagerConfig => {
-                    if nw.wpa {
+                    if nw.is_encrypted {
                         Ok(Some(prompt_for_password(options, &nw.essid)?))
                     } else {
                         Ok(None)

@@ -90,9 +90,7 @@ fn parse_iw_chunk_into_network(
     )
     .ok_or(IndividualParseError::FailedToUnescapeSSIDField)?;
 
-    // TODO: Figure out why valparaiso didn't show up as wpa, WPA: isn't in output
-    // TODO: look for "privacy"
-    let wpa = chunk
+    let is_encrypted = chunk
         .iter()
         .filter(|line| line.starts_with("capability:"))
         .next()
@@ -126,7 +124,7 @@ fn parse_iw_chunk_into_network(
 
     Ok(WirelessNetwork {
         essid,
-        wpa,
+        is_encrypted,
         bssid,
         signal_strength,
         channel_utilisation,
@@ -195,14 +193,14 @@ fn parse_wpa_line_into_network(line: String) -> Result<WirelessNetwork, Individu
         .collect::<Vec<String>>()
         .join(" ");
 
-    let wpa = flags.contains("WPA");
+    let is_encrypted = flags.contains("WPA");
     let signal_strength = signal_level
         .parse::<i32>()
         .or(Err(IndividualParseError::FailedToParseSignalLevel))?;
 
     Ok(WirelessNetwork {
         essid,
-        wpa,
+        is_encrypted,
         bssid: Some(bssid.to_string()),
         signal_strength: Some(signal_strength),
         channel_utilisation: None,
@@ -291,7 +289,7 @@ mod tests {
                 scan_type: ScanType::IW,
                 seen_networks: vec![WirelessNetwork {
                     essid: "Pee Pee Poo Poo Man".to_string(),
-                    wpa: true,
+                    is_encrypted: true,
                     bssid: Some("32:ac:a3:7b:ab:0b".to_string()),
                     signal_strength: Some(-38),
                     channel_utilisation: None,
@@ -303,14 +301,14 @@ mod tests {
                 seen_networks: vec![
                     WirelessNetwork {
                         essid: "Valparaiso_Guest_House 1".to_string(),
-                        wpa: true,
+                        is_encrypted: true,
                         bssid: Some("f4:28:53:fe:a5:d0".to_string()),
                         signal_strength: Some(-65),
                         channel_utilisation: None,
                     },
                     WirelessNetwork {
                         essid: "Valparaiso_Guest_House 2".to_string(),
-                        wpa: true,
+                        is_encrypted: true,
                         bssid: Some("68:72:51:68:73:da".to_string()),
                         signal_strength: Some(-46),
                         channel_utilisation: None,
@@ -323,14 +321,14 @@ mod tests {
                 seen_networks: vec![
                     WirelessNetwork {
                         essid: "Valparaiso_Guest_House 1".to_string(),
-                        wpa: true,
+                        is_encrypted: true,
                         bssid: Some("f4:28:53:fe:a5:d0".to_string()),
                         signal_strength: Some(-66),
                         channel_utilisation: None,
                     },
                     WirelessNetwork {
                         essid: "Valparaiso_Guest_House 2".to_string(),
-                        wpa: true,
+                        is_encrypted: true,
                         bssid: Some("68:72:51:68:73:da".to_string()),
                         signal_strength: Some(-47),
                         channel_utilisation: None,
@@ -343,49 +341,49 @@ mod tests {
                 seen_networks: vec![
                     WirelessNetwork {
                         essid: "Nima Lodge".to_string(),
-                        wpa: true,
+                        is_encrypted: true,
                         bssid: Some("78:8a:20:e3:9d:62".to_string()),
                         signal_strength: Some(-41),
                         channel_utilisation: None,
                     },
                     WirelessNetwork {
                         essid: "DIRECT-AF-HP DeskJet 3830 series".to_string(),
-                        wpa: true,
+                        is_encrypted: true,
                         bssid: Some("fc:3f:db:a1:5e:b0".to_string()),
                         signal_strength: Some(-68),
                         channel_utilisation: None,
                     },
                     WirelessNetwork {
                         essid: "Nima Lodge".to_string(),
-                        wpa: true,
+                        is_encrypted: true,
                         bssid: Some("fc:ec:da:69:e0:3e".to_string()),
                         signal_strength: Some(-85),
                         channel_utilisation: None,
                     },
                     WirelessNetwork {
                         essid: "".to_string(),
-                        wpa: true,
+                        is_encrypted: true,
                         bssid: Some("fe:ec:da:69:e0:3e".to_string()),
                         signal_strength: Some(-85),
                         channel_utilisation: None,
                     },
                     WirelessNetwork {
                         essid: "WISPerNET-George-Sentraal1".to_string(),
-                        wpa: false,
+                        is_encrypted: false,
                         bssid: Some("ba:69:f4:1f:2d:15".to_string()),
                         signal_strength: Some(-89),
                         channel_utilisation: None,
                     },
                     WirelessNetwork {
                         essid: "WISPerNET-Bosplaas-SW-802.11".to_string(),
-                        wpa: false,
+                        is_encrypted: false,
                         bssid: Some("b8:69:f4:1f:2d:15".to_string()),
                         signal_strength: Some(-89),
                         channel_utilisation: None,
                     },
                     WirelessNetwork {
                         essid: "".to_string(),
-                        wpa: true,
+                        is_encrypted: true,
                         bssid: Some("7a:8a:20:e3:9d:62".to_string()),
                         signal_strength: Some(-39),
                         channel_utilisation: None,
@@ -411,7 +409,7 @@ mod tests {
                 scan_type: ScanType::WpaCli,
                 seen_networks: vec![WirelessNetwork {
                     essid: "Valparaiso_Guest_House 1".to_string(),
-                    wpa: true,
+                    is_encrypted: true,
                     bssid: Some("f4:28:53:fe:a5:d0".to_string()),
                     signal_strength: Some(-66),
                     channel_utilisation: None,

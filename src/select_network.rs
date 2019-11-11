@@ -89,28 +89,28 @@ mod tests {
         let sorted_available_networks = vec![
             WirelessNetwork {
                 essid: "DOOK".to_string(),
-                wpa: true,
+                is_encrypted: true,
                 bssid: Some("f4:28:53:fe:a5:d0".to_string()),
                 signal_strength: Some(-5),
                 channel_utilisation: None,
             },
             WirelessNetwork {
                 essid: "BOYS".to_string(),
-                wpa: true,
+                is_encrypted: true,
                 bssid: Some("68:72:51:68:73:da".to_string()),
                 signal_strength: Some(-47),
                 channel_utilisation: None,
             },
             WirelessNetwork {
                 essid: "DOOK".to_string(),
-                wpa: true,
+                is_encrypted: true,
                 bssid: Some("68:72:51:68:73:da".to_string()),
                 signal_strength: Some(-49),
                 channel_utilisation: None,
             },
             WirelessNetwork {
                 essid: "YES".to_string(),
-                wpa: true,
+                is_encrypted: true,
                 bssid: Some("68:72:51:68:73:da".to_string()),
                 signal_strength: Some(-89),
                 channel_utilisation: None,

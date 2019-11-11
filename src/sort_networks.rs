@@ -41,7 +41,7 @@ mod tests {
     fn test_network_sorting() {
         let higher_signal = WirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
-            wpa: true,
+            is_encrypted: true,
             bssid: Some("f4:28:53:fe:a5:d0".to_string()),
             signal_strength: Some(-66),
             channel_utilisation: None,
@@ -49,7 +49,7 @@ mod tests {
 
         let lower_signal = WirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
-            wpa: true,
+            is_encrypted: true,
             bssid: Some("f4:28:53:fe:a5:d0".to_string()),
             signal_strength: Some(-69),
             channel_utilisation: None,
@@ -62,5 +62,4 @@ mod tests {
 
         assert_eq![right_order, vec![lower_signal, higher_signal]];
     }
-
 }

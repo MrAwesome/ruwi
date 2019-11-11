@@ -50,11 +50,9 @@ use std::io;
 // TODO: make selected network not optional, have different logic flows for different subcommands?
 pub fn get_selected_network(options: &Options) -> io::Result<Option<WirelessNetwork>> {
     if let Some(essid) = &options.given_essid {
-        let is_encrypted = options.given_password.is_some();
-
         Ok(Some(WirelessNetwork {
             essid: essid.clone(),
-            wpa: is_encrypted,
+            is_encrypted: options.given_password.is_some(),
             bssid: None,
             signal_strength: None,
             channel_utilisation: None,
