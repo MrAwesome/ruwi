@@ -12,6 +12,9 @@ pub(crate) fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
         ScanType::WpaCli => run_wpa_cli_scan(options),
         ScanType::IW => run_iw_scan(options),
         x @ ScanType::IWList => Err(nie(x)),
+        // TODO: Add nmcli scan
+        // nmcli device wifi rescan
+        // nmcli device wifi list
     };
 
     if options.debug {

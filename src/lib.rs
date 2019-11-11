@@ -46,6 +46,8 @@ use std::io;
 // TODO: if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
 // TODO: add mode for selecting existing netctl networks and switching to one
 // TODO: find a way to unit test without actually running commands. maybe with cfg(test)?
+// TODO: if networkmanager is used, start it up before going
+// TODO: figure out if networkmanager connection add with wifi password works - looks like not, just fail if output networkmanager is chosen without connection
 
 // TODO: make selected network not optional, have different logic flows for different subcommands?
 pub fn get_selected_network(options: &Options) -> io::Result<Option<WirelessNetwork>> {
