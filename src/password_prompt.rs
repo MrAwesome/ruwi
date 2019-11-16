@@ -4,27 +4,24 @@ use std::io;
 
 pub(crate) fn get_password(
     options: &Options,
-    selected_network: &Option<WirelessNetwork>,
+    selected_network: &WirelessNetwork,
 ) -> io::Result<Option<String>> {
     // Don't bother asking for a password:
     // * a password was given on the command line
-    // * if we didn't select a network,
     // * the output type we have doesn't require a password
     // * the network isn't wpa
+    // TODO(high): unit test this
     let pw = match &options.given_password {
         Some(pw) => Ok(Some(pw.clone())),
-        None => match selected_network {
-            Some(nw) => match options.output_type {
-                OutputType::NetctlConfig | OutputType::NetworkManagerConfig => {
-                    if nw.is_encrypted {
-                        Ok(Some(prompt_for_password(options, &nw.essid)?))
-                    } else {
-                        Ok(None)
-                    }
+        None => match options.output_type {
+            OutputType::NetctlConfig | OutputType::NetworkManagerConfig => {
+                if selected_network.is_encrypted {
+                    Ok(Some(prompt_for_password(options, &selected_network.essid)?))
+                } else {
+                    Ok(None)
                 }
-                _ => Ok(None),
-            },
-            None => Ok(None),
+            }
+            _ => Ok(None),
         },
     };
 

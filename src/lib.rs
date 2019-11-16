@@ -63,16 +63,15 @@ pub fn run_ruwi(options: &Options) -> io::Result<RuwiResult> {
     })
 }
 
-// TODO: make selected network not optional, always select
-pub fn get_selected_network(options: &Options) -> io::Result<Option<WirelessNetwork>> {
+pub fn get_selected_network(options: &Options) -> io::Result<WirelessNetwork> {
     if let Some(essid) = &options.given_essid {
-        Ok(Some(WirelessNetwork {
+        Ok(WirelessNetwork {
             essid: essid.clone(),
             is_encrypted: options.given_password.is_some(),
             bssid: None,
             signal_strength: None,
             channel_utilisation: None,
-        }))
+        })
     } else {
         let scan_result = wifi_scan(options)?;
         let parse_results = parse_result(options, &scan_result)?;
