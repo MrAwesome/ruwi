@@ -17,7 +17,10 @@ pub(crate) fn run_dmenu(
 
 pub(crate) fn run_fzf(options: &Options, prompt: &str, elements: &[String]) -> io::Result<String> {
     let mut cmd = Command::new("fzf");
-    let cmd = cmd.arg(&format!("--prompt={}", prompt));
+    let cmd = cmd
+        .arg("--layout")
+        .arg("reverse")
+        .arg(&format!("--prompt={}", prompt));
     run_prompt_cmd(options, prompt, elements, cmd)
 }
 

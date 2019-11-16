@@ -22,8 +22,6 @@ impl Default for ScanType {
 #[strum(serialize_all = "snake_case")]
 pub enum OutputType {
     None,
-    ListAllNetworks,
-    PrintInfoForAllNetworks,
     PrintSelectedNetwork,
     PrintSelectedNetworkInfo,
     NetctlConfig,

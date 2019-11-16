@@ -1,6 +1,6 @@
 use crate::get_default_interface::get_default_interface;
 use crate::structs::*;
-use crate::strum_utils::{get_val, possible_vals};
+use crate::strum_utils::{get_val_as_enum, possible_vals};
 use clap::{App, Arg};
 use std::io;
 use strum::AsStaticRef;
@@ -84,18 +84,17 @@ pub fn get_options() -> io::Result<Options> {
 
     let debug = m.is_present("debug");
 
+    let given_essid = m.value_of("essid").map(String::from);
+    let given_password = m.value_of("password").map(String::from);
     let interface = match m.value_of("interface") {
         Some(val) => String::from(val),
         None => get_default_interface(debug)?,
     };
 
-    let given_essid = m.value_of("essid").map(String::from);
-    let given_password = m.value_of("password").map(String::from);
-
-    let scan_type = get_val::<ScanType>(&m, "scan_type");
-    let selection_method = get_val::<SelectionMethod>(&m, "selection_method");
-    let output_type = get_val::<OutputType>(&m, "output_type");
-    let connect_via = get_val::<ConnectionType>(&m, "connect_via");
+    let scan_type = get_val_as_enum::<ScanType>(&m, "scan_type");
+    let selection_method = get_val_as_enum::<SelectionMethod>(&m, "selection_method");
+    let output_type = get_val_as_enum::<OutputType>(&m, "output_type");
+    let connect_via = get_val_as_enum::<ConnectionType>(&m, "connect_via");
 
     let opts = Options {
         scan_type,

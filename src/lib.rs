@@ -37,19 +37,33 @@ use structs::*;
 
 use std::io;
 
+// TODO(high): use iw scan_dump, and kick off background scan
+// TODO(high): find existing ESSIDs, when a scan turns up known network mark its WirelessNetwork in scan (aka make connecting to known networks easier)
+// TODO(high): find a way to unit test without actually running commands. maybe with cfg(test)?
+// TODO(high): if networkmanager is used, start it up before going - same with netctl. possibly also stop
+// TODO(think): come up with subcommands which only run specified pieces, or at least decide on the functionality this command should have
+// TODO(mid): add colors to output / use a real logging library
+// the other, to prevent cross-contamination
+// TODO(mid): figure out if networkmanager connection add with wifi password works - looks like not, just fail if output networkmanager is chosen without connection (or combine output and connection as a single concept, and have "print" as one)
+// TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
+// TODO(wishlist): find a generalized way to do x notifications, for dmenu mode, use to surface failures
 // TODO(wishlist): macro for `if options.debug { dbg!(arg); } arg`
-// TODO: come up with subcommands which only run specified pieces
-// TODO: make sure fzf and dmenu are listed as dependencies
-// TODO: instead of functions which take options, make a big struct/impl? maybe more than one?
-// TODO: find a generalized way to do x notifications, for dmenu mode, use to surface failures
-// TODO: add colors to output, maybe use a real logging library
-// TODO: if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
-// TODO: add mode for selecting existing netctl networks and switching to one
-// TODO: find a way to unit test without actually running commands. maybe with cfg(test)?
-// TODO: if networkmanager is used, start it up before going
-// TODO: figure out if networkmanager connection add with wifi password works - looks like not, just fail if output networkmanager is chosen without connection
+// TODO(later): make sure fzf and dmenu are listed as dependencies
+// TODO(think): instead of functions which take options, make a big struct/impl? maybe more than one?
+// TODO(think): consider just supporting netctl for now?
 
-// TODO: make selected network not optional, have different logic flows for different subcommands?
+pub fn run_ruwi(options: &Options) -> io::Result<RuwiResult> {
+    let selected_network = get_selected_network(options)?;
+    let encryption_key = get_password(options, &selected_network)?;
+    let output_result = send_output(options, &selected_network, &encryption_key)?;
+    let connection_result = connect_to_network(options, &selected_network)?;
+    Ok(RuwiResult {
+        output_result,
+        connection_result,
+    })
+}
+
+// TODO: make selected network not optional, always select
 pub fn get_selected_network(options: &Options) -> io::Result<Option<WirelessNetwork>> {
     if let Some(essid) = &options.given_essid {
         Ok(Some(WirelessNetwork {
@@ -66,17 +80,6 @@ pub fn get_selected_network(options: &Options) -> io::Result<Option<WirelessNetw
         let selected_network = select_network(options, &available_networks)?;
         Ok(selected_network)
     }
-}
-
-pub fn run_ruwi(options: &Options) -> io::Result<RuwiResult> {
-    let selected_network = get_selected_network(options)?;
-    let encryption_key = get_password(options, &selected_network)?;
-    let output_result = send_output(options, &selected_network, &encryption_key)?;
-    let connection_result = connect_to_network(options, &selected_network)?;
-    Ok(RuwiResult {
-        output_result,
-        connection_result,
-    })
 }
 
 #[cfg(test)]

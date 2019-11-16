@@ -11,7 +11,7 @@ where
     E::iter().map(|x| x.as_static()).collect::<Vec<_>>()
 }
 
-pub(crate) fn get_val<T: FromStr + Default>(m: &ArgMatches, arg: &str) -> T
+pub(crate) fn get_val_as_enum<T: FromStr + Default>(m: &ArgMatches, arg: &str) -> T
 where
     T::Err: std::fmt::Debug,
 {
