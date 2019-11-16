@@ -47,3 +47,11 @@ pub(crate) fn connect_via_netctl(
         cmd_output: Some(output),
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_connect_via_netctl_pass() {}
+}

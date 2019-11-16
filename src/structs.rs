@@ -75,6 +75,21 @@ pub struct Options {
     pub given_password: Option<String>,
 }
 
+impl Default for Options {
+    fn default() -> Self {
+        Options {
+            scan_type: ScanType::IW,
+            interface: "some_fake_name".to_string(),
+            selection_method: SelectionMethod::Fzf,
+            output_type: OutputType::None,
+            connect_via: ConnectionType::None,
+            debug: true,
+            given_essid: None,
+            given_password: None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ScanResult {
     pub scan_type: ScanType,

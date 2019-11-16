@@ -24,7 +24,6 @@ pub(crate) fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
     res
 }
 
-// NOTE: interface is ignored for this command
 fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
     initialize_wpa_cli(options)?;
     let output_res = Command::new("wpa_cli")
@@ -46,18 +45,21 @@ fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
             concat!(
                 "Failed to scan with `wpa_cli scan_results`. ",
                 "Is wpa_supplicant running? Is it installed? ",
-                "You can also select a different scanning method with -s (try 'iw' or 'iwlist'),",
+                "You can also select a different scanning method with -s (try 'iw' or 'iwlist'), ",
                 "or you can manually specify an essid with -e.",
             ),
         )),
     }
 }
 
-// TODO: [] do iw scan dump if results are already available
-//       [] add a flag for 'force refresh'
 fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
     bring_interface_up(options)?;
+
+    // TODO: is there a way to avoid this?
     thread::sleep(Duration::from_secs(1));
+
+    spawn_background_iw_scan(options);
+
     let output_res = Command::new("iw")
         .arg(&options.interface)
         .arg("scan")
@@ -80,10 +82,23 @@ fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
         Err(_e) => Err(io::Error::new(
             io::ErrorKind::Other,
             concat!(
-                "Failed to scan with `iw`. Is it installed?",
-                "You can also select a different scanning method with -s (try 'iw' or 'iwlist'),",
+                "Failed to scan with `iw`. Is it installed? ",
+                "You can also select a different scanning method with -s (try 'iw' or 'iwlist'), ",
                 "or you can manually specify an essid with -e.",
             ),
         )),
+    }
+}
+
+// Initiate a rescan in the background. Failure is ignored.
+fn spawn_background_iw_scan(options: &Options) {
+    let background_scan_res = Command::new("iw")
+        .arg(&options.interface)
+        .arg("scan")
+        .arg("trigger")
+        .output();
+
+    if options.debug {
+        dbg!(&background_scan_res);
     }
 }

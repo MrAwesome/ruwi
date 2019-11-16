@@ -240,29 +240,15 @@ mod tests {
         include_str!("samples/broken_input_two_words.txt");
 
     fn get_iw_basic_options() -> Options {
-        Options {
-            scan_type: ScanType::IW,
-            interface: "some_fake_name".to_string(),
-            selection_method: SelectionMethod::Dmenu,
-            output_type: OutputType::None,
-            connect_via: ConnectionType::None,
-            debug: true,
-            given_essid: None,
-            given_password: None,
-        }
+        let mut opts = Options::default();
+        opts.scan_type = ScanType::IW;
+        opts
     }
 
     fn get_wpa_cli_basic_options() -> Options {
-        Options {
-            scan_type: ScanType::WpaCli,
-            interface: "some_fake_name".to_string(),
-            selection_method: SelectionMethod::Dmenu,
-            output_type: OutputType::None,
-            connect_via: ConnectionType::None,
-            debug: true,
-            given_essid: None,
-            given_password: None,
-        }
+        let mut opts = Options::default();
+        opts.scan_type = ScanType::WpaCli;
+        opts
     }
 
     #[derive(Debug, Copy, Clone, Eq, PartialEq)]
