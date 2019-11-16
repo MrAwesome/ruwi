@@ -40,7 +40,7 @@ fn break_iw_output_into_chunks_per_network(
     options: &Options,
     output: &str,
 ) -> io::Result<Vec<Vec<String>>> {
-    let mut lines = output.lines().map(|line| line.trim().to_string());
+    let mut lines = output.trim().lines().map(|line| line.trim().to_string());
     let mut iw_network_line_groups = vec![];
 
     let bss_re = get_iw_bss_regex();
@@ -51,10 +51,10 @@ fn break_iw_output_into_chunks_per_network(
         if bss_re.is_match(&line) {
             network.push(line);
         } else {
-            err_iw_malformed_output(options)?
+            Err(err_iw_malformed_output(options))?
         }
     } else {
-        err_iw_no_networks_seen(options)?
+        Err(err_iw_no_networks_seen(options))?
     }
 
     loop {
@@ -135,27 +135,30 @@ fn get_iw_bss_regex() -> Regex {
     Regex::new(r"^BSS ((\w\w:){5}\w\w)").expect("Failure creating regex for iw parsing...")
 }
 
-fn err_iw_malformed_output(options: &Options) -> io::Result<()> {
-    Err(io::Error::new(
+// TODO: put the actual command run here
+// TODO: if dump, suggest scan
+fn err_iw_malformed_output(options: &Options) -> io::Error {
+    io::Error::new(
         io::ErrorKind::InvalidInput,
         format!(
-            "Malformed output returned by `sudo iw {} scan`. Try running it manually.",
+            "Malformed output returned by `sudo iw {} scan dump`. Try running it manually.",
             options.interface
         ),
-    ))
+    )
 }
 
-fn err_iw_no_networks_seen(options: &Options) -> io::Result<()> {
-    Err(io::Error::new(io::ErrorKind::Other, format!("No networks seen by `sudo iw {} scan`. Are you near wireless networks? Try running that command manually.", options.interface)))
+fn err_iw_no_networks_seen(options: &Options) -> io::Error {
+    io::Error::new(io::ErrorKind::Other, format!("No networks seen by `sudo iw {} scan dump`. Are you near wireless networks? Try running `sudo iw {} scan`.", options.interface, options.interface))
 }
 
 fn parse_wpa_cli_scan(_options: &Options, output: &str) -> io::Result<ParseResult> {
-    let mut lines = output.lines().map(|x| x.to_string());
+    let mut lines = output.trim().lines().map(|x| x.to_string());
     let mut networks = vec![];
     let mut line_parse_errors = vec![];
 
     let _header1 = lines.next().ok_or_else(missing_wpa_cli_header)?;
     let _header2 = lines.next().ok_or_else(missing_wpa_cli_header)?;
+
     for line in lines {
         let res = parse_wpa_line_into_network(line.to_string());
         match res {
@@ -164,11 +167,21 @@ fn parse_wpa_cli_scan(_options: &Options, output: &str) -> io::Result<ParseResul
         };
     }
 
-    Ok(ParseResult {
-        scan_type: ScanType::WpaCli,
-        seen_networks: networks,
-        line_parse_errors,
-    })
+    if networks.is_empty() {
+        // TODO(wishlist): if individual parse errors happened, print them?
+        //                 maybe only in debug mode?
+        Err(err_wpa_cli_no_networks_seen())
+    } else {
+        Ok(ParseResult {
+            scan_type: ScanType::WpaCli,
+            seen_networks: networks,
+            line_parse_errors,
+        })
+    }
+}
+
+fn err_wpa_cli_no_networks_seen() -> io::Error {
+    io::Error::new(io::ErrorKind::Other, format!("No networks seen by `sudo wpa_cli scan_results`. Are you near wireless networks? Try running `sudo wpa_cli scan`."))
 }
 
 fn missing_wpa_cli_header() -> io::Error {
@@ -214,6 +227,7 @@ mod tests {
     pub static IW_ONE_NETWORK: &'static str = include_str!("samples/iw_one_network.txt");
     pub static IW_TWO_DIFFERENT_NETWORKS: &'static str =
         include_str!("samples/iw_two_different_networks.txt");
+    pub static WPA_CLI_NO_NETWORKS: &'static str = include_str!("samples/wpa_cli_no_networks.txt");
     pub static WPA_CLI_TWO_DIFFERENT_NETWORKS: &'static str =
         include_str!("samples/wpa_cli_two_different_networks.txt");
     pub static WPA_CLI_SEVEN_NETWORKS_TWO_DUPLICATE_TWO_EMPTY: &'static str =
@@ -255,6 +269,7 @@ mod tests {
     enum NetworkTextType {
         IWOneNetwork,
         IWTwoDifferentNetworks,
+        WpaCliNoNetworks,
         WpaCliTwoDifferentNetworks,
         WpaCliSevenNetworksTwoDuplicateTwoEmpty,
         WpaCliTwoLinesMissingInfo,
@@ -270,6 +285,7 @@ mod tests {
             NetworkTextType::WpaCliTwoDifferentNetworks => {
                 self::WPA_CLI_TWO_DIFFERENT_NETWORKS.to_string()
             }
+            NetworkTextType::WpaCliNoNetworks => self::WPA_CLI_NO_NETWORKS.to_string(),
             NetworkTextType::WpaCliSevenNetworksTwoDuplicateTwoEmpty => {
                 self::WPA_CLI_SEVEN_NETWORKS_TWO_DUPLICATE_TWO_EMPTY.to_string()
             }
@@ -336,6 +352,8 @@ mod tests {
                 ],
                 line_parse_errors: vec![],
             }),
+            NetworkTextType::WpaCliNoNetworks => Err(err_wpa_cli_no_networks_seen()),
+
             NetworkTextType::WpaCliSevenNetworksTwoDuplicateTwoEmpty => Ok(ParseResult {
                 scan_type: ScanType::WpaCli,
                 seen_networks: vec![
@@ -393,14 +411,20 @@ mod tests {
             }),
             NetworkTextType::WpaCliTwoLinesMissingInfo => Ok(ParseResult {
                 scan_type: ScanType::WpaCli,
-                seen_networks: vec![],
+                seen_networks: vec![WirelessNetwork {
+                    essid: "Valparaiso_Guest_House 1".to_string(),
+                    is_encrypted: true,
+                    bssid: Some("f4:28:53:fe:a5:d0".to_string()),
+                    signal_strength: Some(-66),
+                    channel_utilisation: None,
+                }],
                 line_parse_errors: vec![
                     (
-                        "f4:28:53:fe:a5:d0\t2437\t-66\t".to_string(),
+                        "f4:28:53:fe:a5:d0\t2437\t-66".to_string(),
                         IndividualParseError::MissingWpaCliResultField,
                     ),
                     (
-                        "68:72:51:68:73:da\t2457\t".to_string(),
+                        "68:72:51:68:73:da\t2457".to_string(),
                         IndividualParseError::MissingWpaCliResultField,
                     ),
                 ],
@@ -466,6 +490,13 @@ mod tests {
     fn test_iw_two_different_networks() {
         let text_type = NetworkTextType::IWTwoDifferentNetworks;
         let options = get_iw_basic_options();
+        compare_parsed_result_to_expected_result(text_type, options);
+    }
+
+    #[test]
+    fn test_wpa_cli_no_networks() {
+        let text_type = NetworkTextType::WpaCliNoNetworks;
+        let options = get_wpa_cli_basic_options();
         compare_parsed_result_to_expected_result(text_type, options);
     }
 

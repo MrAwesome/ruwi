@@ -61,6 +61,7 @@ fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
     let output_res = Command::new("iw")
         .arg(&options.interface)
         .arg("scan")
+        .arg("dump")
         .stdout(Stdio::piped())
         .output();
 

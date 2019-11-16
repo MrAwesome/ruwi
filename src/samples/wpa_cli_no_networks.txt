@@ -1,0 +1,2 @@
+Selected interface 'wlp3s0'
+bssid / frequency / signal level / flags / ssid

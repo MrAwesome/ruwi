@@ -14,7 +14,7 @@ pub enum ScanType {
 
 impl Default for ScanType {
     fn default() -> Self {
-        ScanType::WpaCli
+        ScanType::IW
     }
 }
 
@@ -43,7 +43,6 @@ pub enum SelectionMethod {
     Fzf,
 }
 
-// TODO: determine more intelligently?
 impl Default for SelectionMethod {
     fn default() -> Self {
         SelectionMethod::Dmenu
