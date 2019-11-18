@@ -77,7 +77,7 @@ pub struct Options {
 
 impl Options {
     pub fn dbg<T: Debug>(&self, lawl: T) {
-        dbg!(lawl);
+        dbg![lawl];
     }
 }
 

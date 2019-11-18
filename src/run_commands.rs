@@ -1,8 +1,13 @@
 use crate::structs::Options;
 use std::io;
-use std::process::{Command, Output, Stdio};
+use std::process::{Command, Stdio};
 
-fn run_command(options: &Options, cmd: &str, args: &[&str]) -> io::Result<Output> {
+pub(crate) fn run_command(
+    options: &Options,
+    cmd: &str,
+    args: &[&str],
+    err_msg: &str,
+) -> io::Result<String> {
     options.dbg((&cmd, &args));
 
     let spawn_res = Command::new(cmd)
@@ -21,5 +26,9 @@ fn run_command(options: &Options, cmd: &str, args: &[&str]) -> io::Result<Output
         dbg!(&cmd_res);
     }
 
-    Ok(cmd_res?)
+    match &cmd_res {
+        Ok(o) => Ok(String::from_utf8_lossy(&o.stdout).to_string()),
+
+        Err(_e) => Err(io::Error::new(io::ErrorKind::Other, err_msg)),
+    }
 }

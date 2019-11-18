@@ -6,7 +6,7 @@ pub(crate) fn get_default_interface(debug: bool) -> io::Result<String> {
     let interface = get_wpa_cli_ifname_interface(debug);
 
     if debug {
-        dbg!(&interface);
+        dbg![&interface];
     }
 
     interface
@@ -21,7 +21,7 @@ fn get_wpa_cli_ifname_interface(debug: bool) -> io::Result<String> {
         .wait_with_output();
 
     if debug {
-        dbg!(&iw_dev_output);
+        dbg![&iw_dev_output];
     }
 
     if let Ok(output) = iw_dev_output {

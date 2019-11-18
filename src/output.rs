@@ -29,7 +29,9 @@ pub(crate) fn send_output(
         x => Err(nie(x)),
     };
 
-    options.dbg((&options.output_type, &res));
+    if options.debug {
+        dbg![(&options.output_type, &res)];
+    }
 
     res
 }

@@ -1,4 +1,5 @@
 use crate::interface_management::bring_interface_up;
+use crate::run_commands::run_command;
 use crate::structs::*;
 use crate::wpa_cli_initialize::initialize_wpa_cli;
 use std::thread;
@@ -17,7 +18,9 @@ pub(crate) fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
         // nmcli device wifi list
     };
 
-    options.dbg(&res);
+    if options.debug {
+        dbg![&res];
+    }
     res
 }
 
@@ -30,7 +33,9 @@ fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
         .spawn()?
         .wait_with_output();
 
-    options.dbg(&output_res);
+    if options.debug {
+        dbg![&output_res];
+    }
 
     match &output_res {
         Ok(o) => Ok(ScanResult {
@@ -58,34 +63,21 @@ fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
     // Trigger a scan. Failure can safely be ignored.
     run_iw_scan_trigger(options).ok();
 
-    let output_res = Command::new("iw")
-        .arg(&options.interface)
-        .arg("scan")
-        .arg("dump")
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?
-        .wait_with_output();
+    let output = run_command(
+        options,
+        "iw",
+        &[&options.interface, "scan", "dump"],
+        concat!(
+            "Failed to scan with `iw`. Is it installed? ",
+            "You can also select a different scanning method with -s (try 'iw' or 'iwlist'), ",
+            "or you can manually specify an essid with -e.",
+        ),
+    )?;
 
-    options.dbg(&output_res);
-
-    match &output_res {
-        Ok(o) => {
-            let output = String::from_utf8_lossy(&o.stdout).to_string();
-            Ok(ScanResult {
-                scan_type: ScanType::IW,
-                output,
-            })
-        }
-        Err(_e) => Err(io::Error::new(
-            io::ErrorKind::Other,
-            concat!(
-                "Failed to scan with `iw`. Is it installed? ",
-                "You can also select a different scanning method with -s (try 'iw' or 'iwlist'), ",
-                "or you can manually specify an essid with -e.",
-            ),
-        )),
-    }
+    Ok(ScanResult {
+        scan_type: ScanType::IW,
+        output,
+    })
 }
 
 // Initiate a rescan. Failure is ignored. This command should return instantaneously.
@@ -98,10 +90,15 @@ fn run_iw_scan_trigger(options: &Options) -> io::Result<Output> {
         .stderr(Stdio::piped())
         .spawn();
 
-    options.dbg(&spawn_res);
+    if options.debug {
+        dbg![&spawn_res];
+    }
 
     let cmd_res = spawn_res?.wait_with_output();
 
-    options.dbg(&cmd_res);
+    if options.debug {
+        dbg![&cmd_res];
+    }
+
     Ok(cmd_res?)
 }

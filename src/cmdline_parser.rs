@@ -108,7 +108,7 @@ pub fn get_options() -> io::Result<Options> {
     };
 
     if opts.debug {
-        dbg!(&opts);
+        dbg![&opts];
     }
     Ok(opts)
 }

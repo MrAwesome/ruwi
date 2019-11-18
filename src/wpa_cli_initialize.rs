@@ -35,7 +35,9 @@ pub(crate) fn initialize_wpa_cli(options: &Options) -> io::Result<()> {
             .stdout(Stdio::null())
             .status();
 
-        options.dbg(&supplicant_status);
+        if options.debug {
+            dbg!(&supplicant_status);
+        }
 
         if let Ok(stat) = supplicant_status {
             if stat.success() {
@@ -44,7 +46,9 @@ pub(crate) fn initialize_wpa_cli(options: &Options) -> io::Result<()> {
                     .stdout(Stdio::null())
                     .status();
 
-                options.dbg(&scan_status);
+                if options.debug {
+                    dbg![&scan_status];
+                }
 
                 eprintln!("[NOTE]: Sleeping to wait for results from wpa_cli. This should only happen when you first start wpa_supplicant. If you aren't seeing results, or you see stale results, try `sudo killall wpa_supplicant` or using a different scanning method with -s.");
                 thread::sleep(Duration::from_secs(5));
@@ -65,7 +69,9 @@ fn wpa_ping_success(options: &Options) -> bool {
         .stdout(Stdio::null())
         .status();
 
-    options.dbg(&ping_status);
+    if options.debug {
+        dbg![&ping_status];
+    }
 
     if let Ok(s) = ping_status {
         s.success()
