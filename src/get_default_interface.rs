@@ -1,9 +1,9 @@
+use crate::run_commands::*;
 use std::io;
-use std::process::{Command, Stdio};
 
 pub(crate) fn get_default_interface(debug: bool) -> io::Result<String> {
     // Other methods of determining the interface can be added here
-    let interface = get_wpa_cli_ifname_interface(debug);
+    let interface = get_interface_with_iw(debug);
 
     if debug {
         dbg![&interface];
@@ -12,17 +12,8 @@ pub(crate) fn get_default_interface(debug: bool) -> io::Result<String> {
     interface
 }
 
-fn get_wpa_cli_ifname_interface(debug: bool) -> io::Result<String> {
-    let iw_dev_output = Command::new("iw")
-        .arg("dev")
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?
-        .wait_with_output();
-
-    if debug {
-        dbg![&iw_dev_output];
-    }
+fn get_interface_with_iw(debug: bool) -> io::Result<String> {
+    let iw_dev_output = run_command_output(debug, "iw", &["dev"]);
 
     if let Ok(output) = iw_dev_output {
         if output.status.success() {

@@ -1,5 +1,5 @@
 use crate::interface_management::bring_interface_up;
-use crate::run_commands::run_command;
+use crate::run_commands::*;
 use crate::structs::*;
 use crate::wpa_cli_initialize::initialize_wpa_cli;
 use std::thread;
@@ -63,8 +63,8 @@ fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
     // Trigger a scan. Failure can safely be ignored.
     run_iw_scan_trigger(options).ok();
 
-    let output = run_command(
-        options,
+    let output = run_command_stdout(
+        options.debug,
         "iw",
         &[&options.interface, "scan", "dump"],
         concat!(
@@ -82,8 +82,8 @@ fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
 
 // Initiate a rescan. This command should return instantaneously.
 fn run_iw_scan_trigger(options: &Options) -> io::Result<String> {
-    run_command(
-        options,
+    run_command_stdout(
+        options.debug,
         "iw",
         &[&options.interface, "scan", "trigger"],
         "Triggering scan with iw failed. This should be ignored.",

@@ -1,4 +1,4 @@
-use crate::run_commands::run_command;
+use crate::run_commands::*;
 use crate::structs::*;
 use std::io;
 
@@ -14,8 +14,8 @@ enum InterfaceState {
 fn bring_interface(options: &Options, interface_state: InterfaceState) -> io::Result<()> {
     let if_name = &options.interface;
     let if_state = interface_state.to_string();
-    run_command(
-        options,
+    run_command_stdout(
+        options.debug,
         "ifconfig",
         &[if_name, &if_state],
         &format!(
