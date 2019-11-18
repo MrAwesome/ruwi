@@ -18,7 +18,6 @@ pub(crate) fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
     };
 
     options.dbg(&res);
-
     res
 }
 
@@ -53,10 +52,11 @@ fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
 fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
     bring_interface_up(options)?;
 
-    // TODO: is there a way to avoid this?
+    // TODO: Find if there's a command to wait until the interface is really up
     thread::sleep(Duration::from_secs(1));
 
-    run_iw_scan_trigger(options);
+    // Trigger a scan. Failure can safely be ignored.
+    run_iw_scan_trigger(options).ok();
 
     let output_res = Command::new("iw")
         .arg(&options.interface)

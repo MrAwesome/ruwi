@@ -12,7 +12,6 @@ pub(crate) fn parse_result(options: &Options, scan_result: &ScanResult) -> io::R
     };
 
     options.dbg(&res);
-
     res
 }
 
