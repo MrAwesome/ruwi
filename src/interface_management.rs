@@ -1,7 +1,6 @@
-use crate::run_commands::*;
+use crate::run_commands::run_command;
 use crate::structs::*;
 use std::io;
-use std::process::{Command, Stdio};
 
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
@@ -13,17 +12,17 @@ enum InterfaceState {
 }
 
 fn bring_interface(options: &Options, interface_state: InterfaceState) -> io::Result<()> {
-    let output = Command::new("ifconfig")
-        .arg(&options.interface)
-        .arg(interface_state.to_string())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?
-        .wait_with_output()?;
-
-    if options.debug {
-        dbg![&output];
-    }
+    let if_name = &options.interface;
+    let if_state = interface_state.to_string();
+    run_command(
+        options,
+        "ifconfig",
+        &[if_name, &if_state],
+        &format!(
+            "Failed to bring interface {} {} with `ifconfig {} {}`.",
+            if_name, if_state, if_name, if_state
+        ),
+    )?;
 
     Ok(())
 }

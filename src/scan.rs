@@ -6,7 +6,7 @@ use std::thread;
 use std::time::Duration;
 
 use std::io;
-use std::process::{Command, Output, Stdio};
+use std::process::{Command, Stdio};
 
 pub(crate) fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
     let res = match &options.scan_type {
@@ -80,25 +80,12 @@ fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
     })
 }
 
-// Initiate a rescan. Failure is ignored. This command should return instantaneously.
-fn run_iw_scan_trigger(options: &Options) -> io::Result<Output> {
-    let spawn_res = Command::new("iw")
-        .arg(&options.interface)
-        .arg("scan")
-        .arg("trigger")
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn();
-
-    if options.debug {
-        dbg![&spawn_res];
-    }
-
-    let cmd_res = spawn_res?.wait_with_output();
-
-    if options.debug {
-        dbg![&cmd_res];
-    }
-
-    Ok(cmd_res?)
+// Initiate a rescan. This command should return instantaneously.
+fn run_iw_scan_trigger(options: &Options) -> io::Result<String> {
+    run_command(
+        options,
+        "iw",
+        &[&options.interface, "scan", "trigger"],
+        "Triggering scan with iw failed. This should be ignored.",
+    )
 }
