@@ -75,6 +75,12 @@ pub struct Options {
     pub given_password: Option<String>,
 }
 
+impl Options {
+    pub fn dbg<T: Debug>(&self, lawl: T) {
+        dbg!(lawl);
+    }
+}
+
 impl Default for Options {
     fn default() -> Self {
         Options {
@@ -123,6 +129,18 @@ pub struct WirelessNetwork {
     pub bssid: Option<String>,
     pub signal_strength: Option<i32>,
     pub channel_utilisation: Option<String>,
+}
+
+impl Default for WirelessNetwork {
+    fn default() -> Self {
+        WirelessNetwork {
+            essid: "fake_essid".to_string(),
+            is_encrypted: false,
+            bssid: None,
+            signal_strength: None,
+            channel_utilisation: None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -16,7 +16,9 @@ fn get_wpa_cli_ifname_interface(debug: bool) -> io::Result<String> {
     let iw_dev_output = Command::new("iw")
         .arg("dev")
         .stdout(Stdio::piped())
-        .output();
+        .stderr(Stdio::piped())
+        .spawn()?
+        .wait_with_output();
 
     if debug {
         dbg!(&iw_dev_output);

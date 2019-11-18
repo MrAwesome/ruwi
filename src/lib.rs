@@ -10,22 +10,24 @@ extern crate regex;
 extern crate strum;
 extern crate strum_macros;
 
-pub mod cmdline_parser;
-pub mod connect;
-pub mod get_default_interface;
-pub mod interface_management;
-pub mod netctl_config_writer;
-pub mod output;
-pub mod parse;
-pub mod password_prompt;
-pub mod scan;
-pub mod select;
-pub mod select_network;
-pub mod sort_networks;
-pub mod structs;
-pub mod strum_utils;
-pub mod wpa_cli_initialize;
+pub(crate) mod cmdline_parser;
+pub(crate) mod connect;
+pub(crate) mod get_default_interface;
+pub(crate) mod interface_management;
+pub(crate) mod netctl_config_writer;
+pub(crate) mod output;
+pub(crate) mod parse;
+pub(crate) mod password_prompt;
+pub(crate) mod run_commands;
+pub(crate) mod scan;
+pub(crate) mod select;
+pub(crate) mod select_network;
+pub(crate) mod sort_networks;
+pub(crate) mod structs;
+pub(crate) mod strum_utils;
+pub(crate) mod wpa_cli_initialize;
 
+use cmdline_parser::*;
 use connect::*;
 use output::*;
 use parse::*;
@@ -37,7 +39,8 @@ use structs::*;
 
 use std::io;
 
-// TODO(high): use iw scan_dump, and kick off background scan
+// TODO(high): figure out how to unit test / mock command calls
+// TODO(high): add integration tests
 // TODO(high): find existing ESSIDs, when a scan turns up known network mark its WirelessNetwork in scan (aka make connecting to known networks easier)
 // TODO(high): find a way to unit test without actually running commands. maybe with cfg(test)?
 // TODO(high): if networkmanager is used, start it up before going - same with netctl. possibly also stop
@@ -53,7 +56,8 @@ use std::io;
 // TODO(think): instead of functions which take options, make a big struct/impl? maybe more than one?
 // TODO(think): consider just supporting netctl for now?
 
-pub fn run_ruwi(options: &Options) -> io::Result<RuwiResult> {
+pub fn run_ruwi() -> io::Result<RuwiResult> {
+    let options = &get_options()?;
     let selected_network = get_selected_network(options)?;
     let encryption_key = get_password(options, &selected_network)?;
     let output_result = send_output(options, &selected_network, &encryption_key)?;

@@ -1,3 +1,4 @@
+use crate::run_commands::*;
 use crate::structs::*;
 use std::io;
 use std::process::{Command, Stdio};
@@ -16,7 +17,9 @@ fn bring_interface(options: &Options, interface_state: InterfaceState) -> io::Re
         .arg(&options.interface)
         .arg(interface_state.to_string())
         .stdout(Stdio::piped())
-        .output()?;
+        .stderr(Stdio::piped())
+        .spawn()?
+        .wait_with_output()?;
 
     if options.debug {
         dbg!(&output);

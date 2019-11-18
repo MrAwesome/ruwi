@@ -23,17 +23,21 @@ pub(crate) fn connect_to_network(
     res
 }
 
-pub(crate) fn connect_via_netctl(
+fn connect_via_netctl(
     options: &Options,
     selected_network: &WirelessNetwork,
 ) -> io::Result<ConnectionResult> {
     bring_interface_down(options)?;
+
     let netctl_file_name = get_netctl_file_name(&selected_network.essid);
+
     let output = Command::new("netctl")
         .arg("switch-to")
         .arg(&netctl_file_name)
         .stdout(Stdio::piped())
-        .output()?;
+        .stderr(Stdio::piped())
+        .spawn()?
+        .wait_with_output()?;
 
     if !output.status.success() {
         Err(io::Error::new(
@@ -53,5 +57,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_connect_via_netctl_pass() {}
+    fn test_connect_via_netctl_pass() {
+        let opts = Options::default();
+        let nw = WirelessNetwork::default();
+        // TODO: test connect based on nw passed in
+        let res = connect_via_netctl(&opts, &nw);
+        // TODO: match more robustly, compare to opts and connection type and etc
+        assert!(res.is_ok());
+    }
 }

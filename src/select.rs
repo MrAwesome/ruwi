@@ -47,7 +47,11 @@ fn run_prompt_cmd(
     cmd: &mut Command,
 ) -> io::Result<String> {
     let input_text = elements.join("\n");
-    let mut child = cmd.stdin(Stdio::piped()).stdout(Stdio::piped()).spawn()?;
+    let mut child = cmd
+        .stdin(Stdio::piped())
+        .stderr(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()?;
 
     let stdin = child
         .stdin

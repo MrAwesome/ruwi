@@ -5,7 +5,7 @@ use std::thread;
 use std::time::Duration;
 
 use std::io;
-use std::process::{Command, Stdio};
+use std::process::{Command, Output, Stdio};
 
 pub(crate) fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
     let res = match &options.scan_type {
@@ -29,7 +29,9 @@ fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
     let output_res = Command::new("wpa_cli")
         .arg("scan_results")
         .stdout(Stdio::piped())
-        .output();
+        .stderr(Stdio::piped())
+        .spawn()?
+        .wait_with_output();
 
     if options.debug {
         dbg!(&output_res);
@@ -58,14 +60,16 @@ fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
     // TODO: is there a way to avoid this?
     thread::sleep(Duration::from_secs(1));
 
-    spawn_background_iw_scan(options);
+    run_iw_scan_trigger(options);
 
     let output_res = Command::new("iw")
         .arg(&options.interface)
         .arg("scan")
         .arg("dump")
         .stdout(Stdio::piped())
-        .output();
+        .stderr(Stdio::piped())
+        .spawn()?
+        .wait_with_output();
 
     if options.debug {
         dbg!(&output_res);
@@ -90,15 +94,24 @@ fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
     }
 }
 
-// Initiate a rescan in the background. Failure is ignored.
-fn spawn_background_iw_scan(options: &Options) {
-    let background_scan_res = Command::new("iw")
+// Initiate a rescan. Failure is ignored. This command should return instantaneously.
+fn run_iw_scan_trigger(options: &Options) -> io::Result<Output> {
+    let spawn_res = Command::new("iw")
         .arg(&options.interface)
         .arg("scan")
         .arg("trigger")
-        .output();
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn();
 
     if options.debug {
-        dbg!(&background_scan_res);
+        dbg!(&spawn_res);
     }
+
+    let cmd_res = spawn_res?.wait_with_output();
+
+    if options.debug {
+        dbg!(&cmd_res);
+    }
+    Ok(cmd_res?)
 }
