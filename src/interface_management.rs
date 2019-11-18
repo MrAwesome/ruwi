@@ -21,9 +21,7 @@ fn bring_interface(options: &Options, interface_state: InterfaceState) -> io::Re
         .spawn()?
         .wait_with_output()?;
 
-    if options.debug {
-        dbg!(&output);
-    }
+    options.dbg(&output);
 
     Ok(())
 }

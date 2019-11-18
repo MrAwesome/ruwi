@@ -25,9 +25,7 @@ pub(crate) fn get_password(
         },
     };
 
-    if options.debug {
-        dbg!(&pw);
-    }
+    options.dbg(&pw);
 
     pw
 }

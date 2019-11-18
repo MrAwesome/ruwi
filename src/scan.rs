@@ -17,9 +17,7 @@ pub(crate) fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
         // nmcli device wifi list
     };
 
-    if options.debug {
-        dbg!(&res);
-    }
+    options.dbg(&res);
 
     res
 }
@@ -33,9 +31,7 @@ fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
         .spawn()?
         .wait_with_output();
 
-    if options.debug {
-        dbg!(&output_res);
-    }
+    options.dbg(&output_res);
 
     match &output_res {
         Ok(o) => Ok(ScanResult {
@@ -71,9 +67,7 @@ fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
         .spawn()?
         .wait_with_output();
 
-    if options.debug {
-        dbg!(&output_res);
-    }
+    options.dbg(&output_res);
 
     match &output_res {
         Ok(o) => {
@@ -104,14 +98,10 @@ fn run_iw_scan_trigger(options: &Options) -> io::Result<Output> {
         .stderr(Stdio::piped())
         .spawn();
 
-    if options.debug {
-        dbg!(&spawn_res);
-    }
+    options.dbg(&spawn_res);
 
     let cmd_res = spawn_res?.wait_with_output();
 
-    if options.debug {
-        dbg!(&cmd_res);
-    }
+    options.dbg(&cmd_res);
     Ok(cmd_res?)
 }

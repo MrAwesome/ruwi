@@ -33,9 +33,7 @@ pub(crate) fn select_network(
         )),
     };
 
-    if options.debug {
-        dbg!(&res);
-    }
+    options.dbg(&res);
 
     res
 }

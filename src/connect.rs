@@ -16,9 +16,7 @@ pub(crate) fn connect_to_network(
         }),
         x @ _ => Err(nie(x)),
     };
-    if options.debug {
-        dbg!(&res);
-    }
+    options.dbg(&res);
 
     res
 }

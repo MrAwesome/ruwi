@@ -46,11 +46,11 @@ use std::io;
 // TODO(high): if networkmanager is used, start it up before going - same with netctl. possibly also stop
 // TODO(think): come up with subcommands which only run specified pieces, or at least decide on the functionality this command should have
 // TODO(mid): add colors to output / use a real logging library
+// TODO(mid): if no networks are seen by `iw dump`, go ahead and just run scan? may need to dump before trigger then
 // the other, to prevent cross-contamination
 // TODO(mid): figure out if networkmanager connection add with wifi password works - looks like not, just fail if output networkmanager is chosen without connection (or combine output and connection as a single concept, and have "print" as one)
 // TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
 // TODO(wishlist): find a generalized way to do x notifications, for dmenu mode, use to surface failures
-// TODO(wishlist): macro for `if options.debug { dbg!(arg); } arg`
 // TODO(wishlist): determine whether to use dmenu/fzf/etc based on terminal/X
 // TODO(later): make sure fzf and dmenu are listed as dependencies
 // TODO(think): instead of functions which take options, make a big struct/impl? maybe more than one?

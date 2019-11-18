@@ -11,9 +11,7 @@ pub(crate) fn parse_result(options: &Options, scan_result: &ScanResult) -> io::R
         x @ ScanType::IWList => Err(nie(x)),
     };
 
-    if options.debug {
-        dbg!(&res);
-    }
+    options.dbg(&res);
 
     res
 }

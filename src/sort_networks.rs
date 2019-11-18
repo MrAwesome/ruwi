@@ -21,9 +21,7 @@ pub(crate) fn get_and_sort_available_networks(
     let mut sorted_networks = parse_results.seen_networks.clone();
     put_strongest_networks_first(&mut sorted_networks);
 
-    if options.debug {
-        dbg!(&sorted_networks);
-    }
+    options.dbg(&sorted_networks);
 
     sorted_networks
 }
