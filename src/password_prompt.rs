@@ -34,10 +34,12 @@ pub(crate) fn get_password(
 pub(crate) fn prompt_for_password(options: &Options, network_name: &str) -> io::Result<String> {
     match &options.selection_method {
         SelectionMethod::Dmenu => {
-            run_dmenu(options, &format!("Password for {}: ", network_name), &[])
+            run_dmenu(options, &format!("Password for {}: ", network_name), vec![])
         }
-        SelectionMethod::Fzf => {
-            run_stdin_prompt_single_line(options, &format!("Password for {}: ", network_name), &[])
-        }
+        SelectionMethod::Fzf => run_stdin_prompt_single_line(
+            options,
+            &format!("Password for {}: ", network_name),
+            vec![],
+        ),
     }
 }

@@ -41,6 +41,7 @@ mod tests {
     fn test_network_sorting() {
         let higher_signal = WirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
+            known: false,
             is_encrypted: true,
             bssid: Some("f4:28:53:fe:a5:d0".to_string()),
             signal_strength: Some(-66),
@@ -49,6 +50,7 @@ mod tests {
 
         let lower_signal = WirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
+            known: false,
             is_encrypted: true,
             bssid: Some("f4:28:53:fe:a5:d0".to_string()),
             signal_strength: Some(-69),

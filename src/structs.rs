@@ -125,6 +125,7 @@ pub enum IndividualParseError {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WirelessNetwork {
     pub essid: String,
+    pub known: bool,
     pub is_encrypted: bool,
     pub bssid: Option<String>,
     pub signal_strength: Option<i32>,
@@ -135,6 +136,7 @@ impl Default for WirelessNetwork {
     fn default() -> Self {
         WirelessNetwork {
             essid: "fake_essid".to_string(),
+            known: false,
             is_encrypted: false,
             bssid: None,
             signal_strength: None,
@@ -152,7 +154,7 @@ pub struct OutputResult {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConnectionResult {
     pub connection_type: ConnectionType,
-    pub cmd_output: Option<Output>,
+    pub cmd_output: Option<String>,
     //ipv4_addr: Option<String>,
     //ipv6_addr: Option<String>,
 }

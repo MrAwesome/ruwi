@@ -7,17 +7,17 @@ pub(crate) fn select_network(
     options: &Options,
     sorted_available_networks: &[WirelessNetwork],
 ) -> io::Result<WirelessNetwork> {
-    let sorted_unique_network_names = get_ordered_unique_network_names(sorted_available_networks);
+    let sorted_unique_network_names = get_ordered_unique_network_names(&sorted_available_networks);
     let selected_network_name = match &options.selection_method {
         SelectionMethod::Dmenu => run_dmenu(
             options,
             &"Select a network:".to_string(),
-            &sorted_unique_network_names,
+            sorted_unique_network_names,
         ),
         SelectionMethod::Fzf => run_fzf(
             options,
             &"Select a network:".to_string(),
-            &sorted_unique_network_names,
+            sorted_unique_network_names,
         ),
     }?;
 
@@ -58,36 +58,31 @@ pub(crate) fn get_ordered_unique_network_names(
 mod tests {
     use super::*;
 
+    // TODO: test known sort here
+    fn lol() {}
+
     #[test]
     fn test_unique_nw_name_sort() {
         let sorted_available_networks = vec![
             WirelessNetwork {
                 essid: "DOOK".to_string(),
-                is_encrypted: true,
-                bssid: Some("f4:28:53:fe:a5:d0".to_string()),
                 signal_strength: Some(-5),
-                channel_utilisation: None,
+                ..Default::default()
             },
             WirelessNetwork {
                 essid: "BOYS".to_string(),
-                is_encrypted: true,
-                bssid: Some("68:72:51:68:73:da".to_string()),
                 signal_strength: Some(-47),
-                channel_utilisation: None,
+                ..Default::default()
             },
             WirelessNetwork {
                 essid: "DOOK".to_string(),
-                is_encrypted: true,
-                bssid: Some("68:72:51:68:73:da".to_string()),
                 signal_strength: Some(-49),
-                channel_utilisation: None,
+                ..Default::default()
             },
             WirelessNetwork {
                 essid: "YES".to_string(),
-                is_encrypted: true,
-                bssid: Some("68:72:51:68:73:da".to_string()),
                 signal_strength: Some(-89),
-                channel_utilisation: None,
+                ..Default::default()
             },
         ];
         let unique_network_names = get_ordered_unique_network_names(&sorted_available_networks);

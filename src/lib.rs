@@ -12,6 +12,7 @@ extern crate strum_macros;
 
 pub(crate) mod cmdline_parser;
 pub(crate) mod connect;
+pub(crate) mod find_known_network_names;
 pub(crate) mod get_default_interface;
 pub(crate) mod interface_management;
 pub(crate) mod netctl_config_writer;
@@ -29,6 +30,7 @@ pub(crate) mod wpa_cli_initialize;
 
 use cmdline_parser::*;
 use connect::*;
+use find_known_network_names::*;
 use output::*;
 use parse::*;
 use password_prompt::*;
@@ -56,31 +58,41 @@ use std::io;
 // TODO(think): instead of functions which take options, make a big struct/impl? maybe more than one?
 // TODO(think): consider just supporting netctl for now?
 
-pub fn run_ruwi() -> io::Result<RuwiResult> {
+pub fn run_ruwi() -> io::Result<()> {
     let options = &get_options()?;
     let selected_network = get_selected_network(options)?;
     let encryption_key = get_password(options, &selected_network)?;
-    let output_result = send_output(options, &selected_network, &encryption_key)?;
-    let connection_result = connect_to_network(options, &selected_network)?;
-    Ok(RuwiResult {
-        output_result,
-        connection_result,
-    })
+    let _output_result = send_output(options, &selected_network, &encryption_key)?;
+    let _connection_result = connect_to_network(options, &selected_network)?;
+    Ok(())
+    //    Ok(RuwiResult {
+    //        output_result,
+    //        connection_result,
+    //    })
 }
 
 pub fn get_selected_network(options: &Options) -> io::Result<WirelessNetwork> {
     if let Some(essid) = &options.given_essid {
         Ok(WirelessNetwork {
             essid: essid.clone(),
+            known: false,
             is_encrypted: options.given_password.is_some(),
             bssid: None,
             signal_strength: None,
             channel_utilisation: None,
         })
     } else {
+        // TODO: do scan and find in parallel
         let scan_result = wifi_scan(options)?;
-        let parse_results = parse_result(options, &scan_result)?;
+        let known_network_names = find_known_network_names(options)?;
+        let parse_results = parse_result(options, &scan_result, &known_network_names)?;
         let available_networks = get_and_sort_available_networks(options, &parse_results);
+        let filtered_networks = available_networks
+            .iter()
+            .filter(|x| known_network_names.contains(&x.essid))
+            .cloned()
+            .collect::<Vec<WirelessNetwork>>();
+        println!("{:?}", filtered_networks);
         let selected_network = select_network(options, &available_networks)?;
         Ok(selected_network)
     }

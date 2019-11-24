@@ -14,7 +14,7 @@ enum InterfaceState {
 fn bring_interface(options: &Options, interface_state: InterfaceState) -> io::Result<()> {
     let if_name = &options.interface;
     let if_state = interface_state.to_string();
-    run_command_stdout(
+    run_command_pass_stdout(
         options.debug,
         "ifconfig",
         &[if_name, &if_state],

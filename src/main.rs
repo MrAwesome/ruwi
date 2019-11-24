@@ -1,15 +1,7 @@
 // #![deny(warnings)]
 use ruwi::run_ruwi;
-use std::error::Error;
-use std::process::exit;
+use std::io;
 
-fn main() {
-    let res = run_ruwi();
-    match res {
-        Ok(int) => int,
-        Err(err) => {
-            eprintln!("[ERROR]: {}", err.description());
-            exit(1);
-        }
-    };
+fn main() -> io::Result<()> {
+    run_ruwi()
 }

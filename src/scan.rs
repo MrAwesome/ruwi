@@ -63,7 +63,7 @@ fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
     // Trigger a scan. Failure can safely be ignored.
     run_iw_scan_trigger(options).ok();
 
-    let output = run_command_stdout(
+    let output = run_command_pass_stdout(
         options.debug,
         "iw",
         &[&options.interface, "scan", "dump"],
@@ -82,7 +82,7 @@ fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
 
 // Initiate a rescan. This command should return instantaneously.
 fn run_iw_scan_trigger(options: &Options) -> io::Result<String> {
-    run_command_stdout(
+    run_command_pass_stdout(
         options.debug,
         "iw",
         &[&options.interface, "scan", "trigger"],
