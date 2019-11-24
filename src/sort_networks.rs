@@ -4,7 +4,11 @@ use crate::structs::*;
 
 impl Ord for WirelessNetwork {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.signal_strength.cmp(&other.signal_strength)
+        if self.known ^ other.known {
+            self.known.cmp(&other.known)
+        } else {
+            self.signal_strength.cmp(&other.signal_strength)
+        }
     }
 }
 
@@ -14,11 +18,11 @@ impl PartialOrd for WirelessNetwork {
     }
 }
 
-pub(crate) fn get_and_sort_available_networks(
+pub(crate) fn sort_available_networks(
     options: &Options,
-    parse_results: &ParseResult,
+    seen_networks: Vec<WirelessNetwork>,
 ) -> Vec<WirelessNetwork> {
-    let mut sorted_networks = parse_results.seen_networks.clone();
+    let mut sorted_networks = seen_networks;
     put_strongest_networks_first(&mut sorted_networks);
 
     if options.debug {
@@ -37,31 +41,65 @@ pub(crate) fn put_strongest_networks_first(networks: &mut Vec<WirelessNetwork>) 
 mod tests {
     use super::*;
 
+    fn compare_order(should_be_first: WirelessNetwork, should_be_last: WirelessNetwork) {
+        let wrong_order = vec![should_be_last.clone(), should_be_first.clone()];
+
+        let mut right_order = wrong_order;
+        right_order.sort();
+
+        assert_eq![right_order, vec![should_be_first, should_be_last]];
+    }
+
     #[test]
-    fn test_network_sorting() {
+    fn test_strength_sorting() {
         let higher_signal = WirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
-            known: false,
-            is_encrypted: true,
-            bssid: Some("f4:28:53:fe:a5:d0".to_string()),
             signal_strength: Some(-66),
-            channel_utilisation: None,
+            ..Default::default()
         };
 
         let lower_signal = WirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
-            known: false,
-            is_encrypted: true,
-            bssid: Some("f4:28:53:fe:a5:d0".to_string()),
             signal_strength: Some(-69),
-            channel_utilisation: None,
+            ..Default::default()
         };
 
-        let mut wrong_order = vec![higher_signal.clone(), lower_signal.clone()];
+        compare_order(lower_signal, higher_signal);
+    }
 
-        wrong_order.sort();
-        let right_order = wrong_order;
+    #[test]
+    fn test_known_higher_than_unknown() {
+        let known = WirelessNetwork {
+            essid: "Valparaiso_Guest_House 1".to_string(),
+            known: true,
+            ..Default::default()
+        };
 
-        assert_eq![right_order, vec![lower_signal, higher_signal]];
+        let not_known = WirelessNetwork {
+            essid: "Valparaiso_Guest_House 1".to_string(),
+            known: false,
+            ..Default::default()
+        };
+
+        compare_order(not_known, known);
+    }
+
+    #[test]
+    fn test_known_higher_than_unknown_with_higher_signal() {
+        let known = WirelessNetwork {
+            essid: "Valparaiso_Guest_House 1".to_string(),
+            known: true,
+            signal_strength: Some(-80),
+            ..Default::default()
+        };
+
+        let not_known = WirelessNetwork {
+            essid: "Valparaiso_Guest_House 1".to_string(),
+            known: false,
+            signal_strength: Some(-20),
+            ..Default::default()
+        };
+
+        compare_order(not_known, known);
     }
 }

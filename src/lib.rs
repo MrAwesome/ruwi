@@ -86,18 +86,13 @@ pub fn get_selected_network(options: &Options) -> io::Result<WirelessNetwork> {
         let scan_result = wifi_scan(options)?;
         let known_network_names = find_known_network_names(options)?;
         let parse_results = parse_result(options, &scan_result, &known_network_names)?;
-        let available_networks = get_and_sort_available_networks(options, &parse_results);
-        let filtered_networks = available_networks
-            .iter()
-            .filter(|x| known_network_names.contains(&x.essid))
-            .cloned()
-            .collect::<Vec<WirelessNetwork>>();
-        println!("{:?}", filtered_networks);
-        let selected_network = select_network(options, &available_networks)?;
+        let available_networks =
+            mark_known_networks(&parse_results.seen_networks, &known_network_names);
+        let sorted_networks = sort_available_networks(options, available_networks);
+        let selected_network = select_network(options, &sorted_networks)?;
         Ok(selected_network)
     }
 }
-
 #[cfg(test)]
 mod tests {
     // use super::*;

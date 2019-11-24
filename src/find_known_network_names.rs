@@ -5,6 +5,19 @@ use std::io;
 use std::io::prelude::*;
 use std::path::Path;
 
+pub(crate) fn mark_known_networks(
+    available_networks: &Vec<WirelessNetwork>,
+    known_network_names: &HashSet<String>,
+) -> Vec<WirelessNetwork> {
+    available_networks
+        .iter()
+        .map(|nw| WirelessNetwork {
+            known: known_network_names.contains(&nw.essid),
+            ..nw.clone()
+        })
+        .collect::<Vec<_>>()
+}
+
 // TODO: parse escape chars in essid
 pub(crate) fn find_known_network_names(options: &Options) -> io::Result<HashSet<String>> {
     let known_network_names = if options.output_type == OutputType::NetctlConfig

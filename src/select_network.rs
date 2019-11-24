@@ -3,12 +3,15 @@ use crate::structs::*;
 use std::collections::HashSet;
 use std::io;
 
+const KNOWN_TOKEN: &'static str = " (KNOWN)";
+
 pub(crate) fn select_network(
     options: &Options,
     sorted_available_networks: &[WirelessNetwork],
 ) -> io::Result<WirelessNetwork> {
-    let sorted_unique_network_names = get_ordered_unique_network_names(&sorted_available_networks);
-    let selected_network_name = match &options.selection_method {
+    let sorted_unique_network_names =
+        get_names_and_markers_for_selection(&sorted_available_networks);
+    let selected_network_line = match &options.selection_method {
         SelectionMethod::Dmenu => run_dmenu(
             options,
             &"Select a network:".to_string(),
@@ -20,6 +23,8 @@ pub(crate) fn select_network(
             sorted_unique_network_names,
         ),
     }?;
+
+    let selected_network_name = selected_network_line.trim_end_matches(KNOWN_TOKEN);
 
     let selected_network = sorted_available_networks
         .iter()
@@ -39,27 +44,57 @@ pub(crate) fn select_network(
     res
 }
 
-pub(crate) fn get_ordered_unique_network_names(
+pub(crate) fn get_names_and_markers_for_selection(
     sorted_available_networks: &[WirelessNetwork],
 ) -> Vec<String> {
     let mut seen_network_names = HashSet::new();
-    let mut sorted_unique_network_names = vec![];
+    let mut tokens_for_selection = vec![];
     for nw in sorted_available_networks {
         let essid = nw.essid.clone();
         if !seen_network_names.contains(&essid) {
             seen_network_names.insert(essid.clone());
-            sorted_unique_network_names.push(essid);
+
+            let token = get_token_for_selection(&nw);
+            tokens_for_selection.push(token);
         }
     }
-    sorted_unique_network_names
+    tokens_for_selection
+}
+
+fn get_token_for_selection(nw: &WirelessNetwork) -> String {
+    match nw.known {
+        true => nw.essid.clone() + KNOWN_TOKEN,
+        false => nw.essid.clone(),
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    // TODO: test known sort here
-    fn lol() {}
+    #[test]
+    fn test_get_token_for_known_network() {
+        let essid = "DOOK".to_string();
+        let nw = WirelessNetwork {
+            essid: essid.clone(),
+            known: true,
+            ..Default::default()
+        };
+        let token = get_token_for_selection(&nw);
+        assert_eq![token, essid + KNOWN_TOKEN];
+    }
+
+    #[test]
+    fn test_get_token_for_unknown_network() {
+        let essid = "DOOK".to_string();
+        let nw = WirelessNetwork {
+            essid: essid.clone(),
+            known: false,
+            ..Default::default()
+        };
+        let token = get_token_for_selection(&nw);
+        assert_eq![token, essid];
+    }
 
     #[test]
     fn test_unique_nw_name_sort() {
@@ -85,7 +120,7 @@ mod tests {
                 ..Default::default()
             },
         ];
-        let unique_network_names = get_ordered_unique_network_names(&sorted_available_networks);
+        let unique_network_names = get_names_and_markers_for_selection(&sorted_available_networks);
         let expected_names = vec!["DOOK".to_string(), "BOYS".to_string(), "YES".to_string()];
 
         assert_eq![unique_network_names, expected_names];
