@@ -2,13 +2,16 @@ use crate::interface_management::bring_interface_up;
 use crate::run_commands::*;
 use crate::structs::*;
 use crate::wpa_cli_initialize::initialize_wpa_cli;
-use std::thread;
-use std::time::Duration;
 
 use std::io;
 use std::process::{Command, Stdio};
 
-const IW_ERR_MSG: &'static str = concat!(
+const IW_SCAN_DUMP_ERR_MSG: &'static str = concat!(
+    "Failed to load cached list of seen networks with `iw`. Is it installed? ",
+    "You can also select a different scanning method with -s (try 'iw' or 'iwlist'), ",
+    "or you can manually specify an essid with -e.",
+);
+const IW_SCAN_SYNC_ERR_MSG: &'static str = concat!(
     "Failed to scan with `iw`. Is it installed? ",
     "You can also select a different scanning method with -s (try 'iw' or 'iwlist'), ",
     "or you can manually specify an essid with -e.",
@@ -63,9 +66,6 @@ fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
 fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
     bring_interface_up(options)?;
 
-    // Wait for the interface to come up. There's probably a command out there for this.
-    thread::sleep(Duration::from_secs(1));
-
     let mut scan_output = run_iw_scan_dump(options)?;
 
     if scan_output.len() == 0 {
@@ -85,7 +85,7 @@ fn run_iw_scan_synchronous(options: &Options) -> io::Result<String> {
         options.debug,
         "iw",
         &[&options.interface, "scan"],
-        IW_ERR_MSG,
+        IW_SCAN_SYNC_ERR_MSG,
     )
 }
 
@@ -94,7 +94,7 @@ fn run_iw_scan_dump(options: &Options) -> io::Result<String> {
         options.debug,
         "iw",
         &[&options.interface, "scan", "dump"],
-        IW_ERR_MSG,
+        IW_SCAN_DUMP_ERR_MSG,
     )
 }
 
