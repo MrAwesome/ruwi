@@ -61,8 +61,6 @@ fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
 }
 
 fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
-    let dbg = options.debug;
-
     bring_interface_up(options)?;
 
     // Wait for the interface to come up. There's probably a command out there for this.
