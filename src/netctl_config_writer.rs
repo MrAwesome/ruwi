@@ -32,11 +32,13 @@ pub(crate) fn get_netctl_config_contents(
     encryption_key: &Option<String>,
 ) -> String {
     let wpa_line = if network.is_encrypted {
-        if let Some(ek) = encryption_key {
-            format!("Key='{}'", ek)
-        } else {
-            unreachable!("We should have set the encryption key if wpa is set.");
-        }
+        format!(
+            "Key='{}'",
+            // TODO: see if encryption status/key can be bundled together
+            encryption_key
+                .as_ref()
+                .expect("We should have set the encryption key if wpa is set.")
+        )
     } else {
         "".to_string()
     };
