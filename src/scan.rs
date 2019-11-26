@@ -8,6 +8,12 @@ use std::time::Duration;
 use std::io;
 use std::process::{Command, Stdio};
 
+const IW_ERR_MSG: &'static str = concat!(
+    "Failed to scan with `iw`. Is it installed? ",
+    "You can also select a different scanning method with -s (try 'iw' or 'iwlist'), ",
+    "or you can manually specify an essid with -e.",
+);
+
 pub(crate) fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
     let res = match &options.scan_type {
         ScanType::WpaCli => run_wpa_cli_scan(options),
@@ -40,7 +46,7 @@ fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
     match &output_res {
         Ok(o) => Ok(ScanResult {
             scan_type: ScanType::WpaCli,
-            output: String::from_utf8_lossy(&o.stdout).to_string(),
+            scan_output: String::from_utf8_lossy(&o.stdout).to_string(),
         }),
         Err(_e) => Err(io::Error::new(
             io::ErrorKind::Other,
@@ -55,29 +61,49 @@ fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
 }
 
 fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
+    let dbg = options.debug;
+
     bring_interface_up(options)?;
 
-    // TODO: Find if there's a command to wait until the interface is really up
+    // Wait for the interface to come up. There's probably a command out there for this.
     thread::sleep(Duration::from_secs(1));
 
-    // Trigger a scan. Failure can safely be ignored.
-    run_iw_scan_trigger(options).ok();
+    let mut scan_output = run_iw_scan_dump(options)?;
 
-    let output = run_command_pass_stdout(
-        options.debug,
-        "iw",
-        &[&options.interface, "scan", "dump"],
-        concat!(
-            "Failed to scan with `iw`. Is it installed? ",
-            "You can also select a different scanning method with -s (try 'iw' or 'iwlist'), ",
-            "or you can manually specify an essid with -e.",
-        ),
-    )?;
+    // If our cached scan returned no networks, scan manually.
+    if scan_output.len() == 0 {
+        scan_output = run_iw_scan_synchronous(options)?;
+
+    // If we got any cached results, trigger a background scan. Failure can safely be ignored.
+    } else {
+        let trigger_res = run_iw_scan_trigger(options);
+        if options.debug {
+            dbg![&trigger_res];
+        }
+    }
 
     Ok(ScanResult {
         scan_type: ScanType::IW,
-        output,
+        scan_output,
     })
+}
+
+fn run_iw_scan_synchronous(options: &Options) -> io::Result<String> {
+    run_command_pass_stdout(
+        options.debug,
+        "iw",
+        &[&options.interface, "scan"],
+        IW_ERR_MSG,
+    )
+}
+
+fn run_iw_scan_dump(options: &Options) -> io::Result<String> {
+    run_command_pass_stdout(
+        options.debug,
+        "iw",
+        &[&options.interface, "scan", "dump"],
+        IW_ERR_MSG,
+    )
 }
 
 // Initiate a rescan. This command should return instantaneously.

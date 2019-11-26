@@ -54,6 +54,7 @@ use std::io;
 // TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
 // TODO(wishlist): find a generalized way to do x notifications, for dmenu mode, use to surface failures
 // TODO(wishlist): determine whether to use dmenu/fzf/etc based on terminal/X
+// TODO(wishlist): allow for using only iw to connect? would encryption keys need to be stored anywhere?
 // TODO(later): make sure fzf and dmenu are listed as dependencies
 // TODO(think): instead of functions which take options, make a big struct/impl? maybe more than one?
 // TODO(think): consider just supporting netctl for now?

@@ -99,7 +99,7 @@ impl Default for Options {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ScanResult {
     pub scan_type: ScanType,
-    pub output: String,
+    pub scan_output: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
