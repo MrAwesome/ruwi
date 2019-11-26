@@ -9,20 +9,31 @@ pub(crate) fn select_network(
     options: &Options,
     sorted_available_networks: &[WirelessNetwork],
 ) -> io::Result<WirelessNetwork> {
-    let sorted_unique_network_names =
-        get_names_and_markers_for_selection(&sorted_available_networks);
-    let selected_network_line = match &options.selection_method {
-        SelectionMethod::Dmenu => run_dmenu(
-            options,
-            &"Select a network:".to_string(),
-            sorted_unique_network_names,
-        ),
-        SelectionMethod::Fzf => run_fzf(
-            options,
-            &"Select a network:".to_string(),
-            sorted_unique_network_names,
-        ),
-    }?;
+    select_network_impl(options, sorted_available_networks, select_network_method)
+}
+
+// TODO: clarify names
+fn select_network_method(options: &Options, selection_tokens: Vec<String>) -> io::Result<String> {
+    match &options.selection_method {
+        SelectionMethod::Dmenu => {
+            run_dmenu(&options, &"Select a network:".to_string(), selection_tokens)
+        }
+        SelectionMethod::Fzf => {
+            run_fzf(&options, &"Select a network:".to_string(), selection_tokens)
+        }
+    }
+}
+
+fn select_network_impl<'a, F>(
+    options: &'a Options,
+    sorted_available_networks: &[WirelessNetwork],
+    selector: F,
+) -> io::Result<WirelessNetwork>
+where
+    F: FnOnce(&'a Options, Vec<String>) -> io::Result<String>,
+{
+    let selection_tokens = get_names_and_markers_for_selection(&sorted_available_networks);
+    let selected_network_line = selector(options, selection_tokens)?;
 
     let selected_network_name = selected_network_line.trim_end_matches(KNOWN_TOKEN);
 
@@ -71,6 +82,26 @@ fn get_token_for_selection(nw: &WirelessNetwork) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_select_network() -> io::Result<()> {
+        let essid = "lol".to_string();
+        let options = Options::default();
+        let network = WirelessNetwork {
+            essid,
+            ..Default::default()
+        };
+        let networks = &[network.clone()];
+        let selector = |_, _| {
+            Ok(networks
+                .iter()
+                .next()
+                .map_or("DOOOK".to_string(), |nw| nw.essid.clone()))
+        };
+        let nw = select_network_impl(&options, networks, selector)?;
+        assert_eq![network, nw];
+        Ok(())
+    }
 
     #[test]
     fn test_get_token_for_known_network() {
