@@ -11,8 +11,8 @@ pub(crate) fn parse_result(
 ) -> io::Result<ParseResult> {
     // TODO: if scan type isn't specified, and parsing or scanning fails, try another scan type
     let res = match &scan_result.scan_type {
-        ScanType::WpaCli => parse_wpa_cli_scan(options, &scan_result.output),
-        ScanType::IW => parse_iw_scan(options, &scan_result.output),
+        ScanType::WpaCli => parse_wpa_cli_scan(options, &scan_result.scan_output),
+        ScanType::IW => parse_iw_scan(options, &scan_result.scan_output),
         x @ ScanType::IWList => Err(nie(x)),
     };
 
@@ -442,7 +442,7 @@ mod tests {
 
         let scan_result = ScanResult {
             scan_type: options.scan_type.clone(),
-            output: contents,
+            scan_output: contents,
         };
 
         let full_parse_result = parse_result(&options, &scan_result, &HashSet::new());

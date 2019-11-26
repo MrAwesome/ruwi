@@ -68,16 +68,10 @@ fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
 
     let mut scan_output = run_iw_scan_dump(options)?;
 
-    // If our cached scan returned no networks, scan manually.
     if scan_output.len() == 0 {
         scan_output = run_iw_scan_synchronous(options)?;
-
-    // If we got any cached results, trigger a background scan. Failure can safely be ignored.
     } else {
-        let trigger_res = run_iw_scan_trigger(options);
-        if options.debug {
-            dbg![&trigger_res];
-        }
+        run_iw_scan_trigger(options).ok();
     }
 
     Ok(ScanResult {
