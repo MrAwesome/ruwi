@@ -88,6 +88,36 @@ ESSID={}",
     }
 
     #[test]
+    fn test_get_essid_with_single_quotes_from_netctl_config() {
+        let essid = "fart".to_string();
+        let contents = format!(
+            "
+DOES
+NOT=MATTER
+# really does not matter 
+ESSID='{}'",
+            essid
+        );
+        let res = get_essid_from_netctl_config_text(contents).unwrap();
+        assert_eq![essid, res];
+    }
+
+    #[test]
+    fn test_get_essid_with_double_quotes_from_netctl_config() {
+        let essid = "fart".to_string();
+        let contents = format!(
+            "
+DOES
+NOT=MATTER
+# really does not matter 
+ESSID=\"{}\"",
+            essid
+        );
+        let res = get_essid_from_netctl_config_text(contents).unwrap();
+        assert_eq![essid, res];
+    }
+
+    #[test]
     fn test_get_no_essid_from_netctl_config_text() {
         let contents = format!(
             "

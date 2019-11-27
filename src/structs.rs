@@ -113,12 +113,9 @@ pub struct ParseResult {
 pub enum IndividualParseError {
     FailedToParseSignalLevel,
     FailedToUnescapeSSIDField,
-    MalformedIWBSSLine,
     MissingIWCapabilityField,
     MissingIWSSIDField,
     MissingWpaCliResultField,
-    NoDecimalInIWSignalLevel,
-    SplitError,
     ZeroLengthIWChunk,
 }
 
@@ -148,11 +145,6 @@ impl Default for WirelessNetwork {
 #[derive(Debug, Clone)]
 pub struct AnnotatedNetworks {
     pub networks: Vec<WirelessNetwork>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum AnnotationTypes {
-    KNOWN,
 }
 
 #[derive(Debug, Clone)]

@@ -2,6 +2,8 @@ use std::io;
 use std::io::Write;
 use std::process::{Command, Output, Stdio};
 
+// TODO: for unit tests, have a CommandArgs struct which can optionally include given_result for mocking?
+
 // TODO: make sure all instances of this are okay with passing
 pub(crate) fn run_command_pass_stdout(
     debug: bool,
@@ -59,7 +61,7 @@ pub(crate) fn run_prompt_cmd(
     let cmd = cmd
         .args(args)
         .stdin(Stdio::piped())
-        // Breaks fzf to not allow stderr.
+        // Taking stderr breaks fzf.
         //.stderr(Stdio::piped())
         .stdout(Stdio::piped());
 
