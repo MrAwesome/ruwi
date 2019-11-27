@@ -86,10 +86,10 @@ pub fn get_selected_network(options: &Options) -> io::Result<WirelessNetwork> {
         // TODO: do scan and find in parallel
         let scan_result = wifi_scan(options)?;
         let known_network_names = find_known_network_names(options)?;
-        let parse_results = parse_result(options, &scan_result, &known_network_names)?;
-        let available_networks =
-            mark_known_networks(&parse_results.seen_networks, &known_network_names);
-        let sorted_networks = sort_available_networks(options, available_networks);
+        let parse_results = parse_result(options, &scan_result)?;
+        let annotated_networks =
+            annotate_networks(options, &parse_results.seen_networks, &known_network_names);
+        let sorted_networks = sort_available_networks(options, annotated_networks);
         let selected_network = select_network(options, &sorted_networks)?;
         Ok(selected_network)
     }

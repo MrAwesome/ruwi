@@ -1,6 +1,5 @@
-use std::cmp::Ordering;
-
 use crate::structs::*;
+use std::cmp::Ordering;
 
 impl Ord for WirelessNetwork {
     fn cmp(&self, other: &Self) -> Ordering {
@@ -20,21 +19,20 @@ impl PartialOrd for WirelessNetwork {
 
 pub(crate) fn sort_available_networks(
     options: &Options,
-    seen_networks: Vec<WirelessNetwork>,
-) -> Vec<WirelessNetwork> {
-    let mut sorted_networks = seen_networks;
-    put_strongest_networks_first(&mut sorted_networks);
+    networks: &AnnotatedNetworks,
+) -> SortedNetworks {
+    put_best_networks_first(&mut networks);
 
     if options.debug {
-        dbg![&sorted_networks];
+        dbg![networks];
     }
 
-    sorted_networks
+    SortedNetworks::from(*networks)
 }
 
-pub(crate) fn put_strongest_networks_first(networks: &mut Vec<WirelessNetwork>) {
-    networks.sort();
-    networks.reverse();
+pub(crate) fn put_best_networks_first(networks: &mut AnnotatedNetworks) {
+    networks.networks.sort();
+    networks.networks.reverse();
 }
 
 #[cfg(test)]

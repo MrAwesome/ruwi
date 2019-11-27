@@ -1,14 +1,9 @@
 use crate::structs::*;
 use regex::Regex;
-use std::collections::HashSet;
 use std::io;
 use unescape::unescape;
 
-pub(crate) fn parse_result(
-    options: &Options,
-    scan_result: &ScanResult,
-    known_network_names: &HashSet<String>,
-) -> io::Result<ParseResult> {
+pub(crate) fn parse_result(options: &Options, scan_result: &ScanResult) -> io::Result<ParseResult> {
     // TODO: if scan type isn't specified, and parsing or scanning fails, try another scan type
     let res = match &scan_result.scan_type {
         ScanType::WpaCli => parse_wpa_cli_scan(options, &scan_result.scan_output),
@@ -445,7 +440,7 @@ mod tests {
             scan_output: contents,
         };
 
-        let full_parse_result = parse_result(&options, &scan_result, &HashSet::new());
+        let full_parse_result = parse_result(&options, &scan_result);
 
         match (&full_parse_result, &full_expected_result) {
             (Ok(parse_result), Ok(expected_result)) => {

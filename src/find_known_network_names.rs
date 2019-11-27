@@ -4,6 +4,7 @@ use std::fs::{read_dir, DirEntry, File};
 use std::io;
 use std::io::prelude::*;
 use std::path::Path;
+use unescape::unescape;
 
 pub(crate) fn mark_known_networks(
     available_networks: &Vec<WirelessNetwork>,
@@ -42,6 +43,8 @@ fn find_known_netctl_networks() -> io::Result<HashSet<String>> {
         let known_essids = read_dir(netctl_path)?
             .filter_map(|entry| get_essid_from_netctl_config_file(entry).ok())
             .filter_map(|x| x)
+            // TODO: unit test that unescape happens
+            .map(|x| unescape(&x).unwrap_or(x))
             .collect::<HashSet<String>>();
 
         Ok(known_essids)

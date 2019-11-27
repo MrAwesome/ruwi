@@ -145,6 +145,30 @@ impl Default for WirelessNetwork {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct AnnotatedNetworks {
+    pub networks: Vec<WirelessNetwork>,
+    pub annotations_performed: Vec<AnnotationTypes>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AnnotationTypes {
+    KNOWN,
+}
+
+#[derive(Debug, Clone)]
+pub struct SortedNetworks {
+    pub networks: Vec<WirelessNetwork>,
+}
+
+impl From<AnnotatedNetworks> for SortedNetworks {
+    fn from(nws: AnnotatedNetworks) -> Self {
+        SortedNetworks {
+            networks: nws.networks,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OutputResult {
     pub output_type: OutputType,
