@@ -7,9 +7,9 @@ const KNOWN_TOKEN: &'static str = " (KNOWN)";
 
 pub(crate) fn select_network(
     options: &Options,
-    sorted_available_networks: &[WirelessNetwork],
+    networks: &SortedNetworks,
 ) -> io::Result<WirelessNetwork> {
-    select_network_impl(options, sorted_available_networks, select_network_method)
+    select_network_impl(options, &networks.networks, select_network_method)
 }
 
 // TODO: clarify names
@@ -26,20 +26,18 @@ fn select_network_method(options: &Options, selection_tokens: Vec<String>) -> io
 
 fn select_network_impl<'a, F>(
     options: &'a Options,
-    sorted_available_networks: &[WirelessNetwork],
+    networks: &[WirelessNetwork],
     selector: F,
 ) -> io::Result<WirelessNetwork>
 where
     F: FnOnce(&'a Options, Vec<String>) -> io::Result<String>,
 {
-    let selection_tokens = get_names_and_markers_for_selection(&sorted_available_networks);
+    let selection_tokens = get_names_and_markers_for_selection(&networks);
     let selected_network_line = selector(options, selection_tokens)?;
 
     let selected_network_name = selected_network_line.trim_end_matches(KNOWN_TOKEN);
 
-    let selected_network = sorted_available_networks
-        .iter()
-        .find(|nw| nw.essid == selected_network_name);
+    let selected_network = networks.iter().find(|nw| nw.essid == selected_network_name);
 
     let res = match selected_network {
         Some(nw) => Ok(nw.clone()),
@@ -55,12 +53,10 @@ where
     res
 }
 
-pub(crate) fn get_names_and_markers_for_selection(
-    sorted_available_networks: &[WirelessNetwork],
-) -> Vec<String> {
+pub(crate) fn get_names_and_markers_for_selection(networks: &[WirelessNetwork]) -> Vec<String> {
     let mut seen_network_names = HashSet::new();
     let mut tokens_for_selection = vec![];
-    for nw in sorted_available_networks {
+    for nw in networks {
         let essid = nw.essid.clone();
         if !seen_network_names.contains(&essid) {
             seen_network_names.insert(essid.clone());
@@ -129,7 +125,7 @@ mod tests {
 
     #[test]
     fn test_unique_nw_name_sort() {
-        let sorted_available_networks = vec![
+        let networks = vec![
             WirelessNetwork {
                 essid: "DOOK".to_string(),
                 signal_strength: Some(-5),
@@ -151,7 +147,7 @@ mod tests {
                 ..Default::default()
             },
         ];
-        let unique_network_names = get_names_and_markers_for_selection(&sorted_available_networks);
+        let unique_network_names = get_names_and_markers_for_selection(&networks);
         let expected_names = vec!["DOOK".to_string(), "BOYS".to_string(), "YES".to_string()];
 
         assert_eq![unique_network_names, expected_names];

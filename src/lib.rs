@@ -10,6 +10,7 @@ extern crate regex;
 extern crate strum;
 extern crate strum_macros;
 
+pub(crate) mod annotate_networks;
 pub(crate) mod cmdline_parser;
 pub(crate) mod connect;
 pub(crate) mod find_known_network_names;
@@ -28,6 +29,7 @@ pub(crate) mod structs;
 pub(crate) mod strum_utils;
 pub(crate) mod wpa_cli_initialize;
 
+use annotate_networks::*;
 use cmdline_parser::*;
 use connect::*;
 use find_known_network_names::*;
@@ -86,6 +88,7 @@ pub fn get_selected_network(options: &Options) -> io::Result<WirelessNetwork> {
         // TODO: do scan and find in parallel
         let scan_result = wifi_scan(options)?;
         let known_network_names = find_known_network_names(options)?;
+
         let parse_results = parse_result(options, &scan_result)?;
         let annotated_networks =
             annotate_networks(options, &parse_results.seen_networks, &known_network_names);

@@ -19,20 +19,21 @@ impl PartialOrd for WirelessNetwork {
 
 pub(crate) fn sort_available_networks(
     options: &Options,
-    networks: &AnnotatedNetworks,
+    annotated_networks: AnnotatedNetworks,
 ) -> SortedNetworks {
+    let mut networks = annotated_networks.networks;
     put_best_networks_first(&mut networks);
 
     if options.debug {
-        dbg![networks];
+        dbg![&networks];
     }
 
-    SortedNetworks::from(*networks)
+    SortedNetworks { networks }
 }
 
-pub(crate) fn put_best_networks_first(networks: &mut AnnotatedNetworks) {
-    networks.networks.sort();
-    networks.networks.reverse();
+pub(crate) fn put_best_networks_first(networks: &mut Vec<WirelessNetwork>) {
+    networks.sort();
+    networks.reverse();
 }
 
 #[cfg(test)]

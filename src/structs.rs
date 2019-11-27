@@ -148,7 +148,6 @@ impl Default for WirelessNetwork {
 #[derive(Debug, Clone)]
 pub struct AnnotatedNetworks {
     pub networks: Vec<WirelessNetwork>,
-    pub annotations_performed: Vec<AnnotationTypes>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

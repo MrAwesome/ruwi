@@ -6,19 +6,6 @@ use std::io::prelude::*;
 use std::path::Path;
 use unescape::unescape;
 
-pub(crate) fn mark_known_networks(
-    available_networks: &Vec<WirelessNetwork>,
-    known_network_names: &HashSet<String>,
-) -> Vec<WirelessNetwork> {
-    available_networks
-        .iter()
-        .map(|nw| WirelessNetwork {
-            known: known_network_names.contains(&nw.essid),
-            ..nw.clone()
-        })
-        .collect::<Vec<_>>()
-}
-
 // TODO: parse escape chars in essid
 pub(crate) fn find_known_network_names(options: &Options) -> io::Result<HashSet<String>> {
     let known_network_names = if options.output_type == OutputType::NetctlConfig
@@ -79,4 +66,37 @@ fn get_essid_from_netctl_config_text(contents: String) -> Option<String> {
                 .trim_end_matches('"')
                 .into()
         })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_essid_from_netctl_config() {
+        let essid = "fart".to_string();
+        let contents = format!(
+            "
+DOES
+NOT=MATTER
+# really does not matter 
+ESSID={}",
+            essid
+        );
+        let res = get_essid_from_netctl_config_text(contents).unwrap();
+        assert_eq![essid, res];
+    }
+
+    #[test]
+    fn test_get_no_essid_from_netctl_config_text() {
+        let contents = format!(
+            "
+DOES
+NOT=MATTER
+# la la la la la
+"
+        );
+        let res = get_essid_from_netctl_config_text(contents);
+        assert![res.is_none()];
+    }
 }
