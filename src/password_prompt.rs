@@ -4,7 +4,7 @@ use std::io;
 
 pub(crate) fn get_password(
     options: &Options,
-    selected_network: &WirelessNetwork,
+    selected_network: &AnnotatedWirelessNetwork,
 ) -> io::Result<Option<String>> {
     // Don't bother asking for a password:
     // * a password was given on the command line

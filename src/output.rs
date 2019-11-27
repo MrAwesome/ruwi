@@ -5,7 +5,7 @@ use std::io;
 // For multiple outputs:
 //pub(crate) fn send_outputs(
 //    options: &Options,
-//    network: &WirelessNetwork,
+//    network: &AnnotatedWirelessNetwork,
 //    encryption_key: &Option<String>,
 //) -> Vec<io::Result<OutputResult>> {
 //    options
@@ -17,7 +17,7 @@ use std::io;
 
 pub(crate) fn send_output(
     options: &Options,
-    network: &WirelessNetwork,
+    network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> io::Result<OutputResult> {
     let res = match &options.output_type {

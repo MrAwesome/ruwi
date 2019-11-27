@@ -64,8 +64,12 @@ use std::io;
 pub fn run_ruwi() -> io::Result<()> {
     let options = &get_options()?;
     let selected_network = get_selected_network(options)?;
-    let encryption_key = get_password(options, &selected_network)?;
-    let _output_result = send_output(options, &selected_network, &encryption_key)?;
+    if !selected_network.known {
+        let encryption_key = get_password(options, &selected_network)?;
+        // TODO: still do output for types which aren't config-based (like "print selected network")?
+        let _output_result = send_output(options, &selected_network, &encryption_key)?;
+    }
+
     let _connection_result = connect_to_network(options, &selected_network)?;
     Ok(())
     //    Ok(RuwiResult {
@@ -74,18 +78,19 @@ pub fn run_ruwi() -> io::Result<()> {
     //    })
 }
 
-pub fn get_selected_network(options: &Options) -> io::Result<WirelessNetwork> {
+pub fn get_selected_network(options: &Options) -> io::Result<AnnotatedWirelessNetwork> {
     if let Some(essid) = &options.given_essid {
-        Ok(WirelessNetwork {
+        // TODO: make sure known: true is the right option here, or if more control flow is needed
+        Ok(AnnotatedWirelessNetwork {
             essid: essid.clone(),
-            known: false,
+            known: true,
             is_encrypted: options.given_password.is_some(),
             bssid: None,
             signal_strength: None,
             channel_utilisation: None,
         })
     } else {
-        // TODO: do scan and find in parallel
+        // TODO: do scan and find in parallel:
         let scan_result = wifi_scan(options)?;
         let known_network_names = find_known_network_names(options)?;
 

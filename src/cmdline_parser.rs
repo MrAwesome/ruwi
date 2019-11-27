@@ -142,13 +142,6 @@ mod tests {
     }
 
     #[test]
-    fn test_scan_type_long() {
-        let expected = ScanType::IW.to_string();
-        let m = gmf(&["lol", "--scan-type", expected.as_ref()]);
-        assert_eq![m.value_of("scan_type").unwrap(), expected];
-    }
-
-    #[test]
     fn test_scan_type_short() {
         let expected = ScanType::IWList.to_string();
         let m = gmf(&["lol", "-t", expected.as_ref()]);
@@ -156,10 +149,10 @@ mod tests {
     }
 
     #[test]
-    fn test_selection_method_long() {
-        let expected = SelectionMethod::Dmenu.to_string();
-        let m = gmf(&["lol", "--selection-method", expected.as_ref()]);
-        assert_eq![m.value_of("selection_method").unwrap(), expected];
+    fn test_scan_type_long() {
+        let expected = ScanType::IW.to_string();
+        let m = gmf(&["lol", "--scan-type", expected.as_ref()]);
+        assert_eq![m.value_of("scan_type").unwrap(), expected];
     }
 
     #[test]
@@ -180,6 +173,13 @@ mod tests {
     fn test_selection_method_short() {
         let expected = SelectionMethod::Fzf.to_string();
         let m = gmf(&["lol", "-s", expected.as_ref()]);
+        assert_eq![m.value_of("selection_method").unwrap(), expected];
+    }
+
+    #[test]
+    fn test_selection_method_long() {
+        let expected = SelectionMethod::Dmenu.to_string();
+        let m = gmf(&["lol", "--selection-method", expected.as_ref()]);
         assert_eq![m.value_of("selection_method").unwrap(), expected];
     }
 

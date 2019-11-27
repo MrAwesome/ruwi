@@ -122,7 +122,6 @@ pub enum IndividualParseError {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WirelessNetwork {
     pub essid: String,
-    pub known: bool,
     pub is_encrypted: bool,
     pub bssid: Option<String>,
     pub signal_strength: Option<i32>,
@@ -132,8 +131,7 @@ pub struct WirelessNetwork {
 impl Default for WirelessNetwork {
     fn default() -> Self {
         WirelessNetwork {
-            essid: "fake_essid".to_string(),
-            known: false,
+            essid: "FAKE_ESSID_SHOULD_NOT_BE_SEEN".to_string(),
             is_encrypted: false,
             bssid: None,
             signal_strength: None,
@@ -142,14 +140,55 @@ impl Default for WirelessNetwork {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AnnotatedWirelessNetwork {
+    pub essid: String,
+    pub is_encrypted: bool,
+    pub bssid: Option<String>,
+    pub signal_strength: Option<i32>,
+    pub channel_utilisation: Option<String>,
+    pub known: bool,
+}
+
+impl AnnotatedWirelessNetwork {
+    pub fn set_known(&mut self) {
+        self.known = true;
+    }
+}
+
+impl Default for AnnotatedWirelessNetwork {
+    fn default() -> Self {
+        let nw = WirelessNetwork::default();
+        AnnotatedWirelessNetwork::from(nw)
+    }
+}
+
+impl From<WirelessNetwork> for AnnotatedWirelessNetwork {
+    fn from(nw: WirelessNetwork) -> Self {
+        let essid = nw.essid;
+        let is_encrypted = nw.is_encrypted;
+        let bssid = nw.bssid;
+        let signal_strength = nw.signal_strength;
+        let channel_utilisation = nw.channel_utilisation;
+        AnnotatedWirelessNetwork {
+            essid,
+            is_encrypted,
+            bssid,
+            signal_strength,
+            channel_utilisation,
+            known: false,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct AnnotatedNetworks {
-    pub networks: Vec<WirelessNetwork>,
+    pub networks: Vec<AnnotatedWirelessNetwork>,
 }
 
 #[derive(Debug, Clone)]
 pub struct SortedNetworks {
-    pub networks: Vec<WirelessNetwork>,
+    pub networks: Vec<AnnotatedWirelessNetwork>,
 }
 
 impl From<AnnotatedNetworks> for SortedNetworks {

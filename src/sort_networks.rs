@@ -1,7 +1,7 @@
 use crate::structs::*;
 use std::cmp::Ordering;
 
-impl Ord for WirelessNetwork {
+impl Ord for AnnotatedWirelessNetwork {
     fn cmp(&self, other: &Self) -> Ordering {
         if self.known ^ other.known {
             self.known.cmp(&other.known)
@@ -11,7 +11,7 @@ impl Ord for WirelessNetwork {
     }
 }
 
-impl PartialOrd for WirelessNetwork {
+impl PartialOrd for AnnotatedWirelessNetwork {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -31,7 +31,7 @@ pub(crate) fn sort_available_networks(
     SortedNetworks { networks }
 }
 
-pub(crate) fn put_best_networks_first(networks: &mut Vec<WirelessNetwork>) {
+pub(crate) fn put_best_networks_first(networks: &mut Vec<AnnotatedWirelessNetwork>) {
     networks.sort();
     networks.reverse();
 }
@@ -40,7 +40,10 @@ pub(crate) fn put_best_networks_first(networks: &mut Vec<WirelessNetwork>) {
 mod tests {
     use super::*;
 
-    fn compare_order(should_be_first: WirelessNetwork, should_be_last: WirelessNetwork) {
+    fn compare_order(
+        should_be_first: AnnotatedWirelessNetwork,
+        should_be_last: AnnotatedWirelessNetwork,
+    ) {
         let wrong_order = vec![should_be_last.clone(), should_be_first.clone()];
 
         let mut right_order = wrong_order;
@@ -51,13 +54,13 @@ mod tests {
 
     #[test]
     fn test_strength_sorting() {
-        let higher_signal = WirelessNetwork {
+        let higher_signal = AnnotatedWirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
             signal_strength: Some(-66),
             ..Default::default()
         };
 
-        let lower_signal = WirelessNetwork {
+        let lower_signal = AnnotatedWirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
             signal_strength: Some(-69),
             ..Default::default()
@@ -68,13 +71,13 @@ mod tests {
 
     #[test]
     fn test_known_higher_than_unknown() {
-        let known = WirelessNetwork {
+        let known = AnnotatedWirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
             known: true,
             ..Default::default()
         };
 
-        let not_known = WirelessNetwork {
+        let not_known = AnnotatedWirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
             known: false,
             ..Default::default()
@@ -85,14 +88,14 @@ mod tests {
 
     #[test]
     fn test_known_higher_than_unknown_with_higher_signal() {
-        let known = WirelessNetwork {
+        let known = AnnotatedWirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
             known: true,
             signal_strength: Some(-80),
             ..Default::default()
         };
 
-        let not_known = WirelessNetwork {
+        let not_known = AnnotatedWirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
             known: false,
             signal_strength: Some(-20),

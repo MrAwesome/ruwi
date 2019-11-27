@@ -8,7 +8,7 @@ const KNOWN_TOKEN: &'static str = " (KNOWN)";
 pub(crate) fn select_network(
     options: &Options,
     networks: &SortedNetworks,
-) -> io::Result<WirelessNetwork> {
+) -> io::Result<AnnotatedWirelessNetwork> {
     select_network_impl(options, &networks.networks, select_network_method)
 }
 
@@ -26,9 +26,9 @@ fn select_network_method(options: &Options, selection_tokens: Vec<String>) -> io
 
 fn select_network_impl<'a, F>(
     options: &'a Options,
-    networks: &[WirelessNetwork],
+    networks: &[AnnotatedWirelessNetwork],
     selector: F,
-) -> io::Result<WirelessNetwork>
+) -> io::Result<AnnotatedWirelessNetwork>
 where
     F: FnOnce(&'a Options, Vec<String>) -> io::Result<String>,
 {
@@ -53,7 +53,9 @@ where
     res
 }
 
-pub(crate) fn get_names_and_markers_for_selection(networks: &[WirelessNetwork]) -> Vec<String> {
+pub(crate) fn get_names_and_markers_for_selection(
+    networks: &[AnnotatedWirelessNetwork],
+) -> Vec<String> {
     let mut seen_network_names = HashSet::new();
     let mut tokens_for_selection = vec![];
     for nw in networks {
@@ -68,7 +70,7 @@ pub(crate) fn get_names_and_markers_for_selection(networks: &[WirelessNetwork]) 
     tokens_for_selection
 }
 
-fn get_token_for_selection(nw: &WirelessNetwork) -> String {
+fn get_token_for_selection(nw: &AnnotatedWirelessNetwork) -> String {
     match nw.known {
         true => nw.essid.clone() + KNOWN_TOKEN,
         false => nw.essid.clone(),
@@ -83,7 +85,7 @@ mod tests {
     fn test_select_network() -> io::Result<()> {
         let essid = "lol".to_string();
         let options = Options::default();
-        let network = WirelessNetwork {
+        let network = AnnotatedWirelessNetwork {
             essid,
             ..Default::default()
         };
@@ -102,7 +104,7 @@ mod tests {
     #[test]
     fn test_get_token_for_known_network() {
         let essid = "DOOK".to_string();
-        let nw = WirelessNetwork {
+        let nw = AnnotatedWirelessNetwork {
             essid: essid.clone(),
             known: true,
             ..Default::default()
@@ -114,7 +116,7 @@ mod tests {
     #[test]
     fn test_get_token_for_unknown_network() {
         let essid = "DOOK".to_string();
-        let nw = WirelessNetwork {
+        let nw = AnnotatedWirelessNetwork {
             essid: essid.clone(),
             known: false,
             ..Default::default()
@@ -126,22 +128,22 @@ mod tests {
     #[test]
     fn test_unique_nw_name_sort() {
         let networks = vec![
-            WirelessNetwork {
+            AnnotatedWirelessNetwork {
                 essid: "DOOK".to_string(),
                 signal_strength: Some(-5),
                 ..Default::default()
             },
-            WirelessNetwork {
+            AnnotatedWirelessNetwork {
                 essid: "BOYS".to_string(),
                 signal_strength: Some(-47),
                 ..Default::default()
             },
-            WirelessNetwork {
+            AnnotatedWirelessNetwork {
                 essid: "DOOK".to_string(),
                 signal_strength: Some(-49),
                 ..Default::default()
             },
-            WirelessNetwork {
+            AnnotatedWirelessNetwork {
                 essid: "YES".to_string(),
                 signal_strength: Some(-89),
                 ..Default::default()

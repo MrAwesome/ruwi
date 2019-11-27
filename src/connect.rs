@@ -6,7 +6,7 @@ use std::io;
 
 pub(crate) fn connect_to_network(
     options: &Options,
-    selected_network: &WirelessNetwork,
+    selected_network: &AnnotatedWirelessNetwork,
 ) -> io::Result<ConnectionResult> {
     let res = match &options.connect_via {
         ConnectionType::Netctl => connect_via_netctl(options, selected_network),
@@ -26,7 +26,7 @@ pub(crate) fn connect_to_network(
 
 fn connect_via_netctl(
     options: &Options,
-    selected_network: &WirelessNetwork,
+    selected_network: &AnnotatedWirelessNetwork,
 ) -> io::Result<ConnectionResult> {
     bring_interface_down(options)?;
 
@@ -52,7 +52,7 @@ mod tests {
     #[test]
     fn test_connect_via_netctl_pass() {
         let opts = Options::default();
-        let nw = WirelessNetwork::default();
+        let nw = AnnotatedWirelessNetwork::default();
         // TODO: test connect based on nw passed in
         let res = connect_via_netctl(&opts, &nw);
         // TODO: match more robustly, compare to opts and connection type and etc

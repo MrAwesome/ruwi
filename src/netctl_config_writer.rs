@@ -5,7 +5,7 @@ use std::io::Write;
 
 pub(crate) fn netctl_config_write(
     options: &Options,
-    network: &WirelessNetwork,
+    network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> io::Result<OutputResult> {
     let contents = get_netctl_config_contents(options, network, encryption_key);
@@ -28,7 +28,7 @@ pub(crate) fn get_netctl_file_name(essid: &str) -> String {
 
 pub(crate) fn get_netctl_config_contents(
     options: &Options,
-    network: &WirelessNetwork,
+    network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> String {
     let wpa_line = if network.is_encrypted {
