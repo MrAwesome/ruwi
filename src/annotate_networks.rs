@@ -6,7 +6,7 @@ use std::collections::HashSet;
 // TODO: unit test that networks passed in equal networks passed out
 pub(crate) fn annotate_networks(
     options: &Options,
-    networks: &Vec<WirelessNetwork>,
+    networks: &[WirelessNetwork],
     known_network_names: &HashSet<String>,
 ) -> AnnotatedNetworks {
     let networks = networks

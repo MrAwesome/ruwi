@@ -7,7 +7,7 @@ use std::path::Path;
 use unescape::unescape;
 
 // TODO: parse escape chars in essid
-pub(crate) fn find_known_network_names(options: Options) -> io::Result<HashSet<String>> {
+pub(crate) fn find_known_network_names(options: Options) -> io::Result<KnownNames> {
     let known_network_names = if options.output_type == OutputType::NetctlConfig
         || options.connect_via == ConnectionType::Netctl
     {
@@ -23,7 +23,7 @@ pub(crate) fn find_known_network_names(options: Options) -> io::Result<HashSet<S
     known_network_names
 }
 
-fn find_known_netctl_networks() -> io::Result<HashSet<String>> {
+fn find_known_netctl_networks() -> io::Result<KnownNames> {
     let netctl_path = Path::new("/etc/netctl");
     if netctl_path.is_dir() {
         // TODO: use tokio/etc to asynchronously read from these files
@@ -32,7 +32,7 @@ fn find_known_netctl_networks() -> io::Result<HashSet<String>> {
             .filter_map(|x| x)
             // TODO: unit test that unescape happens
             .map(|x| unescape(&x).unwrap_or(x))
-            .collect::<HashSet<String>>();
+            .collect::<KnownNames>();
 
         Ok(known_essids)
     } else {
@@ -56,8 +56,7 @@ fn get_essid_from_netctl_config_file(entry: io::Result<DirEntry>) -> io::Result<
 fn get_essid_from_netctl_config_text(contents: String) -> Option<String> {
     contents
         .lines()
-        .filter(|line| line.starts_with("ESSID="))
-        .next()
+        .find(|line| line.starts_with("ESSID="))
         .map(|line| {
             line.trim_start_matches("ESSID=")
                 .trim_start_matches('\'')

@@ -54,10 +54,10 @@ fn break_iw_output_into_chunks_per_network(
         if bss_re.is_match(&line) {
             network.push(line);
         } else {
-            Err(err_iw_malformed_output(options))?
+            return Err(err_iw_malformed_output(options));
         }
     } else {
-        Err(err_iw_no_networks_seen(options))?
+        return Err(err_iw_no_networks_seen(options));
     }
 
     loop {
@@ -80,9 +80,7 @@ fn break_iw_output_into_chunks_per_network(
     Ok(iw_network_line_groups)
 }
 
-fn parse_iw_chunk_into_network(
-    chunk: &Vec<String>,
-) -> Result<WirelessNetwork, IndividualParseError> {
+fn parse_iw_chunk_into_network(chunk: &[String]) -> Result<WirelessNetwork, IndividualParseError> {
     let essid = unescape(
         chunk
             .iter()
@@ -95,18 +93,16 @@ fn parse_iw_chunk_into_network(
 
     let is_encrypted = chunk
         .iter()
-        .filter(|line| line.starts_with("capability:"))
-        .next()
+        .find(|line| line.starts_with("capability:"))
         .ok_or(IndividualParseError::MissingIWCapabilityField)?
         .split_ascii_whitespace()
-        .collect::<Vec<&str>>()
-        .contains(&"Privacy");
+        .any(|x| x == "Privacy");
 
     let bssid = chunk
         .first()
         .ok_or(IndividualParseError::ZeroLengthIWChunk)?
         .trim_start_matches("BSS ")
-        .split("(")
+        .split('(')
         .map(|x| x.into())
         .next();
 
@@ -116,7 +112,7 @@ fn parse_iw_chunk_into_network(
         .filter_map(|line| {
             line.trim_start_matches("signal: ")
                 .trim_end_matches(" dBm")
-                .split(".")
+                .split('.')
                 .next()?
                 .parse::<i32>()
                 .ok()
@@ -183,7 +179,7 @@ fn parse_wpa_cli_scan(_options: &Options, output: &str) -> Result<ParseResult, E
 
 fn err_wpa_cli_no_networks_seen() -> ErrBox {
     errbox!(
-        format!("No networks seen by `sudo wpa_cli scan_results`. Are you near wireless networks? Try running `sudo wpa_cli scan`."))
+        "No networks seen by `sudo wpa_cli scan_results`. Are you near wireless networks? Try running `sudo wpa_cli scan`.")
 }
 
 fn missing_wpa_cli_header() -> ErrBox {

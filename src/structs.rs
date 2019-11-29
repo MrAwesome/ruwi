@@ -1,9 +1,11 @@
 use crate::errbox;
+use std::collections::HashSet;
 use std::error::Error;
 use std::fmt::Debug;
 use std::process::Output;
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
+pub(crate) type KnownNames = HashSet<String>;
 pub(crate) type ErrBox = Box<dyn Error + Send + Sync>;
 
 #[strum(serialize_all = "snake_case")]

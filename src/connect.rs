@@ -13,7 +13,7 @@ pub(crate) fn connect_to_network(
             connection_type: ConnectionType::None,
             cmd_output: None,
         }),
-        x @ _ => Err(nie(x)),
+        x => Err(nie(x)),
     };
 
     if options.debug {

@@ -3,7 +3,7 @@ use crate::select::*;
 use crate::structs::*;
 use std::collections::HashSet;
 
-const KNOWN_TOKEN: &'static str = " (KNOWN)";
+const KNOWN_TOKEN: &str = " (KNOWN)";
 
 pub(crate) fn select_network(
     options: &Options,
@@ -71,9 +71,10 @@ pub(crate) fn get_names_and_markers_for_selection(
 }
 
 fn get_token_for_selection(nw: &AnnotatedWirelessNetwork) -> String {
-    match nw.known {
-        true => nw.essid.clone() + KNOWN_TOKEN,
-        false => nw.essid.clone(),
+    if nw.known {
+        nw.essid.clone() + KNOWN_TOKEN
+    } else {
+        nw.essid.clone()
     }
 }
 

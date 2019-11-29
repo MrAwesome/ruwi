@@ -12,12 +12,13 @@ const ALLOWED_SYNCHRONOUS_RETRIES: u64 = 5;
 const SYNCHRONOUS_RETRY_DELAY_SECS: u64 = 1;
 
 // TODO: make function, include exact command being run
-const IW_SCAN_DUMP_ERR_MSG: &'static str = concat!(
+const IW_SCAN_DUMP_ERR_MSG: &str = concat!(
     "Failed to load cached list of seen networks with `iw`. Is it installed? ",
     "You can also select a different scanning method with -s (try 'wpa_cli' or 'iwlist'), ",
     "or you can manually specify an essid with -e.",
 );
-const IW_SCAN_SYNC_ERR_MSG: &'static str = concat!(
+
+const IW_SCAN_SYNC_ERR_MSG: &str = concat!(
     "Failed to scan with `iw`. Is it installed? ",
     "You can also select a different scanning method with -s (try 'wpa_cli' or 'iwlist'), ",
     "or you can manually specify an essid with -e.",
@@ -71,7 +72,7 @@ fn run_iw_scan(options: &Options) -> Result<ScanResult, ErrBox> {
     bring_interface_up(options)?;
     let mut scan_output = run_iw_scan_dump(options)?;
 
-    if scan_output.len() == 0 {
+    if scan_output.is_empty() {
         scan_output = run_iw_scan_synchronous(options)?;
     } else {
         run_iw_scan_trigger(options).ok();
