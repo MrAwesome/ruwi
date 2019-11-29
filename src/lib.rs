@@ -39,13 +39,12 @@ use password_prompt::*;
 use scan::*;
 use select_network::*;
 use sort_networks::*;
+use std::thread;
 use structs::*;
 
-use std::io;
+use std::error::Error;
 
 // TODO(high): figure out how to unit test / mock command calls
-// TODO(high): add integration tests
-// TODO(high): find existing ESSIDs, when a scan turns up known network mark its WirelessNetwork in scan (aka make connecting to known networks easier)
 // TODO(high): find a way to unit test without actually running commands. maybe with cfg(test)?
 // TODO(high): if networkmanager is used, start it up before going - same with netctl. possibly also stop
 // TODO(think): come up with subcommands which only run specified pieces, or at least decide on the functionality this command should have
@@ -53,15 +52,17 @@ use std::io;
 // TODO(mid): if no networks are seen by `iw dump`, go ahead and just run scan? may need to dump before trigger then
 // the other, to prevent cross-contamination
 // TODO(mid): figure out if networkmanager connection add with wifi password works - looks like not, just fail if output networkmanager is chosen without connection (or combine output and connection as a single concept, and have "print" as one)
+// TODO(mid): add integration test, which takes -e and -p, doesn't try to connect, make sure it creates a netctl config?
 // TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
 // TODO(wishlist): find a generalized way to do x notifications, for dmenu mode, use to surface failures
 // TODO(wishlist): determine whether to use dmenu/fzf/etc based on terminal/X
 // TODO(wishlist): allow for using only iw to connect? would encryption keys need to be stored anywhere?
 // TODO(later): make sure fzf and dmenu are listed as dependencies
 // TODO(think): instead of functions which take options, make a big struct/impl? maybe more than one?
+// TODO(think): add a -w/--wait or --verify or something to attempt to connect to google/etc?
 // TODO(think): consider just supporting netctl for now?
 
-pub fn run_ruwi() -> io::Result<()> {
+pub fn run_ruwi() -> Result<(), Box<dyn Error + Send + Sync>> {
     let options = &get_options()?;
     let selected_network = get_selected_network(options)?;
     if !selected_network.known {
@@ -78,7 +79,9 @@ pub fn run_ruwi() -> io::Result<()> {
     //    })
 }
 
-pub fn get_selected_network(options: &Options) -> io::Result<AnnotatedWirelessNetwork> {
+pub fn get_selected_network(
+    options: &Options,
+) -> Result<AnnotatedWirelessNetwork, Box<dyn Error + Send + Sync>> {
     if let Some(essid) = &options.given_essid {
         // TODO: make sure known: true is the right option here, or if more control flow is needed
         Ok(AnnotatedWirelessNetwork {
@@ -90,9 +93,24 @@ pub fn get_selected_network(options: &Options) -> io::Result<AnnotatedWirelessNe
             channel_utilisation: None,
         })
     } else {
-        // TODO: do scan and find in parallel:
-        let scan_result = wifi_scan(options)?;
-        let known_network_names = find_known_network_names(options)?;
+        // TODO: move into a "gather data" function
+        let (opt1, opt2) = (options.clone(), options.clone());
+        let get_nw_names = thread::spawn(|| find_known_network_names(opt1));
+        let get_scan_results = thread::spawn(|| wifi_scan(opt2));
+
+        // TODO: remove unwraps
+        let known_network_names =
+            get_nw_names
+                .join()
+                .or(Err(Box::<dyn Error + Send + Sync>::from(
+                    "Failed to spawn thread.",
+                )))??;
+        let scan_result =
+            get_scan_results
+                .join()
+                .or(Err(Box::<dyn Error + Send + Sync>::from(
+                    "Failed to spawn thread.",
+                )))??;
 
         let parse_results = parse_result(options, &scan_result)?;
         let annotated_networks =

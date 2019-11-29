@@ -1,5 +1,5 @@
+use std::error::Error;
 use std::fmt::Debug;
-use std::io;
 use std::process::Output;
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
@@ -219,10 +219,6 @@ pub struct RuwiResult {
     pub connection_result: ConnectionResult,
 }
 
-pub(crate) fn nie<T: Debug>(prog: T) -> io::Error {
-    println!();
-    io::Error::new(
-        io::ErrorKind::InvalidInput,
-        format!("Not implemented: {:?}", prog),
-    )
+pub(crate) fn nie<T: Debug>(prog: T) -> Box<dyn Error + Send + Sync> {
+    Box::<dyn Error + Send + Sync>::from(format!("Not implemented: {:?}", prog))
 }

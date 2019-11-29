@@ -1,9 +1,12 @@
 use crate::structs::*;
 use regex::Regex;
-use std::io;
+use std::error::Error;
 use unescape::unescape;
 
-pub(crate) fn parse_result(options: &Options, scan_result: &ScanResult) -> io::Result<ParseResult> {
+pub(crate) fn parse_result(
+    options: &Options,
+    scan_result: &ScanResult,
+) -> Result<ParseResult, Box<dyn Error + Send + Sync>> {
     // TODO: if scan type isn't specified, and parsing or scanning fails, try another scan type
     let res = match &scan_result.scan_type {
         ScanType::WpaCli => parse_wpa_cli_scan(options, &scan_result.scan_output),
@@ -17,7 +20,10 @@ pub(crate) fn parse_result(options: &Options, scan_result: &ScanResult) -> io::R
     res
 }
 
-fn parse_iw_scan(options: &Options, output: &str) -> io::Result<ParseResult> {
+fn parse_iw_scan(
+    options: &Options,
+    output: &str,
+) -> Result<ParseResult, Box<dyn Error + Send + Sync>> {
     let network_chunks = break_iw_output_into_chunks_per_network(options, output)?;
     let mut seen_networks = vec![];
     let mut line_parse_errors = vec![];
@@ -38,7 +44,7 @@ fn parse_iw_scan(options: &Options, output: &str) -> io::Result<ParseResult> {
 fn break_iw_output_into_chunks_per_network(
     options: &Options,
     output: &str,
-) -> io::Result<Vec<Vec<String>>> {
+) -> Result<Vec<Vec<String>>, Box<dyn Error + Send + Sync>> {
     let mut lines = output.trim().lines().map(|line| line.trim().to_string());
     let mut iw_network_line_groups = vec![];
 
@@ -134,21 +140,24 @@ fn get_iw_bss_regex() -> Regex {
 
 // TODO: put the actual command run here
 // TODO: if dump, suggest scan
-fn err_iw_malformed_output(options: &Options) -> io::Error {
-    io::Error::new(
-        io::ErrorKind::InvalidInput,
-        format!(
-            "Malformed output returned by `sudo iw {} scan dump`. Try running it manually.",
-            options.interface
-        ),
-    )
+fn err_iw_malformed_output(options: &Options) -> Box<dyn Error + Send + Sync> {
+    Box::<dyn Error + Send + Sync>::from(format!(
+        "Malformed output returned by `sudo iw {} scan dump`. Try running it manually.",
+        options.interface
+    ))
 }
 
-fn err_iw_no_networks_seen(options: &Options) -> io::Error {
-    io::Error::new(io::ErrorKind::Other, format!("No networks seen by `sudo iw {} scan dump`. Are you near wireless networks? Try running `sudo iw {} scan`.", options.interface, options.interface))
+fn err_iw_no_networks_seen(options: &Options) -> Box<dyn Error + Send + Sync> {
+    Box::<dyn Error + Send + Sync>::from(
+     format!("No networks seen by `sudo iw {} scan dump`. Are you near wireless networks? Try running `sudo iw {} scan`.", 
+         options.interface, 
+         options.interface))
 }
 
-fn parse_wpa_cli_scan(_options: &Options, output: &str) -> io::Result<ParseResult> {
+fn parse_wpa_cli_scan(
+    _options: &Options,
+    output: &str,
+) -> Result<ParseResult, Box<dyn Error + Send + Sync>> {
     let mut lines = output.trim().lines().map(|x| x.to_string());
     let mut networks = vec![];
     let mut line_parse_errors = vec![];
@@ -177,15 +186,13 @@ fn parse_wpa_cli_scan(_options: &Options, output: &str) -> io::Result<ParseResul
     }
 }
 
-fn err_wpa_cli_no_networks_seen() -> io::Error {
-    io::Error::new(io::ErrorKind::Other, format!("No networks seen by `sudo wpa_cli scan_results`. Are you near wireless networks? Try running `sudo wpa_cli scan`."))
+fn err_wpa_cli_no_networks_seen() -> Box<dyn Error + Send + Sync> {
+    Box::<dyn Error + Send + Sync>::from(
+        format!("No networks seen by `sudo wpa_cli scan_results`. Are you near wireless networks? Try running `sudo wpa_cli scan`."))
 }
 
-fn missing_wpa_cli_header() -> io::Error {
-    io::Error::new(
-        io::ErrorKind::InvalidInput,
-        "`wpa_cli scan_results` header malformed or missing",
-    )
+fn missing_wpa_cli_header() -> Box<dyn Error + Send + Sync> {
+    Box::<dyn Error + Send + Sync>::from("`wpa_cli scan_results` header malformed or missing")
 }
 
 fn parse_wpa_line_into_network(line: String) -> Result<WirelessNetwork, IndividualParseError> {
@@ -282,7 +289,9 @@ mod tests {
         }
     }
 
-    fn get_expected_result(text_type: NetworkTextType) -> io::Result<ParseResult> {
+    fn get_expected_result(
+        text_type: NetworkTextType,
+    ) -> Result<ParseResult, Box<dyn Error + Send + Sync>> {
         match text_type {
             NetworkTextType::IWOneNetwork => Ok(ParseResult {
                 scan_type: ScanType::IW,
@@ -450,9 +459,6 @@ mod tests {
                 let parse_desc = parse_error.to_string();
                 let expct_desc = expected_error.to_string();
                 assert_eq![parse_desc, expct_desc];
-                let parse_kind = parse_error.kind();
-                let expct_kind = expected_error.kind();
-                assert_eq![parse_kind, expct_kind];
             }
             (_, _) => {
                 println!("Full parse result: {:?}", full_parse_result);

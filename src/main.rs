@@ -1,7 +1,10 @@
 // #![deny(warnings)]
 use ruwi::run_ruwi;
-use std::io;
 
-fn main() -> io::Result<()> {
-    run_ruwi()
+fn main() {
+    let x = run_ruwi();
+    match x {
+        Ok(()) => (),
+        Err(err) => eprintln!("[ERR]: {}", err),
+    };
 }

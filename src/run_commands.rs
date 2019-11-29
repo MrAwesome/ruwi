@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::io;
 use std::io::Write;
 use std::process::{Command, Output, Stdio};
@@ -10,22 +11,26 @@ pub(crate) fn run_command_pass_stdout(
     cmd: &str,
     args: &[&str],
     err_msg: &str,
-) -> io::Result<String> {
+) -> Result<String, Box<dyn Error + Send + Sync>> {
     let output_res = run_command_output(debug, cmd, args);
     match &output_res {
         Ok(output) => {
             if output.status.success() {
                 Ok(String::from_utf8_lossy(&output.stdout).to_string())
             } else {
-                Err(io::Error::new(io::ErrorKind::Other, err_msg))
+                Err(Box::<dyn Error + Send + Sync>::from(err_msg))
             }
         }
 
-        Err(_e) => Err(io::Error::new(io::ErrorKind::Other, err_msg)),
+        Err(_e) => Err(Box::<dyn Error + Send + Sync>::from(err_msg)),
     }
 }
 
-pub(crate) fn run_command_output(debug: bool, cmd: &str, args: &[&str]) -> io::Result<Output> {
+pub(crate) fn run_command_output(
+    debug: bool,
+    cmd: &str,
+    args: &[&str],
+) -> Result<Output, Box<dyn Error + Send + Sync>> {
     if debug {
         dbg![(&cmd, &args)];
     }
@@ -46,7 +51,7 @@ pub(crate) fn run_command_output(debug: bool, cmd: &str, args: &[&str]) -> io::R
         dbg!(&output_res);
     }
 
-    output_res
+    output_res.map_err(|e| Box::<dyn Error + Send + Sync>::from(e))
 }
 
 // Special runner for fzf, dmenu, etc
@@ -55,7 +60,7 @@ pub(crate) fn run_prompt_cmd(
     cmd_name: &str,
     args: &[&str],
     elements: Vec<String>,
-) -> io::Result<String> {
+) -> Result<String, Box<dyn Error + Send + Sync>> {
     let input_text = elements.join("\n");
     let mut cmd = Command::new(cmd_name);
     let cmd = cmd
@@ -83,8 +88,7 @@ pub(crate) fn run_prompt_cmd(
             .trim_end_matches(|x| x == '\n')
             .to_string())
     } else {
-        Err(io::Error::new(
-            io::ErrorKind::Other,
+        Err(Box::<dyn Error + Send + Sync>::from(
             "Prompt command exited with non-zero exit code",
         ))
     }

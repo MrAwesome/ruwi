@@ -1,11 +1,11 @@
 use crate::select::*;
 use crate::structs::*;
-use std::io;
+use std::error::Error;
 
 pub(crate) fn get_password(
     options: &Options,
     selected_network: &AnnotatedWirelessNetwork,
-) -> io::Result<Option<String>> {
+) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
     // Don't bother asking for a password:
     // * a password was given on the command line
     // * the output type we have doesn't require a password
@@ -31,7 +31,10 @@ pub(crate) fn get_password(
     pw
 }
 
-pub(crate) fn prompt_for_password(options: &Options, network_name: &str) -> io::Result<String> {
+pub(crate) fn prompt_for_password(
+    options: &Options,
+    network_name: &str,
+) -> Result<String, Box<dyn Error + Send + Sync>> {
     match &options.selection_method {
         SelectionMethod::Dmenu => {
             run_dmenu(options, &format!("Password for {}: ", network_name), vec![])

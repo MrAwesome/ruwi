@@ -2,8 +2,8 @@ use crate::interface_management::bring_interface_up;
 use crate::run_commands::*;
 use crate::structs::*;
 use crate::wpa_cli_initialize::initialize_wpa_cli;
+use std::error::Error;
 
-use std::io;
 use std::process::{Command, Output, Stdio};
 use std::thread;
 use std::time::Duration;
@@ -23,10 +23,10 @@ const IW_SCAN_SYNC_ERR_MSG: &'static str = concat!(
     "or you can manually specify an essid with -e.",
 );
 
-pub(crate) fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
+pub(crate) fn wifi_scan(options: Options) -> Result<ScanResult, Box<dyn Error + Send + Sync>> {
     let res = match &options.scan_type {
-        ScanType::WpaCli => run_wpa_cli_scan(options),
-        ScanType::IW => run_iw_scan(options),
+        ScanType::WpaCli => run_wpa_cli_scan(&options),
+        ScanType::IW => run_iw_scan(&options),
         x @ ScanType::IWList => Err(nie(x)),
         // TODO: Add nmcli scan
         // nmcli device wifi rescan
@@ -39,7 +39,7 @@ pub(crate) fn wifi_scan(options: &Options) -> io::Result<ScanResult> {
     res
 }
 
-fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
+fn run_wpa_cli_scan(options: &Options) -> Result<ScanResult, Box<dyn Error + Send + Sync>> {
     initialize_wpa_cli(options)?;
     // TODO: use new method
     let output_res = Command::new("wpa_cli")
@@ -58,19 +58,16 @@ fn run_wpa_cli_scan(options: &Options) -> io::Result<ScanResult> {
             scan_type: ScanType::WpaCli,
             scan_output: String::from_utf8_lossy(&o.stdout).to_string(),
         }),
-        Err(_e) => Err(io::Error::new(
-            io::ErrorKind::Other,
-            concat!(
-                "Failed to scan with `wpa_cli scan_results`. ",
-                "Is wpa_supplicant running? Is it installed? ",
-                "You can also select a different scanning method with -s (try 'iw' or 'iwlist'), ",
-                "or you can manually specify an essid with -e.",
-            ),
-        )),
+        Err(_e) => Err(Box::<dyn Error + Send + Sync>::from(concat!(
+            "Failed to scan with `wpa_cli scan_results`. ",
+            "Is wpa_supplicant running? Is it installed? ",
+            "You can also select a different scanning method with -s (try 'iw' or 'iwlist'), ",
+            "or you can manually specify an essid with -e.",
+        ))),
     }
 }
 
-fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
+fn run_iw_scan(options: &Options) -> Result<ScanResult, Box<dyn Error + Send + Sync>> {
     bring_interface_up(options)?;
     let mut scan_output = run_iw_scan_dump(options)?;
 
@@ -86,7 +83,7 @@ fn run_iw_scan(options: &Options) -> io::Result<ScanResult> {
     })
 }
 
-fn run_iw_scan_synchronous(options: &Options) -> io::Result<String> {
+fn run_iw_scan_synchronous(options: &Options) -> Result<String, Box<dyn Error + Send + Sync>> {
     let mut retries = ALLOWED_SYNCHRONOUS_RETRIES;
     loop {
         let synchronous_run_output = run_iw_scan_synchronous_impl(options)?;
@@ -96,21 +93,21 @@ fn run_iw_scan_synchronous(options: &Options) -> io::Result<String> {
                 thread::sleep(Duration::from_secs(SYNCHRONOUS_RETRY_DELAY_SECS));
                 continue;
             } else {
-                return Err(io::Error::new(io::ErrorKind::Other, IW_SCAN_SYNC_ERR_MSG));
+                return Err(Box::<dyn Error + Send + Sync>::from(IW_SCAN_SYNC_ERR_MSG));
             }
         } else if !synchronous_run_output.status.success() {
-            return Err(io::Error::new(io::ErrorKind::Other, IW_SCAN_SYNC_ERR_MSG));
+            return Err(Box::<dyn Error + Send + Sync>::from(IW_SCAN_SYNC_ERR_MSG));
         } else {
             return Ok(String::from_utf8_lossy(&synchronous_run_output.stdout).to_string());
         }
     }
 }
 
-fn run_iw_scan_synchronous_impl(options: &Options) -> io::Result<Output> {
+fn run_iw_scan_synchronous_impl(options: &Options) -> Result<Output, Box<dyn Error + Send + Sync>> {
     run_command_output(options.debug, "iw", &[&options.interface, "scan"])
 }
 
-fn run_iw_scan_dump(options: &Options) -> io::Result<String> {
+fn run_iw_scan_dump(options: &Options) -> Result<String, Box<dyn Error + Send + Sync>> {
     run_command_pass_stdout(
         options.debug,
         "iw",
@@ -120,7 +117,7 @@ fn run_iw_scan_dump(options: &Options) -> io::Result<String> {
 }
 
 // Initiate a rescan. This command should return instantaneously.
-fn run_iw_scan_trigger(options: &Options) -> io::Result<String> {
+fn run_iw_scan_trigger(options: &Options) -> Result<String, Box<dyn Error + Send + Sync>> {
     run_command_pass_stdout(
         options.debug,
         "iw",

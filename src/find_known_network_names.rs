@@ -7,7 +7,7 @@ use std::path::Path;
 use unescape::unescape;
 
 // TODO: parse escape chars in essid
-pub(crate) fn find_known_network_names(options: &Options) -> io::Result<HashSet<String>> {
+pub(crate) fn find_known_network_names(options: Options) -> io::Result<HashSet<String>> {
     let known_network_names = if options.output_type == OutputType::NetctlConfig
         || options.connect_via == ConnectionType::Netctl
     {

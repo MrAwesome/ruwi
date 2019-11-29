@@ -1,13 +1,13 @@
 use crate::netctl_config_writer::*;
 use crate::structs::*;
-use std::io;
+use std::error::Error;
 
 // For multiple outputs:
 //pub(crate) fn send_outputs(
 //    options: &Options,
 //    network: &AnnotatedWirelessNetwork,
 //    encryption_key: &Option<String>,
-//) -> Vec<io::Result<OutputResult>> {
+//) -> Vec<Result<OutputResult, Box<dyn Error + Send + Sync>>> {
 //    options
 //        .output_types
 //        .iter()
@@ -19,7 +19,7 @@ pub(crate) fn send_output(
     options: &Options,
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
-) -> io::Result<OutputResult> {
+) -> Result<OutputResult, Box<dyn Error + Send + Sync>> {
     let res = match &options.output_type {
         OutputType::NetctlConfig => netctl_config_write(options, network, encryption_key),
         OutputType::None => Ok(OutputResult {

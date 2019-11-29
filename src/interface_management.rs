@@ -1,6 +1,6 @@
 use crate::run_commands::*;
 use crate::structs::*;
-use std::io;
+use std::error::Error;
 
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
@@ -11,7 +11,10 @@ enum InterfaceState {
     DOWN,
 }
 
-fn bring_interface(options: &Options, interface_state: InterfaceState) -> io::Result<()> {
+fn bring_interface(
+    options: &Options,
+    interface_state: InterfaceState,
+) -> Result<(), Box<dyn Error + Send + Sync>> {
     let if_name = &options.interface;
     let if_state = interface_state.to_string();
     run_command_pass_stdout(
@@ -27,10 +30,10 @@ fn bring_interface(options: &Options, interface_state: InterfaceState) -> io::Re
     Ok(())
 }
 
-pub(crate) fn bring_interface_up(options: &Options) -> io::Result<()> {
+pub(crate) fn bring_interface_up(options: &Options) -> Result<(), Box<dyn Error + Send + Sync>> {
     bring_interface(options, InterfaceState::UP)
 }
 
-pub(crate) fn bring_interface_down(options: &Options) -> io::Result<()> {
+pub(crate) fn bring_interface_down(options: &Options) -> Result<(), Box<dyn Error + Send + Sync>> {
     bring_interface(options, InterfaceState::DOWN)
 }

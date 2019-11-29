@@ -1,13 +1,13 @@
 use crate::structs::*;
+use std::error::Error;
 use std::fs::File;
-use std::io;
 use std::io::Write;
 
 pub(crate) fn netctl_config_write(
     options: &Options,
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
-) -> io::Result<OutputResult> {
+) -> Result<OutputResult, Box<dyn Error + Send + Sync>> {
     let contents = get_netctl_config_contents(options, network, encryption_key);
 
     let netctl_file_name = get_netctl_file_name(&network.essid);
