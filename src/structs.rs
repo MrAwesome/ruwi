@@ -1,7 +1,10 @@
+use crate::errbox;
 use std::error::Error;
 use std::fmt::Debug;
 use std::process::Output;
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
+
+pub(crate) type ErrBox = Box<dyn Error + Send + Sync>;
 
 #[strum(serialize_all = "snake_case")]
 #[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
@@ -219,6 +222,6 @@ pub struct RuwiResult {
     pub connection_result: ConnectionResult,
 }
 
-pub(crate) fn nie<T: Debug>(prog: T) -> Box<dyn Error + Send + Sync> {
-    Box::<dyn Error + Send + Sync>::from(format!("Not implemented: {:?}", prog))
+pub(crate) fn nie<T: Debug>(prog: T) -> ErrBox {
+    errbox!(format!("Not implemented: {:?}", prog))
 }

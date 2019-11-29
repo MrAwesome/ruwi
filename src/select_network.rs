@@ -1,14 +1,14 @@
+use crate::errbox;
 use crate::select::*;
 use crate::structs::*;
 use std::collections::HashSet;
-use std::error::Error;
 
 const KNOWN_TOKEN: &'static str = " (KNOWN)";
 
 pub(crate) fn select_network(
     options: &Options,
     networks: &SortedNetworks,
-) -> Result<AnnotatedWirelessNetwork, Box<dyn Error + Send + Sync>> {
+) -> Result<AnnotatedWirelessNetwork, ErrBox> {
     select_network_impl(options, &networks.networks, select_network_method)
 }
 
@@ -16,7 +16,7 @@ pub(crate) fn select_network(
 fn select_network_method(
     options: &Options,
     selection_tokens: Vec<String>,
-) -> Result<String, Box<dyn Error + Send + Sync>> {
+) -> Result<String, ErrBox> {
     match &options.selection_method {
         SelectionMethod::Dmenu => {
             run_dmenu(&options, &"Select a network:".to_string(), selection_tokens)
@@ -31,9 +31,9 @@ fn select_network_impl<'a, F>(
     options: &'a Options,
     networks: &[AnnotatedWirelessNetwork],
     selector: F,
-) -> Result<AnnotatedWirelessNetwork, Box<dyn Error + Send + Sync>>
+) -> Result<AnnotatedWirelessNetwork, ErrBox>
 where
-    F: FnOnce(&'a Options, Vec<String>) -> Result<String, Box<dyn Error + Send + Sync>>,
+    F: FnOnce(&'a Options, Vec<String>) -> Result<String, ErrBox>,
 {
     let selection_tokens = get_names_and_markers_for_selection(&networks);
     let selected_network_line = selector(options, selection_tokens)?;
@@ -44,7 +44,7 @@ where
 
     let res = match selected_network {
         Some(nw) => Ok(nw.clone()),
-        None => Err(Box::<dyn Error + Send + Sync>::from("No matching networks for selection")),
+        None => Err(errbox!("No matching networks for selection")),
     };
 
     if options.debug {
@@ -82,7 +82,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_select_network() -> Result<(), Box<dyn Error + Send + Sync>> {
+    fn test_select_network() -> Result<(), ErrBox> {
         let essid = "lol".to_string();
         let options = Options::default();
         let network = AnnotatedWirelessNetwork {

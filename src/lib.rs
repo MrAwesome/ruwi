@@ -26,6 +26,8 @@ pub(crate) mod select;
 pub(crate) mod select_network;
 pub(crate) mod sort_networks;
 pub(crate) mod structs;
+#[macro_use]
+pub(crate) mod macros;
 pub(crate) mod strum_utils;
 pub(crate) mod wpa_cli_initialize;
 
@@ -41,8 +43,6 @@ use select_network::*;
 use sort_networks::*;
 use std::thread;
 use structs::*;
-
-use std::error::Error;
 
 // TODO(high): figure out how to unit test / mock command calls
 // TODO(high): find a way to unit test without actually running commands. maybe with cfg(test)?
@@ -62,7 +62,7 @@ use std::error::Error;
 // TODO(think): add a -w/--wait or --verify or something to attempt to connect to google/etc?
 // TODO(think): consider just supporting netctl for now?
 
-pub fn run_ruwi() -> Result<(), Box<dyn Error + Send + Sync>> {
+pub fn run_ruwi() -> Result<(), ErrBox> {
     let options = &get_options()?;
     let selected_network = get_selected_network(options)?;
     if !selected_network.known {
@@ -72,16 +72,15 @@ pub fn run_ruwi() -> Result<(), Box<dyn Error + Send + Sync>> {
     }
 
     let _connection_result = connect_to_network(options, &selected_network)?;
-    Ok(())
+    Err(errbox!("lawl"))
+    //Ok(())
     //    Ok(RuwiResult {
     //        output_result,
     //        connection_result,
     //    })
 }
 
-pub fn get_selected_network(
-    options: &Options,
-) -> Result<AnnotatedWirelessNetwork, Box<dyn Error + Send + Sync>> {
+pub fn get_selected_network(options: &Options) -> Result<AnnotatedWirelessNetwork, ErrBox> {
     if let Some(essid) = &options.given_essid {
         // TODO: make sure known: true is the right option here, or if more control flow is needed
         Ok(AnnotatedWirelessNetwork {
@@ -99,18 +98,12 @@ pub fn get_selected_network(
         let get_scan_results = thread::spawn(|| wifi_scan(opt2));
 
         // TODO: remove unwraps
-        let known_network_names =
-            get_nw_names
-                .join()
-                .or(Err(Box::<dyn Error + Send + Sync>::from(
-                    "Failed to spawn thread.",
-                )))??;
-        let scan_result =
-            get_scan_results
-                .join()
-                .or(Err(Box::<dyn Error + Send + Sync>::from(
-                    "Failed to spawn thread.",
-                )))??;
+        let known_network_names = get_nw_names
+            .join()
+            .or(Err(errbox!("Failed to spawn thread.")))??;
+        let scan_result = get_scan_results
+            .join()
+            .or(Err(errbox!("Failed to spawn thread.")))??;
 
         let parse_results = parse_result(options, &scan_result)?;
         let annotated_networks =

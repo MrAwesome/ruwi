@@ -1,5 +1,4 @@
 use crate::structs::*;
-use std::error::Error;
 use std::process::{Command, Stdio};
 use std::thread;
 use std::time::Duration;
@@ -12,7 +11,7 @@ update_config=1
 
 See https://wiki.archlinux.org/index.php/WPA_supplicant#Connecting_with_wpa_cli for more info.";
 
-pub(crate) fn initialize_wpa_cli(options: &Options) -> Result<(), Box<dyn Error + Send + Sync>> {
+pub(crate) fn initialize_wpa_cli(options: &Options) -> Result<(), ErrBox> {
     //        /etc/wpa_supplicant/wpa_supplicant.conf
     //    ctrl_interface=/run/wpa_supplicant
     //    ctrl_interface_group=wheel
@@ -60,7 +59,7 @@ pub(crate) fn initialize_wpa_cli(options: &Options) -> Result<(), Box<dyn Error 
         }
     }
 
-    Err(Box::<dyn Error + Send + Sync>::from(WPA_CONNECT_ERROR))
+    Err(errbox!(WPA_CONNECT_ERROR))
 }
 
 fn wpa_ping_success(options: &Options) -> bool {
