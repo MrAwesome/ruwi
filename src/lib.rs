@@ -72,8 +72,7 @@ pub fn run_ruwi() -> Result<(), ErrBox> {
     }
 
     let _connection_result = connect_to_network(options, &selected_network)?;
-    Err(errbox!("lawl"))
-    //Ok(())
+    Ok(())
     //    Ok(RuwiResult {
     //        output_result,
     //        connection_result,
@@ -93,6 +92,7 @@ pub fn get_selected_network(options: &Options) -> Result<AnnotatedWirelessNetwor
         })
     } else {
         let todo = ""; // TODO: if no known networks are seen in auto mode, re-run all the data gathering in synchronous mode
+                       // TODO: possibly just rerun everything in synchronous mode if any problems are encountered?
 
         let (known_network_names, scan_result) = gather_data(options)?;
 

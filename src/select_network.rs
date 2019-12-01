@@ -9,48 +9,99 @@ pub(crate) fn select_network(
     options: &Options,
     networks: &SortedNetworks,
 ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
-    select_network_impl(options, &networks.networks, select_network_method)
+    select_network_impl(
+        options,
+        networks,
+        prompt_user_for_selection,
+        auto_select_network_method,
+        auto_no_ask_select_network_method,
+    )
 }
 
-// TODO: clarify names
-fn select_network_method(
+fn prompt_user_for_selection(
     options: &Options,
-    selection_tokens: Vec<String>,
-) -> Result<String, ErrBox> {
-    match &options.selection_method {
+    networks: &SortedNetworks,
+) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+    let selection_tokens = get_names_and_markers_for_selection(&networks.networks);
+    let selected_network_line = match &options.selection_method {
         SelectionMethod::Dmenu => {
             run_dmenu(&options, &"Select a network:".to_string(), selection_tokens)
         }
         SelectionMethod::Fzf => {
             run_fzf(&options, &"Select a network:".to_string(), selection_tokens)
         }
+    }?;
+    let selected_network_name = selected_network_line.trim_end_matches(KNOWN_TOKEN);
+    let selected_network = networks
+        .networks
+        .iter()
+        .find(|nw| nw.essid == selected_network_name);
+
+    match selected_network {
+        Some(nw) => Ok(nw.clone()),
+        None => Err(errbox!(format!(
+            "No network matching {} found.",
+            selected_network_name
+        ))),
     }
 }
 
-fn select_network_impl<'a, F>(
-    options: &'a Options,
-    networks: &[AnnotatedWirelessNetwork],
-    selector: F,
+fn auto_select_network_method<'a, 'b, F>(
+    options: &Options,
+    networks: &SortedNetworks,
+    prompt_method: F,
 ) -> Result<AnnotatedWirelessNetwork, ErrBox>
 where
-    F: FnOnce(&'a Options, Vec<String>) -> Result<String, ErrBox>,
+    F: FnOnce(&'a Options, &'b SortedNetworks) -> Result<AnnotatedWirelessNetwork, ErrBox>,
 {
-    let selection_tokens = get_names_and_markers_for_selection(&networks);
-    let selected_network_line = selector(options, selection_tokens)?;
+    let auto_selected = select_first_known(options, networks);
+    match auto_selected {
+        Ok(nw) => Ok(nw),
+        Err(_) => prompt_user_for_selection(options, networks),
+    }
+}
 
-    let selected_network_name = selected_network_line.trim_end_matches(KNOWN_TOKEN);
+fn auto_no_ask_select_network_method(
+    options: &Options,
+    networks: &SortedNetworks,
+) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+    select_first_known(options, networks)
+}
 
-    let selected_network = networks.iter().find(|nw| nw.essid == selected_network_name);
+fn select_first_known(
+    _options: &Options,
+    networks: &SortedNetworks,
+) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+    networks
+        .networks
+        .iter()
+        .find(|nw| nw.known == true)
+        .ok_or_else(|| errbox!("No known networks found!"))
+        .map(|x| x.clone())
+}
 
-    let res = match selected_network {
-        Some(nw) => Ok(nw.clone()),
-        None => Err(errbox!("No matching networks for selection")),
+fn select_network_impl<'a, 'b, F, G, H>(
+    options: &'a Options,
+    networks: &'b SortedNetworks,
+    manual_selector: F,
+    auto_selector: G,
+    auto_no_ask_selector: H,
+) -> Result<AnnotatedWirelessNetwork, ErrBox>
+where
+    F: FnOnce(&'a Options, &'b SortedNetworks) -> Result<AnnotatedWirelessNetwork, ErrBox>,
+    G: FnOnce(&'a Options, &'b SortedNetworks, F) -> Result<AnnotatedWirelessNetwork, ErrBox>,
+    H: FnOnce(&'a Options, &'b SortedNetworks) -> Result<AnnotatedWirelessNetwork, ErrBox>,
+{
+    let selected_network = match &options.auto_mode {
+        AutoMode::None => manual_selector(options, networks),
+        AutoMode::Auto => auto_select_network_method(options, networks, manual_selector),
+        AutoMode::AutoNoAsk => auto_no_ask_select_network_method(options, networks),
     };
 
     if options.debug {
-        dbg![&res];
+        dbg![&selected_network];
     }
-    res
+    selected_network
 }
 
 pub(crate) fn get_names_and_markers_for_selection(
@@ -82,23 +133,55 @@ fn get_token_for_selection(nw: &AnnotatedWirelessNetwork) -> String {
 mod tests {
     use super::*;
 
+    fn select_first(
+        _options: &Options,
+        networks: &SortedNetworks,
+    ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+        networks
+            .networks
+            .iter()
+            .next()
+            .ok_or_else(|| errbox!("No networks found!"))
+            .map(|x| x.clone())
+    }
+
     #[test]
-    fn test_select_network() -> Result<(), ErrBox> {
-        let essid = "lol".to_string();
+    fn test_select_first_network() -> Result<(), ErrBox> {
         let options = Options::default();
-        let network = AnnotatedWirelessNetwork {
-            essid,
+        let essid1 = "lol".to_string();
+        let essid2 = "lol".to_string();
+        let network1 = AnnotatedWirelessNetwork {
+            essid: essid1,
             ..Default::default()
         };
-        let networks = &[network.clone()];
-        let selector = |_, _| {
-            Ok(networks
-                .iter()
-                .next()
-                .map_or("DOOOK".to_string(), |nw| nw.essid.clone()))
+        let network2 = AnnotatedWirelessNetwork {
+            essid: essid2,
+            ..Default::default()
         };
-        let nw = select_network_impl(&options, networks, selector)?;
-        assert_eq![network, nw];
+        let networks = SortedNetworks {
+            networks: vec![network1.clone(), network2.clone()],
+        };
+        let selector = select_first;
+        // TODO: MAD UNIT TESTS BRO
+        let todo = "";
+        let auto_selector = |_, _, _| {
+            Err(errbox!(
+                "Used auto selector when auto should not have been enabled."
+            ))
+        };
+        let auto_no_ask_selector = |_, _| {
+            Err(errbox!(
+                "Used auto-no-ask selector when auto should not have been enabled."
+            ))
+        };
+        let nw = select_network_impl(
+            &options,
+            &networks,
+            selector,
+            auto_selector,
+            auto_no_ask_selector,
+        )?;
+        assert_eq![network1, nw];
         Ok(())
     }
 
