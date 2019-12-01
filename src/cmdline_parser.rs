@@ -16,22 +16,20 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .long("debug")
         .help("Print out debug information on what ruwi sees.");
 
-    let auto = Arg::with_name("auto")
-        .short("a")
-        .long("auto")
-        .help("Connect to the strongest known network seen. Will prompt for ");
+    let auto = Arg::with_name("auto").short("a").long("auto").help(
+        "Connect to the strongest known network seen. Will prompt for selection if no known networks are seen.",
+    );
 
     let auto_no_ask = Arg::with_name("auto_no_ask")
         .short("A")
         .long("auto-no-ask")
-        .help("When in auto mode, just fail if no know networks are seen. Implies `-a`.");
+        .help("When in auto mode, just fail if no know networks are seen. Takes precedence over `-a`.");
 
     let force_synchronous = Arg::with_name("force_synchronous_scan")
         .short("f")
         .long("force-sync")
         .help("Do not look at cached results, always scan for networks when run.");
 
-    // Global Args
     let interface = Arg::with_name("interface")
         .short("i")
         .long("interface")
@@ -102,8 +100,15 @@ pub fn get_options() -> Result<Options, ErrBox> {
 
 fn get_options_impl<'a>(m: ArgMatches<'a>) -> Result<Options, ErrBox> {
     let debug = m.is_present("debug");
-    let auto_no_ask = m.is_present("auto_no_ask");
-    let auto = m.is_present("auto") || auto_no_ask;
+
+    let auto_mode = if m.is_present("auto_no_ask") {
+        AutoMode::AutoNoAsk
+    } else if m.is_present("auto") {
+        AutoMode::Auto
+    } else {
+        AutoMode::None
+    };
+
     let force_synchronous_scan = m.is_present("force_synchronous_scan");
 
     let given_essid = m.value_of("essid").map(String::from);
@@ -127,8 +132,7 @@ fn get_options_impl<'a>(m: ArgMatches<'a>) -> Result<Options, ErrBox> {
         debug,
         given_essid,
         given_password,
-        auto,
-        auto_no_ask,
+        auto_mode,
         force_synchronous_scan,
     };
 
@@ -215,29 +219,21 @@ mod tests {
     }
 
     #[test]
-    fn test_auto_connect() {
+    fn test_auto_mode() {
         let opts = getopts(&[]);
-        assert![!opts.auto];
+        assert_eq![opts.auto_mode, AutoMode::None];
 
         let opts = getopts(&["-a"]);
-        assert![opts.auto];
+        assert_eq![opts.auto_mode, AutoMode::Auto];
 
         let opts = getopts(&["--auto"]);
-        assert![opts.auto];
-    }
-
-    #[test]
-    fn test_auto_no_ask() {
-        let opts = getopts(&[]);
-        assert![!opts.auto_no_ask];
+        assert_eq![opts.auto_mode, AutoMode::Auto];
 
         let opts = getopts(&["-A"]);
-        assert![opts.auto_no_ask];
-        assert![opts.auto];
+        assert_eq![opts.auto_mode, AutoMode::AutoNoAsk];
 
         let opts = getopts(&["--auto-no-ask"]);
-        assert![opts.auto_no_ask];
-        assert![opts.auto];
+        assert_eq![opts.auto_mode, AutoMode::AutoNoAsk];
     }
 
     #[test]

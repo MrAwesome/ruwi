@@ -68,6 +68,19 @@ impl Default for ConnectionType {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AutoMode {
+    None,
+    Auto,
+    AutoNoAsk,
+}
+
+impl Default for AutoMode {
+    fn default() -> Self {
+        AutoMode::None
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Options {
     pub scan_type: ScanType,
@@ -78,8 +91,7 @@ pub struct Options {
     pub debug: bool,
     pub given_essid: Option<String>,
     pub given_password: Option<String>,
-    pub auto: bool,
-    pub auto_no_ask: bool,
+    pub auto_mode: AutoMode,
     pub force_synchronous_scan: bool,
 }
 
@@ -100,8 +112,7 @@ impl Default for Options {
             debug: true,
             given_essid: None,
             given_password: None,
-            auto: false,
-            auto_no_ask: false,
+            auto_mode: AutoMode::None,
             force_synchronous_scan: false,
         }
     }
