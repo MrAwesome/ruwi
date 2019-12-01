@@ -1,15 +1,13 @@
 use crate::get_default_interface::get_default_interface;
 use crate::structs::*;
 use crate::strum_utils::{get_val_as_enum, possible_vals};
-use clap::{App, Arg};
-use std::io;
+use clap::{App, Arg, ArgMatches};
 use strum::AsStaticRef;
 
 // TODO: fail if not run as root
 // TODO: allow essid to be provided with -e XXX
 // TODO: use subcommands for configurations of options, but still go through all functions always?
 //       or just run certain functions for certain subcommands?
-// TODO: detect if run in interactive terminal mode, and use fzf if so - dmenu otherwise
 // TODO: arg for not connecting?
 fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
     // TODO: move these to be subcommand args for only the relevant subcommands
@@ -17,6 +15,21 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .short("d")
         .long("debug")
         .help("Print out debug information on what ruwi sees.");
+
+    let auto = Arg::with_name("auto")
+        .short("a")
+        .long("auto")
+        .help("Connect to the strongest known network seen. Will prompt for ");
+
+    let auto_no_ask = Arg::with_name("auto_no_ask")
+        .short("A")
+        .long("auto-no-ask")
+        .help("When in auto mode, just fail if no know networks are seen. Implies `-a`.");
+
+    let force_synchronous = Arg::with_name("force_synchronous_scan")
+        .short("f")
+        .long("force-sync")
+        .help("Do not look at cached results, always scan for networks when run.");
 
     // Global Args
     let interface = Arg::with_name("interface")
@@ -69,20 +82,29 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .version("0.2")
         .author("Glenn Hope <glenn.alexander.hope@gmail.com>")
         .about("Finds, selects, configures, and connects to new wireless networks.")
+        .arg(auto)
+        .arg(auto_no_ask)
         .arg(connect_via)
         .arg(debug)
+        .arg(essid)
+        .arg(force_synchronous)
         .arg(interface)
         .arg(output_type)
+        .arg(password)
         .arg(scan_type)
         .arg(selection_method)
-        .arg(essid)
-        .arg(password)
 }
 
-pub fn get_options() -> io::Result<Options> {
+pub fn get_options() -> Result<Options, ErrBox> {
     let m = get_arg_app().get_matches();
+    get_options_impl(m)
+}
 
+fn get_options_impl<'a>(m: ArgMatches<'a>) -> Result<Options, ErrBox> {
     let debug = m.is_present("debug");
+    let auto = m.is_present("auto");
+    let auto_no_ask = m.is_present("auto_no_ask");
+    let force_synchronous_scan = m.is_present("force_synchronous_scan");
 
     let given_essid = m.value_of("essid").map(String::from);
     let given_password = m.value_of("password").map(String::from);
@@ -105,6 +127,9 @@ pub fn get_options() -> io::Result<Options> {
         debug,
         given_essid,
         given_password,
+        auto,
+        auto_no_ask,
+        force_synchronous_scan,
     };
 
     if opts.debug {
@@ -113,80 +138,145 @@ pub fn get_options() -> io::Result<Options> {
     Ok(opts)
 }
 
-// It would be better if these tests just checked the Options returned,
-// but that requires either a clunky rewrite or losing the nice auto-exit
-// functionality that clap provides by default
 #[cfg(test)]
 mod tests {
     use super::*;
     use clap::ArgMatches;
 
-    fn gmf<'a>(args: &[&str]) -> ArgMatches<'a> {
-        get_arg_app().get_matches_from(args)
+    const FAKE_BINARY_NAME: &str = "fake_binary_name";
+
+    fn construct_args<'a>(args: &'a [&str]) -> Vec<&'a str> {
+        let mut vec_args = vec![FAKE_BINARY_NAME];
+        for x in args {
+            vec_args.push(x);
+        }
+        vec_args
     }
 
-    fn gmf_safe<'a>(args: &[&str]) -> Result<ArgMatches<'a>, clap::Error> {
-        get_arg_app().get_matches_from_safe(args)
+    fn get_matches<'a>(args: &[&str]) -> ArgMatches<'a> {
+        get_arg_app().get_matches_from(construct_args(args))
+    }
+
+    fn get_matches_safe<'a>(args: &[&str]) -> Result<ArgMatches<'a>, clap::Error> {
+        get_arg_app().get_matches_from_safe(construct_args(args))
+    }
+
+    fn getopts(args: &[&str]) -> Options {
+        get_options_impl(get_matches(args)).unwrap()
+    }
+
+    fn getopts_safe(args: &[&str]) -> Result<Options, ErrBox> {
+        get_options_impl(get_matches_safe(args)?)
     }
 
     #[test]
     fn test_debug() {
-        let m = gmf(&["lol", "--debug"]);
-        assert![m.is_present("debug")];
+        let opts = getopts(&["--debug"]);
+        assert![opts.debug];
     }
 
     #[test]
     fn test_interface() {
-        let m = gmf(&["lol", "--interface", "fake_interface"]);
-        assert_eq![m.value_of("interface").unwrap(), "fake_interface"];
+        let opts = getopts(&["--interface", "BLEEBLOOFAKEIFACE"]);
+        assert_eq![opts.interface, "BLEEBLOOFAKEIFACE"];
     }
 
     #[test]
-    fn test_scan_type_short() {
+    fn test_scan_type() {
         let expected = ScanType::IWList.to_string();
-        let m = gmf(&["lol", "-t", expected.as_ref()]);
-        assert_eq![m.value_of("scan_type").unwrap(), expected];
-    }
+        let opts = getopts(&["-t", expected.as_ref()]);
+        assert_eq![opts.scan_type.to_string(), expected];
 
-    #[test]
-    fn test_scan_type_long() {
         let expected = ScanType::IW.to_string();
-        let m = gmf(&["lol", "--scan-type", expected.as_ref()]);
-        assert_eq![m.value_of("scan_type").unwrap(), expected];
+        let opts = getopts(&["--scan-type", expected.as_ref()]);
+        assert_eq![opts.scan_type.to_string(), expected];
     }
 
     #[test]
-    fn test_output_type_short() {
+    fn test_output_type() {
         let expected = OutputType::NetctlConfig.to_string();
-        let m = gmf(&["lol", "-o", expected.as_ref()]);
-        assert_eq![m.value_of("output_type").unwrap(), expected];
-    }
+        let opts = getopts(&["-o", expected.as_ref()]);
+        assert_eq![opts.output_type.to_string(), expected];
 
-    #[test]
-    fn test_output_type_long() {
         let expected = OutputType::NetworkManagerConfig.to_string();
-        let m = gmf(&["lol", "--output-type", expected.as_ref()]);
-        assert_eq![m.value_of("output_type").unwrap(), expected];
+        let opts = getopts(&["--output-type", expected.as_ref()]);
+        assert_eq![opts.output_type.to_string(), expected];
     }
 
     #[test]
-    fn test_selection_method_short() {
+    fn test_selection_method() {
         let expected = SelectionMethod::Fzf.to_string();
-        let m = gmf(&["lol", "-s", expected.as_ref()]);
-        assert_eq![m.value_of("selection_method").unwrap(), expected];
-    }
+        let opts = getopts(&["-s", expected.as_ref()]);
+        assert_eq![opts.selection_method.to_string(), expected];
 
-    #[test]
-    fn test_selection_method_long() {
         let expected = SelectionMethod::Dmenu.to_string();
-        let m = gmf(&["lol", "--selection-method", expected.as_ref()]);
-        assert_eq![m.value_of("selection_method").unwrap(), expected];
+        let opts = getopts(&["--selection-method", expected.as_ref()]);
+        assert_eq![opts.selection_method.to_string(), expected];
     }
 
     #[test]
-    fn test_incorrect() {
-        let short_res = gmf_safe(&["lol", "-s", "JLDKJSJKLDSJ"]);
-        let long_res = gmf_safe(&["lol", "--selection-method", "JLDKJSJKLDSJ"]);
+    fn test_auto_connect() {
+        let opts = getopts(&[]);
+        assert![!opts.auto];
+
+        let opts = getopts(&["-a"]);
+        assert![opts.auto];
+
+        let opts = getopts(&["--auto"]);
+        assert![opts.auto];
+    }
+
+    #[test]
+    fn test_auto_no_ask() {
+        let opts = getopts(&[]);
+        assert![!opts.auto_no_ask];
+
+        let opts = getopts(&["-A"]);
+        assert![opts.auto_no_ask];
+
+        let opts = getopts(&["--auto-no-ask"]);
+        assert![opts.auto_no_ask];
+    }
+
+    #[test]
+    fn test_force_synchronous_scan() {
+        let opts = getopts(&[]);
+        assert![!opts.force_synchronous_scan];
+
+        let opts = getopts(&["-f"]);
+        assert![opts.force_synchronous_scan];
+
+        let opts = getopts(&["--force-sync"]);
+        assert![opts.force_synchronous_scan];
+    }
+
+    #[test]
+    fn test_incorrect_selection_method() {
+        let short_res = getopts_safe(&["-s", "BOOOBLOOOBOO"]);
+        let long_res = getopts_safe(&["--selection-method", "BOOWOEOOOOOO"]);
+
+        let short_failed = short_res.is_err();
+        let long_failed = long_res.is_err();
+        assert![short_failed];
+        assert![long_failed];
+    }
+
+    #[test]
+    fn test_incorrect_scan_type() {
+        let short_res = getopts_safe(&["-t", "HARBLGARBL"]);
+        let long_res = getopts_safe(&["--scan-type", "HARBLGARBL"]);
+
+        let short_failed = short_res.is_err();
+        let long_failed = long_res.is_err();
+        assert![short_failed];
+        assert![long_failed];
+    }
+
+    #[test]
+    fn test_incorrect_connection_method() {
+        let short_res = getopts_safe(&["-c", "BLAHBLAHBLAHWHOO"]);
+        let long_res = getopts_safe(&["--connect-via", "YERAFKNWIZ"]);
+
         let short_failed = short_res.is_err();
         let long_failed = long_res.is_err();
         assert![short_failed];

@@ -92,7 +92,8 @@ pub fn get_selected_network(options: &Options) -> Result<AnnotatedWirelessNetwor
             channel_utilisation: None,
         })
     } else {
-        // TODO: move into a "gather data" function
+        let todo = ""; // TODO: if no known networks are seen in auto mode, re-run all the data gathering in synchronous mode
+
         let (known_network_names, scan_result) = gather_data(options)?;
 
         let parse_results = parse_result(options, &scan_result)?;

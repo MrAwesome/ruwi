@@ -78,6 +78,9 @@ pub struct Options {
     pub debug: bool,
     pub given_essid: Option<String>,
     pub given_password: Option<String>,
+    pub auto: bool,
+    pub auto_no_ask: bool,
+    pub force_synchronous_scan: bool,
 }
 
 impl Options {
@@ -97,6 +100,9 @@ impl Default for Options {
             debug: true,
             given_essid: None,
             given_password: None,
+            auto: false,
+            auto_no_ask: false,
+            force_synchronous_scan: false,
         }
     }
 }
