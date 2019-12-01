@@ -102,8 +102,8 @@ pub fn get_options() -> Result<Options, ErrBox> {
 
 fn get_options_impl<'a>(m: ArgMatches<'a>) -> Result<Options, ErrBox> {
     let debug = m.is_present("debug");
-    let auto = m.is_present("auto");
     let auto_no_ask = m.is_present("auto_no_ask");
+    let auto = m.is_present("auto") || auto_no_ask;
     let force_synchronous_scan = m.is_present("force_synchronous_scan");
 
     let given_essid = m.value_of("essid").map(String::from);
@@ -233,9 +233,11 @@ mod tests {
 
         let opts = getopts(&["-A"]);
         assert![opts.auto_no_ask];
+        assert![opts.auto];
 
         let opts = getopts(&["--auto-no-ask"]);
         assert![opts.auto_no_ask];
+        assert![opts.auto];
     }
 
     #[test]
