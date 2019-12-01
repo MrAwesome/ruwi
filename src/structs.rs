@@ -50,7 +50,7 @@ pub enum SelectionMethod {
 
 impl Default for SelectionMethod {
     fn default() -> Self {
-        SelectionMethod::Dmenu
+        SelectionMethod::Fzf
     }
 }
 

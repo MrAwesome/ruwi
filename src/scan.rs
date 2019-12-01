@@ -24,6 +24,8 @@ const IW_SCAN_SYNC_ERR_MSG: &str = concat!(
     "or you can manually specify an essid with -e.",
 );
 
+const DEVICE_OR_RESOURCE_BUSY_EXIT_CODE: i32 = 240;
+
 pub(crate) fn wifi_scan(options: Options) -> Result<ScanResult, ErrBox> {
     let res = match &options.scan_type {
         ScanType::WpaCli => run_wpa_cli_scan(&options),
@@ -87,8 +89,8 @@ fn run_iw_scan(options: &Options) -> Result<ScanResult, ErrBox> {
 fn run_iw_scan_synchronous(options: &Options) -> Result<String, ErrBox> {
     let mut retries = ALLOWED_SYNCHRONOUS_RETRIES;
     loop {
-        let synchronous_run_output = run_iw_scan_synchronous_impl(options)?;
-        if synchronous_run_output.status.code() == Some(240) {
+        let synchronous_run_output = run_iw_scan_synchronous_cmd(options)?;
+        if synchronous_run_output.status.code() == Some(DEVICE_OR_RESOURCE_BUSY_EXIT_CODE) {
             retries -= 1;
             if retries > 0 {
                 thread::sleep(Duration::from_secs(SYNCHRONOUS_RETRY_DELAY_SECS));
@@ -104,7 +106,7 @@ fn run_iw_scan_synchronous(options: &Options) -> Result<String, ErrBox> {
     }
 }
 
-fn run_iw_scan_synchronous_impl(options: &Options) -> Result<Output, ErrBox> {
+fn run_iw_scan_synchronous_cmd(options: &Options) -> Result<Output, ErrBox> {
     run_command_output(options.debug, "iw", &[&options.interface, "scan"])
 }
 
