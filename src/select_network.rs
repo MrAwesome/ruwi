@@ -279,6 +279,26 @@ mod tests {
     }
 
     #[test]
+    fn test_auto_first_known() -> Result<(), ErrBox> {
+        let mut options = Options::default();
+        options.auto_mode = AutoMode::AutoNoAsk;
+
+        let networks = get_3_networks_last_known();
+        let manual_selector = err_should_not_have_used_manual;
+        let auto_selector = err_should_not_have_used_auto;
+        let auto_no_ask_selector = select_first_known;
+        let nw = select_network_impl(
+            &options,
+            &networks,
+            manual_selector,
+            auto_selector,
+            auto_no_ask_selector,
+        )?;
+        assert_eq![networks.networks[2], nw];
+        Ok(())
+    }
+
+    #[test]
     fn test_auto_no_ask_first_known() -> Result<(), ErrBox> {
         let mut options = Options::default();
         options.auto_mode = AutoMode::AutoNoAsk;
