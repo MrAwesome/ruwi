@@ -61,6 +61,7 @@ use structs::*;
 // TODO(think): instead of functions which take options, make a big struct/impl? maybe more than one?
 // TODO(think): add a -w/--wait or --verify or something to attempt to connect to google/etc?
 // TODO(think): consider just supporting netctl for now?
+// TODO(think): make -a the default?
 
 pub fn run_ruwi() -> Result<(), ErrBox> {
     let options = &get_options()?;

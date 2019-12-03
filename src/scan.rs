@@ -73,13 +73,17 @@ fn run_wpa_cli_scan(options: &Options) -> Result<ScanResult, ErrBox> {
 // TODO: this all badly needs unit tests
 fn run_iw_scan(options: &Options) -> Result<ScanResult, ErrBox> {
     bring_interface_up(options)?;
-    let mut scan_output = run_iw_scan_dump(options)?;
-
-    if scan_output.is_empty() {
-        scan_output = run_iw_scan_synchronous(options)?;
+    let scan_output = if options.force_synchronous_scan {
+        run_iw_scan_synchronous(options)?
     } else {
-        run_iw_scan_trigger(options).ok();
-    }
+        let mut scan_output = run_iw_scan_dump(options)?;
+        if scan_output.is_empty() {
+            scan_output = run_iw_scan_synchronous(options)?;
+        } else {
+            run_iw_scan_trigger(options).ok();
+        }
+        scan_output
+    };
 
     Ok(ScanResult {
         scan_type: ScanType::IW,

@@ -14,6 +14,7 @@ pub(crate) fn run_dmenu(
     run_prompt_cmd(options.debug, "dmenu", &["-i", "-p", prompt], elements)
 }
 
+#[cfg_attr(test, allow(unused))]
 pub(crate) fn run_fzf(
     options: &Options,
     prompt: &str,

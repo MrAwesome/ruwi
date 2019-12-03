@@ -1,4 +1,5 @@
 use crate::errbox;
+#[cfg(not(test))]
 use crate::select::*;
 use crate::structs::*;
 use std::collections::HashSet;
@@ -19,6 +20,7 @@ pub(crate) fn select_network(
     )
 }
 
+#[cfg(not(test))]
 fn prompt_user_for_selection(
     options: &Options,
     networks: &SortedNetworks,
@@ -45,6 +47,14 @@ fn prompt_user_for_selection(
             selected_network_name
         ))),
     }
+}
+
+#[cfg(test)]
+fn prompt_user_for_selection(
+    _options: &Options,
+    _networks: &SortedNetworks,
+) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+    panic!("Should not use this function in tests!");
 }
 
 fn auto_select_network_method(
@@ -92,6 +102,8 @@ where
         }
         AutoMode::AutoNoAsk => auto_no_ask_selector(options, networks),
     };
+
+    // TODO: sensible error messages for when auto no ask fails
 
     if options.debug {
         dbg![&selected_network];
@@ -223,15 +235,12 @@ mod tests {
         let options = Options::default();
         assert_eq![options.auto_mode, AutoMode::None];
         let networks = get_3_unknown_networks();
-        let manual_selector = select_first;
-        let auto_selector = err_should_not_have_used_auto;
-        let auto_no_ask_selector = err_should_not_have_used_auto_no_ask;
         let nw = select_network_impl(
             &options,
             &networks,
-            manual_selector,
-            auto_selector,
-            auto_no_ask_selector,
+            select_first,
+            err_should_not_have_used_auto,
+            err_should_not_have_used_auto_no_ask,
         )?;
         assert_eq![networks.networks[0], nw];
         Ok(())
@@ -242,15 +251,12 @@ mod tests {
         let options = Options::default();
         assert_eq![options.auto_mode, AutoMode::None];
         let networks = get_3_unknown_networks();
-        let manual_selector = select_last;
-        let auto_selector = err_should_not_have_used_auto;
-        let auto_no_ask_selector = err_should_not_have_used_auto_no_ask;
         let nw = select_network_impl(
             &options,
             &networks,
-            manual_selector,
-            auto_selector,
-            auto_no_ask_selector,
+            select_last,
+            err_should_not_have_used_auto,
+            err_should_not_have_used_auto_no_ask,
         )?;
         assert_eq![networks.networks[2], nw];
         Ok(())
@@ -261,20 +267,17 @@ mod tests {
         let options = Options::default();
         assert_eq![options.auto_mode, AutoMode::None];
         let networks = get_3_unknown_networks();
-        let manual_selector = select_first_known;
-        let auto_selector = err_should_not_have_used_auto;
-        let auto_no_ask_selector = err_should_not_have_used_auto_no_ask;
         let nw = select_network_impl(
             &options,
             &networks,
-            manual_selector,
-            auto_selector,
-            auto_no_ask_selector,
+            select_first_known,
+            err_should_not_have_used_auto,
+            err_should_not_have_used_auto_no_ask,
         );
-        assert![nw.is_err()];
-        if let Err(err) = nw {
-            assert_eq![err.description(), NO_KNOWN_NETWORKS_FOUND];
-        }
+        match nw {
+            Ok(_) => panic!(),
+            Err(err) => assert_eq![err.description(), NO_KNOWN_NETWORKS_FOUND],
+        };
         Ok(())
     }
 
@@ -284,15 +287,12 @@ mod tests {
         options.auto_mode = AutoMode::AutoNoAsk;
 
         let networks = get_3_networks_last_known();
-        let manual_selector = err_should_not_have_used_manual;
-        let auto_selector = err_should_not_have_used_auto;
-        let auto_no_ask_selector = select_first_known;
         let nw = select_network_impl(
             &options,
             &networks,
-            manual_selector,
-            auto_selector,
-            auto_no_ask_selector,
+            err_should_not_have_used_manual,
+            err_should_not_have_used_auto,
+            select_first_known,
         )?;
         assert_eq![networks.networks[2], nw];
         Ok(())
@@ -304,15 +304,12 @@ mod tests {
         options.auto_mode = AutoMode::AutoNoAsk;
 
         let networks = get_3_networks_first_known();
-        let manual_selector = err_should_not_have_used_manual;
-        let auto_selector = err_should_not_have_used_auto;
-        let auto_no_ask_selector = select_first_known;
         let nw = select_network_impl(
             &options,
             &networks,
-            manual_selector,
-            auto_selector,
-            auto_no_ask_selector,
+            err_should_not_have_used_manual,
+            err_should_not_have_used_auto,
+            select_first_known,
         )?;
         assert_eq![networks.networks[0], nw];
         Ok(())
@@ -324,15 +321,12 @@ mod tests {
         options.auto_mode = AutoMode::AutoNoAsk;
 
         let networks = get_3_networks_last_known();
-        let manual_selector = err_should_not_have_used_manual;
-        let auto_selector = err_should_not_have_used_auto;
-        let auto_no_ask_selector = select_first_known;
         let nw = select_network_impl(
             &options,
             &networks,
-            manual_selector,
-            auto_selector,
-            auto_no_ask_selector,
+            err_should_not_have_used_manual,
+            err_should_not_have_used_auto,
+            select_first_known,
         )?;
         assert_eq![networks.networks[2], nw];
         Ok(())
@@ -344,15 +338,12 @@ mod tests {
         options.auto_mode = AutoMode::Auto;
 
         let networks = get_3_unknown_networks();
-        let manual_selector = select_first;
-        let auto_selector = fail_to_select;
-        let auto_no_ask_selector = err_should_not_have_used_auto_no_ask;
         let nw = select_network_impl(
             &options,
             &networks,
-            manual_selector,
-            auto_selector,
-            auto_no_ask_selector,
+            select_first,
+            fail_to_select,
+            err_should_not_have_used_auto_no_ask,
         )?;
         assert_eq![networks.networks[0], nw];
         Ok(())

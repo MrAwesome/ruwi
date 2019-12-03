@@ -95,12 +95,6 @@ pub struct Options {
     pub force_synchronous_scan: bool,
 }
 
-impl Options {
-    pub fn dbg<T: Debug>(&self, lawl: T) {
-        dbg![lawl];
-    }
-}
-
 impl Default for Options {
     fn default() -> Self {
         Options {
