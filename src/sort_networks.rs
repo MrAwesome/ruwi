@@ -1,5 +1,6 @@
 use crate::structs::*;
 use std::cmp::Ordering;
+use std::collections::HashSet;
 
 impl Ord for AnnotatedWirelessNetwork {
     fn cmp(&self, other: &Self) -> Ordering {
@@ -17,18 +18,33 @@ impl PartialOrd for AnnotatedWirelessNetwork {
     }
 }
 
-pub(crate) fn sort_available_networks(
+pub(crate) fn sort_and_filter_networks(
     options: &Options,
     annotated_networks: AnnotatedNetworks,
-) -> SortedNetworks {
-    let mut networks = annotated_networks.networks;
-    put_best_networks_first(&mut networks);
+) -> SortedUniqueNetworks {
+    let mut sorted_networks = annotated_networks.networks.clone();
+    put_best_networks_first(&mut sorted_networks);
 
-    if options.debug {
-        dbg![&networks];
+    // TODO: Once partition_dedup_by is stable:
+    //let (sorted_unique_networks, _dups) = sorted_networks.partition_dedup_by(|a, b| a.essid == b.essid);
+    let mut sorted_unique_networks = vec![];
+    let mut seen_network_names = HashSet::new();
+    for nw in sorted_networks {
+        let essid = nw.essid.clone();
+        if !seen_network_names.contains(&essid) {
+            seen_network_names.insert(essid.clone());
+
+            sorted_unique_networks.push(nw);
+        }
     }
 
-    SortedNetworks { networks }
+    if options.debug {
+        dbg![&sorted_unique_networks];
+    }
+
+    SortedUniqueNetworks {
+        networks: sorted_unique_networks,
+    }
 }
 
 pub(crate) fn put_best_networks_first(networks: &mut Vec<AnnotatedWirelessNetwork>) {

@@ -167,20 +167,7 @@ pub struct AnnotatedWirelessNetwork {
 }
 
 impl AnnotatedWirelessNetwork {
-    pub fn set_known(&mut self) {
-        self.known = true;
-    }
-}
-
-impl Default for AnnotatedWirelessNetwork {
-    fn default() -> Self {
-        let nw = WirelessNetwork::default();
-        AnnotatedWirelessNetwork::from(nw)
-    }
-}
-
-impl From<WirelessNetwork> for AnnotatedWirelessNetwork {
-    fn from(nw: WirelessNetwork) -> Self {
+    pub fn create_from(nw: WirelessNetwork, is_known: bool) -> Self {
         let essid = nw.essid;
         let is_encrypted = nw.is_encrypted;
         let bssid = nw.bssid;
@@ -192,8 +179,15 @@ impl From<WirelessNetwork> for AnnotatedWirelessNetwork {
             bssid,
             signal_strength,
             channel_utilisation,
-            known: false,
+            known: is_known,
         }
+    }
+}
+
+impl Default for AnnotatedWirelessNetwork {
+    fn default() -> Self {
+        let nw = WirelessNetwork::default();
+        AnnotatedWirelessNetwork::create_from(nw, false)
     }
 }
 
@@ -203,13 +197,13 @@ pub struct AnnotatedNetworks {
 }
 
 #[derive(Debug, Clone)]
-pub struct SortedNetworks {
+pub struct SortedUniqueNetworks {
     pub networks: Vec<AnnotatedWirelessNetwork>,
 }
 
-impl From<AnnotatedNetworks> for SortedNetworks {
+impl From<AnnotatedNetworks> for SortedUniqueNetworks {
     fn from(nws: AnnotatedNetworks) -> Self {
-        SortedNetworks {
+        SortedUniqueNetworks {
             networks: nws.networks,
         }
     }

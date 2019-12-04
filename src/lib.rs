@@ -13,6 +13,7 @@ extern crate strum_macros;
 pub(crate) mod annotate_networks;
 pub(crate) mod cmdline_parser;
 pub(crate) mod connect;
+pub(crate) mod display_network_for_selection;
 pub(crate) mod find_known_network_names;
 pub(crate) mod get_default_interface;
 pub(crate) mod interface_management;
@@ -83,13 +84,12 @@ pub fn run_ruwi() -> Result<(), ErrBox> {
 pub fn get_selected_network(options: &Options) -> Result<AnnotatedWirelessNetwork, ErrBox> {
     if let Some(essid) = &options.given_essid {
         // TODO: make sure known: true is the right option here, or if more control flow is needed
+        // TODO: come up with a better way to create a simple network from just an essid/passwd
         Ok(AnnotatedWirelessNetwork {
             essid: essid.clone(),
             known: true,
             is_encrypted: options.given_password.is_some(),
-            bssid: None,
-            signal_strength: None,
-            channel_utilisation: None,
+            ..Default::default()
         })
     } else {
         let todo = ""; // TODO: if no known networks are seen in auto mode, re-run all the data gathering in synchronous mode
@@ -100,7 +100,7 @@ pub fn get_selected_network(options: &Options) -> Result<AnnotatedWirelessNetwor
         let parse_results = parse_result(options, &scan_result)?;
         let annotated_networks =
             annotate_networks(options, &parse_results.seen_networks, &known_network_names);
-        let sorted_networks = sort_available_networks(options, annotated_networks);
+        let sorted_networks = sort_and_filter_networks(options, annotated_networks);
         let selected_network = select_network(options, &sorted_networks)?;
         Ok(selected_network)
     }

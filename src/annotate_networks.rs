@@ -11,12 +11,11 @@ pub(crate) fn annotate_networks(
 ) -> AnnotatedNetworks {
     let networks = networks
         .iter()
-        .map(|network| {
-            let mut nw = AnnotatedWirelessNetwork::from(network.clone());
-            if known_network_names.contains(&network.essid) {
-                nw.set_known();
-            }
-            nw
+        .map(|nw| {
+            AnnotatedWirelessNetwork::create_from(
+                nw.clone(),
+                known_network_names.contains(&nw.essid),
+            )
         })
         .collect();
     //    let networks = networks
