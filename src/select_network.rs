@@ -33,13 +33,6 @@ fn prompt_user_for_selection(
     options: &Options,
     networks: &SortedUniqueNetworks,
 ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
-    // TODO: first, filter SortedUniqueNetworks for uniquely-named strongest networks
-    // then, for i in 0..networks.len()
-    // print i) networks[i]
-    // select
-    // look for networks[line.split(") ")[0]]
-    // throw if none
-    //
     let selection_tokens = networks.get_tokens_for_selection();
     let selected_network_line = match &options.selection_method {
         SelectionMethod::Dmenu => {
@@ -49,29 +42,33 @@ fn prompt_user_for_selection(
             run_fzf(&options, &"Select a network:".to_string(), selection_tokens)
         }
     }?;
-    // TODO: implement "add index before display, remove after" here
-    //  - then, you can get as complex (or not) as you want with the metadata display
-    //  and it doesn't matter at all
-    //
-    //
-    let line_parse_failure_lambda =
-        || errbox!(format!("Failed to parse line: {}", selected_network_line));
-    let selected_network_index = selected_network_line
-        .split(") ")
+
+    let index = get_index_of_selected_item(&selected_network_line)?;
+
+    networks
+        .networks
+        .iter()
+        .nth(index)
+        .map(|x| x.clone())
+        .ok_or_else(|| {
+            errbox!(format!(
+                "No network matching {} found.",
+                selected_network_line
+            ))
+        })
+}
+
+// TODO: unit test this function
+fn get_index_of_selected_item(line: &str) -> Result<usize, ErrBox> {
+    line.split(") ")
         .next()
-        .ok_or_else(line_parse_failure_lambda)?
+        .ok_or_else(|| get_line_parse_err(line))?
         .parse::<usize>()
-        .or_else(|_| Err(line_parse_failure_lambda()))?;
+        .or_else(|_| Err(get_line_parse_err(line)))
+}
 
-    let maybe_selected_network = networks.networks.iter().nth(selected_network_index);
-
-    match maybe_selected_network {
-        Some(nw) => Ok(nw.clone()),
-        None => Err(errbox!(format!(
-            "No network matching {} found.",
-            selected_network_line
-        ))),
-    }
+fn get_line_parse_err(line: &str) -> ErrBox {
+    errbox!(format!("Failed to parse line {}", line))
 }
 
 #[cfg(test)]
@@ -351,33 +348,24 @@ mod tests {
     }
 
     #[test]
-    fn test_unique_nw_name_sort() {
-        let networks = vec![
-            AnnotatedWirelessNetwork {
-                essid: "DOOK".to_string(),
-                signal_strength: Some(-5),
-                ..Default::default()
-            },
-            AnnotatedWirelessNetwork {
-                essid: "BOYS".to_string(),
-                signal_strength: Some(-47),
-                ..Default::default()
-            },
-            AnnotatedWirelessNetwork {
-                essid: "DOOK".to_string(),
-                signal_strength: Some(-49),
-                ..Default::default()
-            },
-            AnnotatedWirelessNetwork {
-                essid: "YES".to_string(),
-                signal_strength: Some(-89),
-                ..Default::default()
-            },
+    fn test_get_indices() -> Result<(), ErrBox> {
+        let test_cases: Vec<(Result<usize, ErrBox>, &str)> = vec![
+            (Ok(1), "1) jfdlskajfdlksa"),
+            (Ok(0), "0) jfdlskajfdlksa"),
+            (Ok(22), "22) jfdlskajfdlksa"),
+            (Ok(69), "69) 54) jfdlskajfdlksa"),
+            (Ok(4000), "4000) jfdlskajfdlksa"),
+            (Ok(4000000000), "4000000000) jfdlskajfdlksa"),
+            (Err(get_line_parse_err("-12) negawifi")), "-12) negawifi"),
+            (Err(get_line_parse_err("jf jfjf")), "jf jfjf"),
         ];
-        //let unique_network_names = get_names_and_markers_for_selection(&networks);
-        let expected_names = vec!["DOOK".to_string(), "BOYS".to_string(), "YES".to_string()];
 
-        //assert_eq![unique_network_names, expected_names];
-        assert!(false);
+        for (res, line) in test_cases {
+            match get_index_of_selected_item(line) {
+                Ok(val) => assert_eq![res?, val],
+                Err(err) => assert_eq![res.err().unwrap().description(), err.description()],
+            }
+        }
+        Ok(())
     }
 }

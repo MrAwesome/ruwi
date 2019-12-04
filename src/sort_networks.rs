@@ -120,4 +120,41 @@ mod tests {
 
         compare_order(not_known, known);
     }
+
+    #[test]
+    fn test_unique_nw_name_sort() {
+        let networks = vec![
+            AnnotatedWirelessNetwork {
+                essid: "DOOK".to_string(),
+                signal_strength: Some(-5),
+                ..Default::default()
+            },
+            AnnotatedWirelessNetwork {
+                essid: "BOYS".to_string(),
+                signal_strength: Some(-47),
+                ..Default::default()
+            },
+            AnnotatedWirelessNetwork {
+                essid: "DOOK".to_string(),
+                signal_strength: Some(-49),
+                ..Default::default()
+            },
+            AnnotatedWirelessNetwork {
+                essid: "YES".to_string(),
+                signal_strength: Some(-89),
+                ..Default::default()
+            },
+        ];
+
+        let expected_networks = vec![
+            networks[0].clone(),
+            networks[1].clone(),
+            networks[3].clone(),
+        ];
+
+        let sorted_unique_networks =
+            sort_and_filter_networks(&Options::default(), AnnotatedNetworks { networks });
+
+        assert_eq![expected_networks, sorted_unique_networks.networks];
+    }
 }
