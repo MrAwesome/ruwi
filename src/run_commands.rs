@@ -1,6 +1,5 @@
 use crate::errbox;
 use crate::structs::*;
-use std::io;
 use std::io::Write;
 use std::process::{Command, Output, Stdio};
 
@@ -75,7 +74,7 @@ pub(crate) fn run_prompt_cmd(
     let stdin = child
         .stdin
         .as_mut()
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "Stdin to prompt failed"))?;
+        .ok_or_else(|| errbox!("Stdin to prompt failed"))?;
     stdin.write_all(input_text.as_bytes())?;
 
     let output = child.wait_with_output()?;

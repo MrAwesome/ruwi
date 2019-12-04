@@ -1,3 +1,4 @@
+use crate::errbox;
 use crate::structs::*;
 use std::collections::HashSet;
 use std::fs::{read_dir, DirEntry, File};
@@ -7,7 +8,7 @@ use std::path::Path;
 use unescape::unescape;
 
 // TODO: parse escape chars in essid
-pub(crate) fn find_known_network_names(options: Options) -> io::Result<KnownNames> {
+pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNames, ErrBox> {
     let known_network_names = if options.output_type == OutputType::NetctlConfig
         || options.connect_via == ConnectionType::Netctl
     {
@@ -20,7 +21,7 @@ pub(crate) fn find_known_network_names(options: Options) -> io::Result<KnownName
         dbg![&known_network_names];
     }
 
-    known_network_names
+    known_network_names.map_err(|e| errbox!(e.description()))
 }
 
 fn find_known_netctl_networks() -> io::Result<KnownNames> {

@@ -18,8 +18,8 @@ fn bring_interface(options: &Options, interface_state: InterfaceState) -> Result
         "ifconfig",
         &[if_name, &if_state],
         &format!(
-            "Failed to bring interface {} {} with `ifconfig {} {}`.",
-            if_name, if_state, if_name, if_state
+            "Failed to bring interface {} {} with `ifconfig {} {}`. Try running {} with `sudo`.",
+            if_name, if_state, if_name, if_state, PROG_NAME
         ),
     )?;
 

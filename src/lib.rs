@@ -92,18 +92,58 @@ pub fn get_selected_network(options: &Options) -> Result<AnnotatedWirelessNetwor
             ..Default::default()
         })
     } else {
-        let todo = ""; // TODO: if no known networks are seen in auto mode, re-run all the data gathering in synchronous mode
-                       // TODO: possibly just rerun everything in synchronous mode if any problems are encountered?
-
-        let (known_network_names, scan_result) = gather_data(options)?;
-
-        let parse_results = parse_result(options, &scan_result)?;
-        let annotated_networks =
-            annotate_networks(options, &parse_results.seen_networks, &known_network_names);
+        let annotated_networks = scan_parse_and_annotate_networks_with_retry(options)?;
         let sorted_networks = sort_and_filter_networks(options, annotated_networks);
         let selected_network = select_network(options, &sorted_networks)?;
         Ok(selected_network)
     }
+}
+
+// In automatic mode, we want to make a strong attempt to prioritize known networks.
+// Cached results are often out of date, so if no known networks are seen, trust our
+// user that they should be, and re-run the scan in synchronous mode.
+// This logic lives so high in the stack because known status isn't available
+// until we've found the known network names and used them to annotate the seen networks.
+fn scan_parse_and_annotate_networks_with_retry(
+    options: &Options,
+) -> Result<AnnotatedNetworks, ErrBox> {
+    let annotated_networks_first_attempt = scan_parse_and_annotate_networks(options)?;
+
+    // TODO: move "scan trigger" logic to here, since the background scan will interfere with
+    //       the synchronous scan and slow things down. Is there a command to wait for a triggered
+    //       background scan to finish? Check the iw man page.
+    //       `iw scan abort` seems reasonable.
+    // TODO: possibly just rerun everything in synchronous mode if any problems are encountered?
+    if (options.auto_mode == AutoMode::Auto || options.auto_mode == AutoMode::AutoNoAsk)
+        && !annotated_networks_first_attempt
+            .networks
+            .iter()
+            .any(|x| x.known)
+    {
+        // TODO: make flag for this. --fast-auto?
+        eprintln!(
+            "[NOTE]: No known networks seen in auto mode using cached scan results.
+            Manually scanning now. Disable this behavior with --FLAGINEEDTOMAKE"
+        );
+        let synchronous_retry_options = Options {
+            force_synchronous_scan: true,
+            ..options.clone()
+        };
+        scan_parse_and_annotate_networks(&synchronous_retry_options)
+    } else {
+        Ok(annotated_networks_first_attempt)
+    }
+}
+
+fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetworks, ErrBox> {
+    let (known_network_names, scan_result) = gather_data(options)?;
+
+    let parse_results = parse_result(options, &scan_result)?;
+    Ok(annotate_networks(
+        options,
+        &parse_results.seen_networks,
+        &known_network_names,
+    ))
 }
 
 fn gather_data(options: &Options) -> Result<(KnownNames, ScanResult), ErrBox> {
