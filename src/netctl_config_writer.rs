@@ -14,7 +14,11 @@ pub(crate) fn netctl_config_write(
 
     let fullpath = netctl_location + &netctl_file_name;
 
-    File::create(fullpath)?.write_all(contents.as_bytes())?;
+    File::create(&fullpath)?.write_all(contents.as_bytes())?;
+
+    eprintln!("[NOTE]: Wrote netctl config: {}", &fullpath);
+    eprintln!("[NOTE]: If you encounter problems with your connection, try editing that file directly and/or running `netctl switch-to {}` as root.", netctl_file_name);
+
     Ok(OutputResult {
         output_type: OutputType::NetctlConfig,
         output_output: None,
