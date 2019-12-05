@@ -168,7 +168,7 @@ pub struct AnnotatedWirelessNetwork {
 }
 
 impl AnnotatedWirelessNetwork {
-    pub fn create_from(nw: WirelessNetwork, is_known: bool) -> Self {
+    pub fn from_nw(nw: WirelessNetwork, is_known: bool) -> Self {
         let essid = nw.essid;
         let is_encrypted = nw.is_encrypted;
         let bssid = nw.bssid;
@@ -183,12 +183,21 @@ impl AnnotatedWirelessNetwork {
             known: is_known,
         }
     }
+
+    pub fn from_essid(essid: String, is_known: bool, is_encrypted: bool) -> Self {
+        AnnotatedWirelessNetwork {
+            essid,
+            is_encrypted,
+            known: is_known,
+            ..Default::default()
+        }
+    }
 }
 
 impl Default for AnnotatedWirelessNetwork {
     fn default() -> Self {
         let nw = WirelessNetwork::default();
-        AnnotatedWirelessNetwork::create_from(nw, false)
+        AnnotatedWirelessNetwork::from_nw(nw, false)
     }
 }
 

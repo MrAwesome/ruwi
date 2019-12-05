@@ -35,9 +35,11 @@ fn prompt_user_for_selection(
 ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
     let selection_tokens = networks.get_tokens_for_selection();
     let selected_network_line = match &options.selection_method {
-        SelectionMethod::Dmenu => {
-            run_dmenu(&options, &"Select a network:".to_string(), selection_tokens)
-        }
+        SelectionMethod::Dmenu => run_dmenu(
+            &options,
+            &"Select a network: ".to_string(),
+            selection_tokens,
+        ),
         SelectionMethod::Fzf => {
             run_fzf(&options, &"Select a network:".to_string(), selection_tokens)
         }
@@ -58,7 +60,6 @@ fn prompt_user_for_selection(
         })
 }
 
-// TODO: unit test this function
 fn get_index_of_selected_item(line: &str) -> Result<usize, ErrBox> {
     line.split(") ")
         .next()
@@ -349,23 +350,41 @@ mod tests {
 
     #[test]
     fn test_get_indices() -> Result<(), ErrBox> {
-        let test_cases: Vec<(Result<usize, ErrBox>, &str)> = vec![
-            (Ok(1), "1) jfdlskajfdlksa"),
-            (Ok(0), "0) jfdlskajfdlksa"),
-            (Ok(22), "22) jfdlskajfdlksa"),
-            (Ok(69), "69) 54) jfdlskajfdlksa"),
-            (Ok(4000), "4000) jfdlskajfdlksa"),
-            (Ok(4000000000), "4000000000) jfdlskajfdlksa"),
-            (Err(get_line_parse_err("-12) negawifi")), "-12) negawifi"),
-            (Err(get_line_parse_err("jf jfjf")), "jf jfjf"),
+        let test_cases: Vec<(&str, Result<usize, ErrBox>)> = vec![
+            ("1) jfdlskajfdlksa", Ok(1)),
+            ("0) jfdlskajfdlksa", Ok(0)),
+            ("22) jfdlskajfdlksa", Ok(22)),
+            ("69) 54) jfdlskajfdlksa", Ok(69)),
+            ("4000) jfdlskajfdlksa", Ok(4000)),
+            ("4000000000) jfdlskajfdlksa", Ok(4000000000)),
+            ("-12) negawifi", Err(get_line_parse_err("-12) negawifi"))),
+            ("jf jfjf", Err(get_line_parse_err("jf jfjf"))),
+            ("!@&*(#@!", Err(get_line_parse_err("!@&*(#@!"))),
         ];
 
-        for (res, line) in test_cases {
+        for (line, res) in test_cases {
             match get_index_of_selected_item(line) {
                 Ok(val) => assert_eq![res?, val],
                 Err(err) => assert_eq![res.err().unwrap().description(), err.description()],
             }
         }
         Ok(())
+    }
+
+    #[test]
+    fn test_get_tokens_for_selection() {
+        let networks = SortedUniqueNetworks {
+            networks: vec![
+                AnnotatedWirelessNetwork::from_essid("FAKE NEWS LOL OK".to_string(), true, true),
+                AnnotatedWirelessNetwork::from_essid("WOWWW OK FACEBO".to_string(), false, true),
+                AnnotatedWirelessNetwork::from_essid("LOOK, DISCOURSE".to_string(), true, false),
+                AnnotatedWirelessNetwork::from_essid("UWU MAMMMAAAAA".to_string(), false, false),
+            ],
+        };
+        let tokens = networks.get_tokens_for_selection();
+        for i in 0..networks.networks.len() {
+            let expected_token = format!("{}) {}", i, &networks.networks[i].get_display_string());
+            assert_eq![expected_token, tokens[i]];
+        }
     }
 }

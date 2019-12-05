@@ -57,7 +57,8 @@ use structs::*;
 // TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
 // TODO(wishlist): find a generalized way to do x notifications, for dmenu mode, use to surface failures
 // TODO(wishlist): determine whether to use dmenu/fzf/etc based on terminal/X
-// TODO(wishlist): allow for using only iw to connect? would encryption keys need to be stored anywhere?
+// TODO(wishlist): connection/scan type: wicd-cli
+// TODO(wishlist): connection/scan type: iw raw (would need to store encryption keys, and at that point ruwi is a connection manager)
 // TODO(later): make sure fzf and dmenu are listed as dependencies
 // TODO(think): instead of functions which take options, make a big struct/impl? maybe more than one?
 // TODO(think): add a -w/--wait or --verify or something to attempt to connect to google/etc?
@@ -84,13 +85,16 @@ pub fn run_ruwi() -> Result<(), ErrBox> {
 pub fn get_selected_network(options: &Options) -> Result<AnnotatedWirelessNetwork, ErrBox> {
     if let Some(essid) = &options.given_essid {
         // TODO: make sure known: true is the right option here, or if more control flow is needed
-        // TODO: come up with a better way to create a simple network from just an essid/passwd
-        Ok(AnnotatedWirelessNetwork {
-            essid: essid.clone(),
-            known: true,
-            is_encrypted: options.given_password.is_some(),
-            ..Default::default()
-        })
+        //       known: true might create issues with creating netctl configs - walk through it on
+        //       paper to find out
+        //  TODO: decide if this functionality is worth supporting.
+        let is_known = true; // ????
+        let is_encrypted = options.given_password.is_some();
+        Ok(AnnotatedWirelessNetwork::from_essid(
+            essid.clone(),
+            is_known,
+            is_encrypted,
+        ))
     } else {
         let annotated_networks = scan_parse_and_annotate_networks_with_retry(options)?;
         let sorted_networks = sort_and_filter_networks(options, annotated_networks);
@@ -123,7 +127,7 @@ fn scan_parse_and_annotate_networks_with_retry(
         // TODO: make flag for this. --fast-auto?
         eprintln!(
             "[NOTE]: No known networks seen in auto mode using cached scan results.
-            Manually scanning now. Disable this behavior with --FLAGINEEDTOMAKE"
+            Manually scanning now. " // TODO: Disable this behavior with --FLAGINEEDTOMAKE"
         );
         let synchronous_retry_options = Options {
             force_synchronous_scan: true,

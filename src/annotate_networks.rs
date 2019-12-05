@@ -12,10 +12,8 @@ pub(crate) fn annotate_networks(
     let networks = networks
         .iter()
         .map(|nw| {
-            AnnotatedWirelessNetwork::create_from(
-                nw.clone(),
-                known_network_names.contains(&nw.essid),
-            )
+            let is_known = known_network_names.contains(&nw.essid);
+            AnnotatedWirelessNetwork::from_nw(nw.clone(), is_known)
         })
         .collect();
     //    let networks = networks
