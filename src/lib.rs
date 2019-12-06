@@ -50,6 +50,7 @@ use structs::*;
 // TODO(high): if networkmanager is used, start it up before going - same with netctl. possibly also stop
 // TODO(think): come up with subcommands which only run specified pieces, or at least decide on the functionality this command should have
 // TODO(mid): add colors to output / use a real logging library
+// TODO(mid): go back to using enums for errors, with a mapping to error message to print (enums are MUCH faster than boxing errors)
 // TODO(mid): if no networks are seen by `iw dump`, go ahead and just run scan? may need to dump before trigger then
 // the other, to prevent cross-contamination
 // TODO(mid): figure out if networkmanager connection add with wifi password works - looks like not, just fail if output networkmanager is chosen without connection (or combine output and connection as a single concept, and have "print" as one)

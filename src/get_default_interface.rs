@@ -1,4 +1,5 @@
 use crate::errbox;
+#[cfg(not(test))]
 use crate::run_commands::*;
 use crate::structs::ErrBox;
 
@@ -14,18 +15,26 @@ pub(crate) fn get_default_interface(debug: bool) -> Result<String, ErrBox> {
 }
 
 fn get_interface_with_iw(debug: bool) -> Result<String, ErrBox> {
-    let iw_dev_output = run_command_output(debug, "iw", &["dev"]);
-
-    if let Ok(output) = iw_dev_output {
-        if output.status.success() {
-            return get_interface_from_iw_output(&String::from_utf8_lossy(&output.stdout));
-        }
+    #[cfg(test)]
+    {
+        let _ = debug;
+        return Ok("REALLY_FAKE_INTERFACE".to_string());
     }
 
-    Err(errbox!(concat!(
-        "Failed to determine interface name with iw. Is it installed?\n",
-        "Check the output of `iw dev`, or provide an interface manually with -i.",
-    )))
+    #[cfg(not(test))]
+    {
+        let iw_dev_output = run_command_pass_stdout(
+            debug,
+            "iw",
+            &["dev"],
+            concat!(
+                "Failed to determine interface name with iw. Is it installed?\n",
+                "Check the output of `iw dev`, or provide an interface manually with -i.",
+            ),
+        )?;
+
+        return get_interface_from_iw_output(&iw_dev_output);
+    }
 }
 
 fn get_interface_from_iw_output(iw_output: &str) -> Result<String, ErrBox> {
