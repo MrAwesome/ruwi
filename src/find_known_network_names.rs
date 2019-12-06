@@ -4,17 +4,28 @@ use std::collections::HashSet;
 use std::fs::{read_dir, DirEntry, File};
 use std::io;
 use std::io::prelude::*;
+use std::ops::Deref;
 use std::path::Path;
 use unescape::unescape;
 
+#[derive(Debug)]
+pub struct KnownNetworks(HashSet<String>);
+
+impl Deref for KnownNetworks {
+    type Target = HashSet<String>;
+    fn deref(&self) -> &HashSet<String> {
+        &self.0
+    }
+}
+
 // TODO: parse escape chars in essid
-pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNames, ErrBox> {
+pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworks, ErrBox> {
     let known_network_names = if options.output_type == OutputType::NetctlConfig
         || options.connect_via == ConnectionType::Netctl
     {
         find_known_netctl_networks()
     } else {
-        Ok(HashSet::new())
+        Ok(KnownNetworks(HashSet::new()))
     };
 
     if options.debug {
@@ -24,7 +35,7 @@ pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNames, E
     known_network_names.map_err(|e| errbox!(e.description()))
 }
 
-fn find_known_netctl_networks() -> io::Result<KnownNames> {
+fn find_known_netctl_networks() -> io::Result<KnownNetworks> {
     let netctl_path = Path::new("/etc/netctl");
     if netctl_path.is_dir() {
         // TODO: use tokio/etc to asynchronously read from these files
@@ -33,11 +44,11 @@ fn find_known_netctl_networks() -> io::Result<KnownNames> {
             .filter_map(|x| x)
             // TODO: unit test that unescape happens
             .map(|x| unescape(&x).unwrap_or(x))
-            .collect::<KnownNames>();
+            .collect::<HashSet<String>>();
 
-        Ok(known_essids)
+        Ok(KnownNetworks(known_essids))
     } else {
-        Ok(HashSet::new())
+        Ok(KnownNetworks(HashSet::new()))
     }
 }
 

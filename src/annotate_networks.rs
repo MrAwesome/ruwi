@@ -16,13 +16,6 @@ pub(crate) fn annotate_networks(
             AnnotatedWirelessNetwork::from_nw(nw.clone(), is_known)
         })
         .collect();
-    //    let networks = networks
-    //        .iter()
-    //        .map(|nw| AnnotatedWirelessNetwork {
-    //            known: known_network_names.contains(&nw.essid),
-    //            ..nw.clone()
-    //        })
-    //        .collect();
 
     if options.debug {
         dbg![&networks];

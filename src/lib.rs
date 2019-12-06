@@ -144,7 +144,7 @@ fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetwor
     Ok(annotated_networks)
 }
 
-fn gather_data(options: &Options) -> Result<(KnownNames, ScanResult), ErrBox> {
+fn gather_data(options: &Options) -> Result<(KnownNetworks, ScanResult), ErrBox> {
     let (opt1, opt2) = (options.clone(), options.clone());
     let get_nw_names = thread::spawn(|| find_known_network_names(opt1));
     let get_scan_results = thread::spawn(|| wifi_scan(opt2));
