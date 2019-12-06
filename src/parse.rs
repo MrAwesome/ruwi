@@ -133,7 +133,6 @@ fn get_iw_bss_regex() -> Regex {
 }
 
 // TODO: put the actual command run here
-// TODO: if dump, suggest scan
 fn err_iw_malformed_output(options: &Options) -> ErrBox {
     errbox!(format!(
         "Malformed output returned by `sudo iw {} scan dump`. Try running it manually.",

@@ -17,8 +17,8 @@ pub(crate) fn get_default_interface(debug: bool) -> Result<String, ErrBox> {
 fn get_interface_with_iw(debug: bool) -> Result<String, ErrBox> {
     #[cfg(test)]
     {
-        let _ = debug;
-        return Ok("REALLY_FAKE_INTERFACE".to_string());
+        dbg!(&debug);
+        return Ok("FAKE_INTERFACE".to_string());
     }
 
     #[cfg(not(test))]

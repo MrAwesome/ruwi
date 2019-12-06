@@ -9,7 +9,7 @@ use std::thread;
 use std::time::Duration;
 
 const ALLOWED_SYNCHRONOUS_RETRIES: u64 = 5;
-const SYNCHRONOUS_RETRY_DELAY_SECS: u64 = 1;
+const SYNCHRONOUS_RETRY_DELAY_SECS: f64 = 0.3;
 
 // TODO: make function, include exact command being run
 const IW_SCAN_DUMP_ERR_MSG: &str = concat!(
@@ -93,12 +93,13 @@ fn run_iw_scan(options: &Options) -> Result<ScanResult, ErrBox> {
 
 fn run_iw_scan_synchronous(options: &Options) -> Result<String, ErrBox> {
     let mut retries = ALLOWED_SYNCHRONOUS_RETRIES;
+    abort_ongoing_iw_scan(options).ok();
     loop {
         let synchronous_run_output = run_iw_scan_synchronous_cmd(options)?;
         if synchronous_run_output.status.code() == Some(DEVICE_OR_RESOURCE_BUSY_EXIT_CODE) {
             retries -= 1;
             if retries > 0 {
-                thread::sleep(Duration::from_secs(SYNCHRONOUS_RETRY_DELAY_SECS));
+                thread::sleep(Duration::from_secs_f64(SYNCHRONOUS_RETRY_DELAY_SECS));
                 continue;
             } else {
                 return Err(errbox!(IW_SCAN_SYNC_ERR_MSG));
@@ -124,12 +125,21 @@ fn run_iw_scan_dump(options: &Options) -> Result<String, ErrBox> {
     )
 }
 
-// Initiate a rescan. This command should return instantaneously.
 fn run_iw_scan_trigger(options: &Options) -> Result<String, ErrBox> {
+    // Initiate a rescan. This command should return instantaneously.
     run_command_pass_stdout(
         options.debug,
         "iw",
         &[&options.interface, "scan", "trigger"],
         "Triggering scan with iw failed. This should be ignored.",
+    )
+}
+
+fn abort_ongoing_iw_scan(options: &Options) -> Result<String, ErrBox> {
+    run_command_pass_stdout(
+        options.debug,
+        "iw",
+        &[&options.interface, "scan", "abort"],
+        "Aborting iw scan iw failed. This should be ignored.",
     )
 }

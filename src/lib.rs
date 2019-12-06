@@ -125,11 +125,7 @@ fn scan_parse_and_annotate_networks_with_retry(
             .iter()
             .any(|x| x.known)
     {
-        // TODO: make flag for this. --fast-auto?
-        eprintln!(
-            "[NOTE]: No known networks seen in auto mode using cached scan results.
-            Manually scanning now. " // TODO: Disable this behavior with --FLAGINEEDTOMAKE"
-        );
+        eprintln!("[NOTE]: No known networks seen in auto mode using cached scan results. Manually scanning now. ");
         let synchronous_retry_options = Options {
             force_synchronous_scan: true,
             ..options.clone()
@@ -142,13 +138,10 @@ fn scan_parse_and_annotate_networks_with_retry(
 
 fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetworks, ErrBox> {
     let (known_network_names, scan_result) = gather_data(options)?;
-
     let parse_results = parse_result(options, &scan_result)?;
-    Ok(annotate_networks(
-        options,
-        &parse_results.seen_networks,
-        &known_network_names,
-    ))
+    let annotated_networks =
+        annotate_networks(options, &parse_results.seen_networks, &known_network_names);
+    Ok(annotated_networks)
 }
 
 fn gather_data(options: &Options) -> Result<(KnownNames, ScanResult), ErrBox> {
@@ -169,4 +162,9 @@ fn gather_data(options: &Options) -> Result<(KnownNames, ScanResult), ErrBox> {
 #[cfg(test)]
 mod tests {
     // use super::*;
+
+    // #[test]
+    // fn test_run_ruwi() -> Result<(), ErrBox> {
+    //     run_ruwi()
+    // }
 }
