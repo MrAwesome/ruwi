@@ -114,26 +114,25 @@ fn scan_parse_and_annotate_networks_with_retry(
 ) -> Result<AnnotatedNetworks, ErrBox> {
     let annotated_networks_first_attempt = scan_parse_and_annotate_networks(options)?;
 
-    // TODO: move "scan trigger" logic to here, since the background scan will interfere with
-    //       the synchronous scan and slow things down. Is there a command to wait for a triggered
-    //       background scan to finish? Check the iw man page.
-    //       `iw scan abort` seems reasonable.
-    // TODO: possibly just rerun everything in synchronous mode if any problems are encountered?
-    if (options.auto_mode == AutoMode::Auto || options.auto_mode == AutoMode::AutoNoAsk)
-        && !annotated_networks_first_attempt
-            .networks
-            .iter()
-            .any(|x| x.known)
-    {
+    if should_retry_with_synchronous_scan(options, &annotated_networks_first_attempt) {
         eprintln!("[NOTE]: No known networks seen in auto mode using cached scan results. Manually scanning now. ");
-        let synchronous_retry_options = Options {
-            force_synchronous_scan: true,
-            ..options.clone()
-        };
-        scan_parse_and_annotate_networks(&synchronous_retry_options)
+        scan_parse_and_annotate_networks(&options.with_synchronous_scan())
     } else {
         Ok(annotated_networks_first_attempt)
     }
+}
+
+fn should_retry_with_synchronous_scan(
+    opts: &Options,
+    annotated_networks: &AnnotatedNetworks,
+) -> bool {
+    // TODO: possibly just rerun everything in synchronous mode if any problems are encountered?
+    let is_an_auto_mode = opts.auto_mode == AutoMode::Auto || opts.auto_mode == AutoMode::AutoNoAsk;
+    let known_network_found = annotated_networks.networks.iter().any(|x| x.known);
+    let no_known_networks_found_in_auto_modes = is_an_auto_mode && !known_network_found;
+
+    let conditions = vec![no_known_networks_found_in_auto_modes];
+    conditions.iter().any(|&x| x)
 }
 
 fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetworks, ErrBox> {
@@ -149,20 +148,20 @@ fn gather_data(options: &Options) -> Result<(KnownNetworks, ScanResult), ErrBox>
     let get_nw_names = thread::spawn(|| find_known_network_names(opt1));
     let get_scan_results = thread::spawn(|| wifi_scan(opt2));
 
-    let known_network_names = get_nw_names.join().or_else(|_| {
-        Err(errbox!(
-            RuwiErrorKind::FailedToSpawnThread,
-            "Failed to spawn thread."
-        ))
-    })??;
-    let scan_result = get_scan_results.join().or_else(|_| {
-        Err(errbox!(
-            RuwiErrorKind::FailedToSpawnThread,
-            "Failed to spawn thread."
-        ))
-    })??;
+    let known_network_names = await_thread(get_nw_names)??;
+    let scan_result = await_thread(get_scan_results)??;
 
     Ok((known_network_names, scan_result))
+}
+
+#[inline]
+fn await_thread<T>(handle: thread::JoinHandle<T>) -> Result<T, RuwiError> {
+    handle.join().or_else(|_| {
+        Err(errbox!(
+            RuwiErrorKind::FailedToSpawnThread,
+            "Failed to spawn thread."
+        ))
+    })
 }
 
 #[cfg(test)]

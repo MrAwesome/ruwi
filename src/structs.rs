@@ -164,6 +164,15 @@ impl Default for Options {
     }
 }
 
+impl Options {
+    pub fn with_synchronous_scan(&self) -> Self {
+        Options {
+            force_synchronous_scan: true,
+            ..self.clone()
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ScanResult {
     pub scan_type: ScanType,
