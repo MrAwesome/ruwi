@@ -4,7 +4,6 @@ pub static OPEN_TOKEN: &str = "O";
 
 impl AnnotatedWirelessNetwork {
     pub fn get_display_string(&self) -> String {
-        // TODO: change unit tests
         let tags = self.get_tags_string();
         let strength = self.get_strenth_string();
         format!("{}{}{}", strength, self.essid, tags)
