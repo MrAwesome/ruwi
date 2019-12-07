@@ -6,6 +6,8 @@
 // #![deny(clippy::all)]
 
 extern crate clap;
+extern crate fern;
+extern crate log;
 extern crate regex;
 extern crate strum;
 extern crate strum_macros;
@@ -77,10 +79,6 @@ pub fn run_ruwi() -> Result<(), ErrBox> {
 
     let _connection_result = connect_to_network(options, &selected_network)?;
     Ok(())
-    //    Ok(RuwiResult {
-    //        output_result,
-    //        connection_result,
-    //    })
 }
 
 pub fn get_selected_network(options: &Options) -> Result<AnnotatedWirelessNetwork, ErrBox> {

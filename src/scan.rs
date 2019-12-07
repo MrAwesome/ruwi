@@ -8,7 +8,7 @@ use std::process::Output;
 use std::thread;
 use std::time::Duration;
 
-static ALLOWED_SYNCHRONOUS_RETRIES: u64 = 5;
+static ALLOWED_SYNCHRONOUS_RETRIES: u64 = 10;
 static SYNCHRONOUS_RETRY_DELAY_SECS: f64 = 0.3;
 
 // TODO: make function, include exact command being run
@@ -65,7 +65,7 @@ fn run_wpa_cli_scan(options: &Options) -> Result<ScanResult, ErrBox> {
     })
 }
 
-// TODO: this all badly needs unit tests
+// TODO: unit test
 fn run_iw_scan(options: &Options) -> Result<ScanResult, ErrBox> {
     bring_interface_up(options)?;
     let scan_output = if options.force_synchronous_scan {
@@ -86,6 +86,7 @@ fn run_iw_scan(options: &Options) -> Result<ScanResult, ErrBox> {
     })
 }
 
+// TODO: unit test
 fn run_iw_scan_synchronous(options: &Options) -> Result<String, ErrBox> {
     let mut retries = ALLOWED_SYNCHRONOUS_RETRIES;
     abort_ongoing_iw_scan(options).ok();
@@ -143,4 +144,18 @@ fn abort_ongoing_iw_scan(options: &Options) -> Result<String, ErrBox> {
         &[&options.interface, "scan", "abort"],
         "Aborting iw scan iw failed. This should be ignored.",
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_enough_time_to_retry() {
+        let expected_min_time_needed_to_abort_scan = 2.0;
+        assert![
+            ALLOWED_SYNCHRONOUS_RETRIES as f64 * SYNCHRONOUS_RETRY_DELAY_SECS
+                > expected_min_time_needed_to_abort_scan
+        ];
+    }
 }
