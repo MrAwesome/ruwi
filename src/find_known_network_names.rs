@@ -1,6 +1,7 @@
 use crate::errbox;
 use crate::structs::*;
 use std::collections::HashSet;
+use std::error::Error;
 use std::fs::{read_dir, DirEntry, File};
 use std::io;
 use std::io::prelude::*;
@@ -32,7 +33,8 @@ pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworks
         dbg![&known_network_names];
     }
 
-    known_network_names.map_err(|e| errbox!(e.description()))
+    known_network_names
+        .map_err(|e| errbox!(RuwiErrorKind::KnownNetworksFetchError, e.description()))
 }
 
 fn find_known_netctl_networks() -> io::Result<KnownNetworks> {

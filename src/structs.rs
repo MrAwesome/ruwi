@@ -1,11 +1,64 @@
 use crate::errbox;
 use std::error::Error;
+use std::fmt;
 use std::fmt::Debug;
 use std::process::Output;
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
 pub const PROG_NAME: &str = "ruwi";
-pub(crate) type ErrBox = Box<dyn Error + Send + Sync>;
+
+// TODO
+const TODO: &str = "Change this to ruwierror everywhere";
+pub(crate) type ErrBox = RuwiError;
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum RuwiErrorKind {
+    TestCmdLineOptParserSafeFailed,
+    FailedToWriteNetctlConfig,
+    NotImplementedError,
+    FailedToSpawnThread,
+    FailedToConnectWithWpaCli,
+    CommandFailed,
+    FailedToGetCachedResultsWithWPACli,
+    FailedToParseSelectedLine,
+    IWSynchronousScanFailed,
+    IWSynchronousScanRanOutOfRetries,
+    KnownNetworksFetchError,
+    MalformedIWOutput,
+    NoKnownNetworksFound,
+    NoNetworksFoundMatchingSelectionResult,
+    NoNetworksFoundWithIW,
+    NoNetworksSeenWithIWScanDump,
+    NoNetworksSeenWithWPACliScanResults,
+    PromptCommandFailed,
+    PromptCommandSpawnFailed,
+    SingleLinePromptFailed,
+    TestDeliberatelyFailedToFindNetworks,
+    TestNoNetworksFoundWhenLookingForFirst,
+    TestNoNetworksFoundWhenLookingForLast,
+    TestUsedAutoNoAskWhenNotExpected,
+    TestUsedAutoWhenNotExpected,
+    TestUsedManualWhenNotExpected,
+    WPACliHeaderMalformedOrMissing,
+}
+
+#[derive(Debug)]
+pub struct RuwiError {
+    pub kind: RuwiErrorKind,
+    pub desc: String,
+}
+
+impl Error for RuwiError {
+    fn description(&self) -> &str {
+        self.desc.as_ref()
+    }
+}
+
+impl fmt::Display for RuwiError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&self.description(), f)
+    }
+}
 
 #[strum(serialize_all = "snake_case")]
 #[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
@@ -238,5 +291,8 @@ pub struct RuwiResult {
 }
 
 pub(crate) fn nie<T: Debug>(prog: T) -> ErrBox {
-    errbox!(format!("Not implemented: {:?}", prog))
+    errbox!(
+        RuwiErrorKind::NotImplementedError,
+        format!("Functionality not implemented: {:?}", prog)
+    )
 }

@@ -59,7 +59,10 @@ pub(crate) fn initialize_wpa_cli(options: &Options) -> Result<(), ErrBox> {
         }
     }
 
-    Err(errbox!(WPA_CONNECT_ERROR))
+    Err(errbox!(
+        RuwiErrorKind::FailedToConnectWithWpaCli,
+        WPA_CONNECT_ERROR
+    ))
 }
 
 fn wpa_ping_success(options: &Options) -> bool {

@@ -1,6 +1,7 @@
 use crate::errbox;
 use crate::run_commands::*;
 use crate::structs::*;
+use std::error::Error;
 
 use std::io;
 use std::io::BufRead;
@@ -29,17 +30,25 @@ pub(crate) fn run_fzf(
 }
 
 pub(crate) fn run_stdin_prompt_single_line(
+    options: &Options,
+    prompt: &str,
+    elements: Vec<String>,
+) -> Result<String, ErrBox> {
+    run_stdin_prompt_single_line_impl(options, prompt, elements)
+        .map_err(|e| errbox!(RuwiErrorKind::SingleLinePromptFailed, e.description()))
+}
+
+fn run_stdin_prompt_single_line_impl(
     _options: &Options,
     prompt: &str,
     _elements: Vec<String>,
-) -> Result<String, ErrBox> {
+) -> io::Result<String> {
     print!("{}", prompt);
     io::stdout().flush()?;
     let stdin = io::stdin();
-    let line = stdin
-        .lock()
-        .lines()
-        .next()
-        .expect("Failed to read line from stdin!");
-    line.map_err(|e| errbox!(e))
+    let line =
+        stdin.lock().lines().next().ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidInput, "Failed to read from stdin.")
+        })?;
+    line
 }

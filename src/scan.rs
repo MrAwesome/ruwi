@@ -4,21 +4,21 @@ use crate::run_commands::*;
 use crate::structs::*;
 use crate::wpa_cli_initialize::initialize_wpa_cli;
 
-use std::process::{Command, Output, Stdio};
+use std::process::Output;
 use std::thread;
 use std::time::Duration;
 
-const ALLOWED_SYNCHRONOUS_RETRIES: u64 = 5;
-const SYNCHRONOUS_RETRY_DELAY_SECS: f64 = 0.3;
+static ALLOWED_SYNCHRONOUS_RETRIES: u64 = 5;
+static SYNCHRONOUS_RETRY_DELAY_SECS: f64 = 0.3;
 
 // TODO: make function, include exact command being run
-const IW_SCAN_DUMP_ERR_MSG: &str = concat!(
+static IW_SCAN_DUMP_ERR_MSG: &str = concat!(
     "Failed to load cached list of seen networks with `iw`. Is it installed? ",
     "You can also select a different scanning method with -s (try 'wpa_cli' or 'iwlist'), ",
     "or you can manually specify an essid with -e.",
 );
 
-const IW_SCAN_SYNC_ERR_MSG: &str = concat!(
+static IW_SCAN_SYNC_ERR_MSG: &str = concat!(
     "Failed to scan with `iw`. Is it installed? ",
     "You can also select a different scanning method with -s (try 'wpa_cli' or 'iwlist'), ",
     "or you can manually specify an essid with -e.",
@@ -44,30 +44,25 @@ pub(crate) fn wifi_scan(options: Options) -> Result<ScanResult, ErrBox> {
 
 fn run_wpa_cli_scan(options: &Options) -> Result<ScanResult, ErrBox> {
     initialize_wpa_cli(options)?;
+
+    let err_msg = concat!(
+        "Failed to scan with `wpa_cli scan_results`. ",
+        "Is wpa_supplicant running? Is it installed? ",
+        "You can also select a different scanning method with -s (try 'iw' or 'iwlist'), ",
+        "or you can manually specify an essid with -e.",
+    );
+
     // TODO: use new method
-    let output_res = Command::new("wpa_cli")
-        .arg("scan_results")
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?
-        .wait_with_output();
+    let scan_output =
+        run_command_pass_stdout(options.debug, "wpa_cli", &["scan_results"], err_msg)?;
 
     if options.debug {
-        dbg![&output_res];
+        dbg![&scan_output];
     }
-
-    match &output_res {
-        Ok(o) => Ok(ScanResult {
-            scan_type: ScanType::WpaCli,
-            scan_output: String::from_utf8_lossy(&o.stdout).to_string(),
-        }),
-        Err(_e) => Err(errbox!(concat!(
-            "Failed to scan with `wpa_cli scan_results`. ",
-            "Is wpa_supplicant running? Is it installed? ",
-            "You can also select a different scanning method with -s (try 'iw' or 'iwlist'), ",
-            "or you can manually specify an essid with -e.",
-        ))),
-    }
+    Ok(ScanResult {
+        scan_type: ScanType::WpaCli,
+        scan_output,
+    })
 }
 
 // TODO: this all badly needs unit tests
@@ -102,10 +97,16 @@ fn run_iw_scan_synchronous(options: &Options) -> Result<String, ErrBox> {
                 thread::sleep(Duration::from_secs_f64(SYNCHRONOUS_RETRY_DELAY_SECS));
                 continue;
             } else {
-                return Err(errbox!(IW_SCAN_SYNC_ERR_MSG));
+                return Err(errbox!(
+                    RuwiErrorKind::IWSynchronousScanRanOutOfRetries,
+                    IW_SCAN_SYNC_ERR_MSG
+                ));
             }
         } else if !synchronous_run_output.status.success() {
-            return Err(errbox!(IW_SCAN_SYNC_ERR_MSG));
+            return Err(errbox!(
+                RuwiErrorKind::IWSynchronousScanFailed,
+                IW_SCAN_SYNC_ERR_MSG
+            ));
         } else {
             return Ok(String::from_utf8_lossy(&synchronous_run_output.stdout).to_string());
         }

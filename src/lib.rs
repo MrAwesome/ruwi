@@ -149,12 +149,18 @@ fn gather_data(options: &Options) -> Result<(KnownNetworks, ScanResult), ErrBox>
     let get_nw_names = thread::spawn(|| find_known_network_names(opt1));
     let get_scan_results = thread::spawn(|| wifi_scan(opt2));
 
-    let known_network_names = get_nw_names
-        .join()
-        .or_else(|_| Err(errbox!("Failed to spawn thread.")))??;
-    let scan_result = get_scan_results
-        .join()
-        .or_else(|_| Err(errbox!("Failed to spawn thread.")))??;
+    let known_network_names = get_nw_names.join().or_else(|_| {
+        Err(errbox!(
+            RuwiErrorKind::FailedToSpawnThread,
+            "Failed to spawn thread."
+        ))
+    })??;
+    let scan_result = get_scan_results.join().or_else(|_| {
+        Err(errbox!(
+            RuwiErrorKind::FailedToSpawnThread,
+            "Failed to spawn thread."
+        ))
+    })??;
 
     Ok((known_network_names, scan_result))
 }

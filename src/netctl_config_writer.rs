@@ -1,5 +1,8 @@
+use crate::errbox;
 use crate::structs::*;
+use std::error::Error;
 use std::fs::File;
+use std::io;
 use std::io::Write;
 
 pub(crate) fn netctl_config_write(
@@ -14,7 +17,8 @@ pub(crate) fn netctl_config_write(
 
     let fullpath = netctl_location + &netctl_file_name;
 
-    File::create(&fullpath)?.write_all(contents.as_bytes())?;
+    write_to_netctl_config(&fullpath, &contents)
+        .map_err(|e| errbox!(RuwiErrorKind::FailedToWriteNetctlConfig, e.description()))?;
 
     eprintln!("[NOTE]: Wrote netctl config: {}", &fullpath);
     eprintln!("[NOTE]: If you encounter problems with your connection, try editing that file directly and/or running `netctl switch-to {}` as root.", netctl_file_name);
@@ -23,6 +27,10 @@ pub(crate) fn netctl_config_write(
         output_type: OutputType::NetctlConfig,
         output_output: None,
     })
+}
+
+fn write_to_netctl_config(fullpath: &str, contents: &str) -> io::Result<()> {
+    File::create(&fullpath)?.write_all(contents.as_bytes())
 }
 
 pub(crate) fn get_netctl_file_name(essid: &str) -> String {

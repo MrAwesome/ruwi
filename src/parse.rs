@@ -134,17 +134,21 @@ fn get_iw_bss_regex() -> Regex {
 
 // TODO: put the actual command run here
 fn err_iw_malformed_output(options: &Options) -> ErrBox {
-    errbox!(format!(
-        "Malformed output returned by `sudo iw {} scan dump`. Try running it manually.",
-        options.interface
-    ))
+    errbox!(
+        RuwiErrorKind::MalformedIWOutput,
+        format!(
+            "Malformed output returned by `sudo iw {} scan dump`. Try running it manually.",
+            options.interface
+        )
+    )
 }
 
 fn err_iw_no_networks_seen(options: &Options) -> ErrBox {
     errbox!(
-     format!("No networks seen by `sudo iw {} scan dump`. Are you near wireless networks? Try running `sudo iw {} scan`.", 
-         options.interface, 
-         options.interface))
+        RuwiErrorKind::NoNetworksSeenWithIWScanDump,
+        format!("No networks seen by `sudo iw {} scan dump`. Are you near wireless networks? Try running `sudo iw {} scan`.", 
+            options.interface, 
+            options.interface))
 }
 
 fn parse_wpa_cli_scan(_options: &Options, output: &str) -> Result<ParseResult, ErrBox> {
@@ -178,11 +182,15 @@ fn parse_wpa_cli_scan(_options: &Options, output: &str) -> Result<ParseResult, E
 
 fn err_wpa_cli_no_networks_seen() -> ErrBox {
     errbox!(
+        RuwiErrorKind::NoNetworksSeenWithWPACliScanResults,
         "No networks seen by `sudo wpa_cli scan_results`. Are you near wireless networks? Try running `sudo wpa_cli scan`.")
 }
 
 fn missing_wpa_cli_header() -> ErrBox {
-    errbox!("`wpa_cli scan_results` header malformed or missing")
+    errbox!(
+        RuwiErrorKind::WPACliHeaderMalformedOrMissing,
+        "`wpa_cli scan_results` header malformed or missing"
+    )
 }
 
 fn parse_wpa_line_into_network(line: String) -> Result<WirelessNetwork, IndividualParseError> {

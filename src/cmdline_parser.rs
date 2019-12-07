@@ -145,7 +145,9 @@ fn get_options_impl<'a>(m: ArgMatches<'a>) -> Result<Options, ErrBox> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::errbox;
     use clap::ArgMatches;
+    use std::error::Error;
 
     const FAKE_BINARY_NAME: &str = "fake_binary_name";
 
@@ -170,7 +172,12 @@ mod tests {
     }
 
     fn getopts_safe(args: &[&str]) -> Result<Options, ErrBox> {
-        get_options_impl(get_matches_safe(args)?)
+        get_options_impl(get_matches_safe(args).map_err(|e| {
+            errbox!(
+                RuwiErrorKind::TestCmdLineOptParserSafeFailed,
+                e.description()
+            )
+        })?)
     }
 
     #[test]

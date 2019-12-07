@@ -3,8 +3,6 @@ use crate::errbox;
 use crate::select::*;
 use crate::structs::*;
 
-const NO_KNOWN_NETWORKS_FOUND: &str = "No known networks found!";
-
 impl SortedUniqueNetworks {
     pub fn get_tokens_for_selection(&self) -> Vec<String> {
         self.networks
@@ -53,10 +51,10 @@ fn prompt_user_for_selection(
         .nth(index)
         .map(|x| x.clone())
         .ok_or_else(|| {
-            errbox!(format!(
-                "No network matching {} found.",
-                selected_network_line
-            ))
+            errbox!(
+                RuwiErrorKind::NoNetworksFoundMatchingSelectionResult,
+                format!("No network matching {} found.", selected_network_line)
+            )
         })
 }
 
@@ -69,7 +67,10 @@ fn get_index_of_selected_item(line: &str) -> Result<usize, ErrBox> {
 }
 
 fn get_line_parse_err(line: &str) -> ErrBox {
-    errbox!(format!("Failed to parse line {}", line))
+    errbox!(
+        RuwiErrorKind::FailedToParseSelectedLine,
+        format!("Failed to parse line {}", line)
+    )
 }
 
 #[cfg(test)]
@@ -98,11 +99,17 @@ fn select_first_known(
     _options: &Options,
     networks: &SortedUniqueNetworks,
 ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+    let TODO = "Check for this error upstream.";
     networks
         .networks
         .iter()
         .find(|nw| nw.known == true)
-        .ok_or_else(|| errbox!(NO_KNOWN_NETWORKS_FOUND))
+        .ok_or_else(|| {
+            errbox!(
+                RuwiErrorKind::NoKnownNetworksFound,
+                "No known networks found!"
+            )
+        })
         .map(|x| x.clone())
 }
 
@@ -181,21 +188,30 @@ mod tests {
         _opt: &Options,
         _nw: &SortedUniqueNetworks,
     ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
-        Err(errbox!(USED_MANUAL_WHEN_NOT_EXPECTED))
+        Err(errbox!(
+            RuwiErrorKind::TestUsedManualWhenNotExpected,
+            USED_MANUAL_WHEN_NOT_EXPECTED
+        ))
     }
 
     fn err_should_not_have_used_auto(
         _opt: &Options,
         _nw: &SortedUniqueNetworks,
     ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
-        Err(errbox!(USED_AUTO_WHEN_NOT_EXPECTED))
+        Err(errbox!(
+            RuwiErrorKind::TestUsedAutoWhenNotExpected,
+            USED_AUTO_WHEN_NOT_EXPECTED
+        ))
     }
 
     fn err_should_not_have_used_auto_no_ask(
         _opt: &Options,
         _nw: &SortedUniqueNetworks,
     ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
-        Err(errbox!(USED_AUTO_NO_ASK_WHEN_NOT_EXPECTED))
+        Err(errbox!(
+            RuwiErrorKind::TestUsedAutoNoAskWhenNotExpected,
+            USED_AUTO_NO_ASK_WHEN_NOT_EXPECTED
+        ))
     }
 
     fn select_first(
@@ -206,7 +222,12 @@ mod tests {
             .networks
             .iter()
             .next()
-            .ok_or_else(|| errbox!("No networks found!"))
+            .ok_or_else(|| {
+                errbox!(
+                    RuwiErrorKind::TestNoNetworksFoundWhenLookingForFirst,
+                    "No networks found!"
+                )
+            })
             .map(|x| x.clone())
     }
 
@@ -218,7 +239,12 @@ mod tests {
             .networks
             .iter()
             .last()
-            .ok_or_else(|| errbox!("No networks found!"))
+            .ok_or_else(|| {
+                errbox!(
+                    RuwiErrorKind::TestNoNetworksFoundWhenLookingForLast,
+                    "No networks found!"
+                )
+            })
             .map(|x| x.clone())
     }
 
@@ -226,7 +252,10 @@ mod tests {
         _options: &Options,
         _networks: &SortedUniqueNetworks,
     ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
-        Err(errbox!("No networks found!"))
+        Err(errbox!(
+            RuwiErrorKind::TestDeliberatelyFailedToFindNetworks,
+            "No networks found!"
+        ))
     }
 
     #[test]
@@ -275,7 +304,7 @@ mod tests {
         );
         match nw {
             Ok(_) => panic!(),
-            Err(err) => assert_eq![err.description(), NO_KNOWN_NETWORKS_FOUND],
+            Err(err) => assert_eq![RuwiErrorKind::NoKnownNetworksFound, err.kind],
         };
         Ok(())
     }
@@ -365,7 +394,7 @@ mod tests {
         for (line, res) in test_cases {
             match get_index_of_selected_item(line) {
                 Ok(val) => assert_eq![res?, val],
-                Err(err) => assert_eq![res.err().unwrap().description(), err.description()],
+                Err(err) => assert_eq![res.err().unwrap().kind, err.kind],
             }
         }
         Ok(())

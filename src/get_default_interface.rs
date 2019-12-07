@@ -53,7 +53,10 @@ fn get_interface_from_iw_output(iw_output: &str) -> Result<String, ErrBox> {
     }
     match interfaces.first() {
         Some(intf) => Ok(intf.to_string()),
-        None => Err(errbox!("No interfaces found with `iw dev`!")),
+        None => Err(errbox!(
+            RuwiErrorKind::NoNetworksFoundWithIW,
+            "No interfaces found with `iw dev`!"
+        )),
     }
 }
 
