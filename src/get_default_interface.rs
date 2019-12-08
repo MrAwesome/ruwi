@@ -1,4 +1,4 @@
-use crate::errbox;
+use crate::rerr;
 #[cfg(not(test))]
 use crate::run_commands::*;
 use crate::structs::ErrBox;
@@ -50,7 +50,7 @@ fn get_interface_from_iw_output(iw_output: &str) -> Result<String, ErrBox> {
 
     match interfaces.first() {
         Some(intf) => Ok(intf.to_string()),
-        None => Err(errbox!(
+        None => Err(rerr!(
             RuwiErrorKind::NoNetworksFoundWithIW,
             "No interfaces found with `iw dev`!"
         )),

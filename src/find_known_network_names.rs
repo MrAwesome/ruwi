@@ -1,4 +1,4 @@
-use crate::errbox;
+use crate::rerr;
 use crate::structs::*;
 use std::collections::HashSet;
 use std::error::Error;
@@ -19,7 +19,6 @@ impl Deref for KnownNetworks {
     }
 }
 
-// TODO: parse escape chars in essid
 pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworks, ErrBox> {
     let known_network_names = if options.output_type == OutputType::NetctlConfig
         || options.connect_via == ConnectionType::Netctl
@@ -33,8 +32,7 @@ pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworks
         dbg![&known_network_names];
     }
 
-    known_network_names
-        .map_err(|e| errbox!(RuwiErrorKind::KnownNetworksFetchError, e.description()))
+    known_network_names.map_err(|e| rerr!(RuwiErrorKind::KnownNetworksFetchError, e.description()))
 }
 
 fn find_known_netctl_networks() -> io::Result<KnownNetworks> {

@@ -145,7 +145,7 @@ fn get_options_impl<'a>(m: ArgMatches<'a>) -> Result<Options, ErrBox> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::errbox;
+    use crate::rerr;
     use clap::ArgMatches;
     use std::error::Error;
 
@@ -173,7 +173,7 @@ mod tests {
 
     fn getopts_safe(args: &[&str]) -> Result<Options, ErrBox> {
         get_options_impl(get_matches_safe(args).map_err(|e| {
-            errbox!(
+            rerr!(
                 RuwiErrorKind::TestCmdLineOptParserSafeFailed,
                 e.description()
             )

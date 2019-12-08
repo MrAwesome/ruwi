@@ -1,4 +1,4 @@
-use crate::errbox;
+use crate::rerr;
 use crate::structs::*;
 
 use regex::Regex;
@@ -61,7 +61,6 @@ fn break_iw_output_into_chunks_per_network(
     }
 
     loop {
-        //while let Some(line) = lines.next() {
         match lines.next() {
             Some(line) => {
                 if bss_re.is_match(&line) {
@@ -134,7 +133,7 @@ fn get_iw_bss_regex() -> Regex {
 
 // TODO: put the actual command run here
 fn err_iw_malformed_output(options: &Options) -> ErrBox {
-    errbox!(
+    rerr!(
         RuwiErrorKind::MalformedIWOutput,
         format!(
             "Malformed output returned by `sudo iw {} scan dump`. Try running it manually.",
@@ -144,7 +143,7 @@ fn err_iw_malformed_output(options: &Options) -> ErrBox {
 }
 
 fn err_iw_no_networks_seen(options: &Options) -> ErrBox {
-    errbox!(
+    rerr!(
         RuwiErrorKind::NoNetworksSeenWithIWScanDump,
         format!("No networks seen by `sudo iw {} scan dump`. Are you near wireless networks? Try running `sudo iw {} scan`.", 
             options.interface, 
@@ -181,13 +180,13 @@ fn parse_wpa_cli_scan(_options: &Options, output: &str) -> Result<ParseResult, E
 }
 
 fn err_wpa_cli_no_networks_seen() -> ErrBox {
-    errbox!(
+    rerr!(
         RuwiErrorKind::NoNetworksSeenWithWPACliScanResults,
         "No networks seen by `sudo wpa_cli scan_results`. Are you near wireless networks? Try running `sudo wpa_cli scan`.")
 }
 
 fn missing_wpa_cli_header() -> ErrBox {
-    errbox!(
+    rerr!(
         RuwiErrorKind::WPACliHeaderMalformedOrMissing,
         "`wpa_cli scan_results` header malformed or missing"
     )

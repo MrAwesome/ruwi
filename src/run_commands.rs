@@ -1,5 +1,5 @@
 #[cfg(not(test))]
-use crate::errbox;
+use crate::rerr;
 use crate::structs::*;
 #[cfg(not(test))]
 use std::error::Error;
@@ -32,7 +32,7 @@ pub(crate) fn run_command_pass_stdout(
                 return Ok(String::from_utf8_lossy(&output.stdout).to_string());
             }
         }
-        Err(errbox!(RuwiErrorKind::CommandFailed, err_msg))
+        Err(rerr!(RuwiErrorKind::CommandFailed, err_msg))
     }
 }
 
@@ -46,7 +46,7 @@ pub(crate) fn run_command_output(debug: bool, cmd: &str, args: &[&str]) -> Resul
 
     #[cfg(not(test))]
     run_command_impl(debug, cmd, args)
-        .map_err(|e| errbox!(RuwiErrorKind::CommandFailed, e.description()))
+        .map_err(|e| rerr!(RuwiErrorKind::CommandFailed, e.description()))
 }
 
 #[cfg(not(test))]
@@ -101,14 +101,14 @@ fn run_prompt_cmd_impl(
     }
 
     let output =
-        output.map_err(|e| errbox!(RuwiErrorKind::PromptCommandSpawnFailed, e.description()))?;
+        output.map_err(|e| rerr!(RuwiErrorKind::PromptCommandSpawnFailed, e.description()))?;
 
     if output.status.success() {
         Ok(String::from_utf8_lossy(&output.stdout)
             .trim_end_matches(|x| x == '\n')
             .to_string())
     } else {
-        Err(errbox!(
+        Err(rerr!(
             RuwiErrorKind::PromptCommandFailed,
             "Prompt command exited with non-zero exit code"
         ))

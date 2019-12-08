@@ -1,5 +1,5 @@
-use crate::errbox;
 use crate::interface_management::bring_interface_up;
+use crate::rerr;
 use crate::run_commands::*;
 use crate::structs::*;
 use crate::wpa_cli_initialize::initialize_wpa_cli;
@@ -98,13 +98,13 @@ fn run_iw_scan_synchronous(options: &Options) -> Result<String, ErrBox> {
                 thread::sleep(Duration::from_secs_f64(SYNCHRONOUS_RETRY_DELAY_SECS));
                 continue;
             } else {
-                return Err(errbox!(
+                return Err(rerr!(
                     RuwiErrorKind::IWSynchronousScanRanOutOfRetries,
                     IW_SCAN_SYNC_ERR_MSG
                 ));
             }
         } else if !synchronous_run_output.status.success() {
-            return Err(errbox!(
+            return Err(rerr!(
                 RuwiErrorKind::IWSynchronousScanFailed,
                 IW_SCAN_SYNC_ERR_MSG
             ));

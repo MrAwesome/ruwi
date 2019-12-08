@@ -1,4 +1,4 @@
-use crate::errbox;
+use crate::rerr;
 use crate::run_commands::*;
 use crate::structs::*;
 use std::error::Error;
@@ -35,7 +35,7 @@ pub(crate) fn run_stdin_prompt_single_line(
     elements: Vec<String>,
 ) -> Result<String, ErrBox> {
     run_stdin_prompt_single_line_impl(options, prompt, elements)
-        .map_err(|e| errbox!(RuwiErrorKind::SingleLinePromptFailed, e.description()))
+        .map_err(|e| rerr!(RuwiErrorKind::SingleLinePromptFailed, e.description()))
 }
 
 fn run_stdin_prompt_single_line_impl(

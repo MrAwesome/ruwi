@@ -1,4 +1,4 @@
-use crate::errbox;
+use crate::rerr;
 #[cfg(not(test))]
 use crate::select::*;
 use crate::structs::*;
@@ -51,7 +51,7 @@ fn prompt_user_for_selection(
         .nth(index)
         .map(|x| x.clone())
         .ok_or_else(|| {
-            errbox!(
+            rerr!(
                 RuwiErrorKind::NoNetworksFoundMatchingSelectionResult,
                 format!("No network matching {} found.", selected_network_line)
             )
@@ -67,7 +67,7 @@ fn get_index_of_selected_item(line: &str) -> Result<usize, ErrBox> {
 }
 
 fn get_line_parse_err(line: &str) -> ErrBox {
-    errbox!(
+    rerr!(
         RuwiErrorKind::FailedToParseSelectedLine,
         format!("Failed to parse line {}", line)
     )
@@ -105,7 +105,7 @@ fn select_first_known(
         .iter()
         .find(|nw| nw.known == true)
         .ok_or_else(|| {
-            errbox!(
+            rerr!(
                 RuwiErrorKind::NoKnownNetworksFound,
                 "No known networks found!"
             )
@@ -188,7 +188,7 @@ mod tests {
         _opt: &Options,
         _nw: &SortedUniqueNetworks,
     ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
-        Err(errbox!(
+        Err(rerr!(
             RuwiErrorKind::TestUsedManualWhenNotExpected,
             USED_MANUAL_WHEN_NOT_EXPECTED
         ))
@@ -198,7 +198,7 @@ mod tests {
         _opt: &Options,
         _nw: &SortedUniqueNetworks,
     ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
-        Err(errbox!(
+        Err(rerr!(
             RuwiErrorKind::TestUsedAutoWhenNotExpected,
             USED_AUTO_WHEN_NOT_EXPECTED
         ))
@@ -208,7 +208,7 @@ mod tests {
         _opt: &Options,
         _nw: &SortedUniqueNetworks,
     ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
-        Err(errbox!(
+        Err(rerr!(
             RuwiErrorKind::TestUsedAutoNoAskWhenNotExpected,
             USED_AUTO_NO_ASK_WHEN_NOT_EXPECTED
         ))
@@ -223,7 +223,7 @@ mod tests {
             .iter()
             .next()
             .ok_or_else(|| {
-                errbox!(
+                rerr!(
                     RuwiErrorKind::TestNoNetworksFoundWhenLookingForFirst,
                     "No networks found!"
                 )
@@ -240,7 +240,7 @@ mod tests {
             .iter()
             .last()
             .ok_or_else(|| {
-                errbox!(
+                rerr!(
                     RuwiErrorKind::TestNoNetworksFoundWhenLookingForLast,
                     "No networks found!"
                 )
@@ -252,7 +252,7 @@ mod tests {
         _options: &Options,
         _networks: &SortedUniqueNetworks,
     ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
-        Err(errbox!(
+        Err(rerr!(
             RuwiErrorKind::TestDeliberatelyFailedToFindNetworks,
             "No networks found!"
         ))

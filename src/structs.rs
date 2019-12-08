@@ -1,4 +1,4 @@
-use crate::errbox;
+use crate::rerr;
 use std::error::Error;
 use std::fmt;
 use std::fmt::Debug;
@@ -300,7 +300,7 @@ pub struct RuwiResult {
 }
 
 pub(crate) fn nie<T: Debug>(prog: T) -> ErrBox {
-    errbox!(
+    rerr!(
         RuwiErrorKind::NotImplementedError,
         format!("Functionality not implemented: {:?}", prog)
     )

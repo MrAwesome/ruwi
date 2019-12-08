@@ -1,5 +1,5 @@
 #[macro_export(local_inner_macros)]
-macro_rules! errbox {
+macro_rules! rerr {
     ( $kind:expr, $desc:expr ) => {{
         use crate::structs::{RuwiError, RuwiErrorKind};
         RuwiError {

@@ -20,6 +20,11 @@ pub(crate) fn connect_to_network(
         dbg![&res];
     }
 
+    eprintln!(
+        "[NOTE]: Successfully connected to: {}",
+        &selected_network.essid
+    );
+
     res
 }
 
