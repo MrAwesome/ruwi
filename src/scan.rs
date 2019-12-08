@@ -152,10 +152,10 @@ mod tests {
 
     #[test]
     fn test_enough_time_to_retry() {
-        let expected_min_time_needed_to_abort_scan = 2.0;
+        let expected_min_secs_needed_to_abort_scan = 2.0;
         assert![
             ALLOWED_SYNCHRONOUS_RETRIES as f64 * SYNCHRONOUS_RETRY_DELAY_SECS
-                > expected_min_time_needed_to_abort_scan
+                > expected_min_secs_needed_to_abort_scan
         ];
     }
 }
