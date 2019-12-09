@@ -21,7 +21,7 @@ pub(crate) fn connect_to_network(
     }
 
     eprintln!(
-        "[NOTE]: Successfully connected to: {}",
+        "[NOTE]: Successfully connected to: \"{}\"",
         &selected_network.essid
     );
 
