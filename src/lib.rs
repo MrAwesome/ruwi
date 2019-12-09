@@ -6,8 +6,8 @@
 // #![deny(clippy::all)]
 
 extern crate clap;
-extern crate fern;
-extern crate log;
+//extern crate fern;
+//extern crate log;
 extern crate regex;
 extern crate strum;
 extern crate strum_macros;
@@ -113,12 +113,14 @@ fn scan_parse_and_annotate_networks_with_retry(
 ) -> Result<AnnotatedNetworks, ErrBox> {
     let annotated_networks_first_attempt = scan_parse_and_annotate_networks(options)?;
 
-    if should_retry_with_synchronous_scan(options, &annotated_networks_first_attempt) {
-        eprintln!("[NOTE]: No known networks seen in auto mode using cached scan results. Manually scanning now. ");
-        scan_parse_and_annotate_networks(&options.with_synchronous_scan())
-    } else {
-        Ok(annotated_networks_first_attempt)
-    }
+    Ok(
+        if should_retry_with_synchronous_scan(options, &annotated_networks_first_attempt) {
+            eprintln!("[NOTE]: No known networks seen in auto mode using cached scan results. Manually scanning now. ");
+            scan_parse_and_annotate_networks(&options.with_synchronous_scan())?
+        } else {
+            annotated_networks_first_attempt
+        },
+    )
 }
 
 fn should_retry_with_synchronous_scan(

@@ -99,7 +99,6 @@ fn select_first_known(
     _options: &Options,
     networks: &SortedUniqueNetworks,
 ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
-    let TODO = "Check for this error upstream.";
     networks
         .networks
         .iter()
@@ -133,8 +132,8 @@ where
         AutoMode::AutoNoAsk => auto_no_ask_selector(options, networks),
     };
 
-    // TODO: sensible error messages for when auto no ask fails
-    // TODO: eprintln! that you've found a network and what the ssid is
+    let todo = "sensible error messages for when auto no ask fails";
+    let todo = "eprintln! that you've found a network and what the ssid is";
 
     if options.debug {
         dbg![&selected_network];
