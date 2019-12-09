@@ -59,6 +59,7 @@ use structs::*;
 // TODO(mid): add integration test, which takes -e and -p, doesn't try to connect, make sure it creates a netctl config?
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
 // TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
+// TODO(wishlist): json scan output mode
 // TODO(wishlist): find a generalized way to do x notifications, for dmenu mode, use to surface failures
 // TODO(wishlist): determine whether to use dmenu/fzf/etc based on terminal/X
 // TODO(wishlist): connection/scan type: wicd-cli

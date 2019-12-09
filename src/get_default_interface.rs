@@ -1,7 +1,7 @@
 use crate::rerr;
 #[cfg(not(test))]
 use crate::run_commands::*;
-use crate::structs::ErrBox;
+use crate::structs::*;
 
 pub(crate) fn get_default_interface(debug: bool) -> Result<String, ErrBox> {
     // NOTE: Other methods of determining the interface can be added here
@@ -27,7 +27,13 @@ fn get_interface_with_iw(debug: bool) -> Result<String, ErrBox> {
             "Failed to determine interface name with iw. Is it installed?\n",
             "Check the output of `iw dev`, or provide an interface manually with -i.",
         );
-        let iw_dev_output = run_command_pass_stdout(debug, "iw", &["dev"], err_msg)?;
+        let iw_dev_output = run_command_pass_stdout(
+            debug,
+            "iw",
+            &["dev"],
+            RuwiErrorKind::FailedToRunIWDev,
+            err_msg,
+        )?;
 
         return get_interface_from_iw_output(&iw_dev_output);
     }

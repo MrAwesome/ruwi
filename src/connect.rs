@@ -36,12 +36,17 @@ fn connect_via_netctl(
 
     let netctl_file_name = get_netctl_file_name(&selected_network.essid);
 
-    let netctl_connect_output = 
-        run_command_pass_stdout(options.debug,
-            "netctl",
-            &["switch-to", &netctl_file_name],
-            &"Failed to connect. Check `journalctl -xe` for details, or try running again with -d to see more information.",
-        )?;
+    let err_msg = 
+        format!("Failed to connect to \"{}\". ", selected_network.essid) +
+        "Check `journalctl -xe` for details, or try running again with -d to see more information.";
+
+    let netctl_connect_output = run_command_pass_stdout(
+        options.debug,
+        "netctl",
+        &["switch-to", &netctl_file_name],
+        RuwiErrorKind::FailedToConnectViaNetctl,
+        &err_msg,
+    )?;
 
     Ok(ConnectionResult {
         connection_type: ConnectionType::Netctl,

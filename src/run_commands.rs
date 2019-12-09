@@ -15,10 +15,11 @@ pub(crate) fn run_command_pass_stdout(
     debug: bool,
     cmd: &str,
     args: &[&str],
+    err_kind: RuwiErrorKind,
     err_msg: &str,
 ) -> Result<String, ErrBox> {
     if debug {
-        dbg!(&debug, &cmd, &args, &err_msg);
+        dbg!(&debug, &cmd, &args, &err_kind, &err_msg);
     }
 
     #[cfg(test)]
@@ -32,7 +33,7 @@ pub(crate) fn run_command_pass_stdout(
                 return Ok(String::from_utf8_lossy(&output.stdout).to_string());
             }
         }
-        Err(rerr!(RuwiErrorKind::CommandFailed, err_msg))
+        Err(rerr!(err_kind, err_msg))
     }
 }
 
@@ -46,7 +47,7 @@ pub(crate) fn run_command_output(debug: bool, cmd: &str, args: &[&str]) -> Resul
 
     #[cfg(not(test))]
     run_command_impl(debug, cmd, args)
-        .map_err(|e| rerr!(RuwiErrorKind::CommandFailed, e.description()))
+        .map_err(|e| rerr!(RuwiErrorKind::FailedToRunCommand, e.description()))
 }
 
 #[cfg(not(test))]

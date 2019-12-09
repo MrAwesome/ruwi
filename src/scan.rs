@@ -36,6 +36,8 @@ pub(crate) fn wifi_scan(options: Options) -> Result<ScanResult, ErrBox> {
         // nmcli device wifi list
     };
 
+    let todo = "for iwlist, you can scan with scan and dump with scan_last";
+
     if options.debug {
         dbg![&res];
     }
@@ -52,9 +54,14 @@ fn run_wpa_cli_scan(options: &Options) -> Result<ScanResult, ErrBox> {
         "or you can manually specify an essid with -e.",
     );
 
-    // TODO: use new method
-    let scan_output =
-        run_command_pass_stdout(options.debug, "wpa_cli", &["scan_results"], err_msg)?;
+    // TODO: add scan_results latest
+    let scan_output = run_command_pass_stdout(
+        options.debug,
+        "wpa_cli",
+        &["scan_results"],
+        RuwiErrorKind::FailedToScanWithWPACli,
+        err_msg,
+    )?;
 
     if options.debug {
         dbg![&scan_output];
@@ -123,6 +130,7 @@ fn run_iw_scan_dump(options: &Options) -> Result<String, ErrBox> {
         options.debug,
         "iw",
         &[&options.interface, "scan", "dump"],
+        RuwiErrorKind::FailedToRunIWScanDump,
         IW_SCAN_DUMP_ERR_MSG,
     )
 }
@@ -133,6 +141,7 @@ fn run_iw_scan_trigger(options: &Options) -> Result<String, ErrBox> {
         options.debug,
         "iw",
         &[&options.interface, "scan", "trigger"],
+        RuwiErrorKind::FailedToRunIWScanTrigger,
         "Triggering scan with iw failed. This should be ignored.",
     )
 }
@@ -142,6 +151,7 @@ fn abort_ongoing_iw_scan(options: &Options) -> Result<String, ErrBox> {
         options.debug,
         "iw",
         &[&options.interface, "scan", "abort"],
+        RuwiErrorKind::FailedToRunIWScanAbort,
         "Aborting iw scan iw failed. This should be ignored.",
     )
 }

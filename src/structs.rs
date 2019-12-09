@@ -7,20 +7,23 @@ use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
 pub const PROG_NAME: &str = "ruwi";
 
-// TODO
-const TODO: &str = "Change this to ruwierror everywhere";
 pub(crate) type ErrBox = RuwiError;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum RuwiErrorKind {
-    TestCmdLineOptParserSafeFailed,
-    FailedToWriteNetctlConfig,
-    NotImplementedError,
-    FailedToSpawnThread,
-    FailedToConnectWithWpaCli,
-    CommandFailed,
-    FailedToGetCachedResultsWithWPACli,
+    FailedToRunIWScanAbort,
+    FailedToRunIWScanTrigger,
+    FailedToRunIWScanDump,
+    FailedToBringInterfaceDown,
+    FailedToBringInterfaceUp,
+    FailedToConnectViaNetctl,
+    FailedToConnectViaWPACli,
     FailedToParseSelectedLine,
+    FailedToRunCommand,
+    FailedToRunIWDev,
+    FailedToScanWithWPACli,
+    FailedToSpawnThread,
+    FailedToWriteNetctlConfig,
     IWSynchronousScanFailed,
     IWSynchronousScanRanOutOfRetries,
     KnownNetworksFetchError,
@@ -30,9 +33,11 @@ pub enum RuwiErrorKind {
     NoNetworksFoundWithIW,
     NoNetworksSeenWithIWScanDump,
     NoNetworksSeenWithWPACliScanResults,
+    NotImplementedError,
     PromptCommandFailed,
     PromptCommandSpawnFailed,
     SingleLinePromptFailed,
+    TestCmdLineOptParserSafeFailed,
     TestDeliberatelyFailedToFindNetworks,
     TestNoNetworksFoundWhenLookingForFirst,
     TestNoNetworksFoundWhenLookingForLast,

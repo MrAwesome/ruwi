@@ -1,7 +1,7 @@
+// TODO: see if it's possible to check if String::from should be run here
 #[macro_export(local_inner_macros)]
 macro_rules! rerr {
     ( $kind:expr, $desc:expr ) => {{
-        use crate::structs::{RuwiError, RuwiErrorKind};
         RuwiError {
             kind: $kind,
             desc: String::from($desc),
