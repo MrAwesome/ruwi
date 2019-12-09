@@ -149,7 +149,7 @@ mod tests {
     use clap::ArgMatches;
     use std::error::Error;
 
-    const FAKE_BINARY_NAME: &str = "fake_binary_name";
+    static FAKE_BINARY_NAME: &str = "fake_binary_name";
 
     fn construct_args<'a>(args: &'a [&str]) -> Vec<&'a str> {
         let mut vec_args = vec![FAKE_BINARY_NAME];

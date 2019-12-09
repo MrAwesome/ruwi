@@ -5,7 +5,7 @@ use std::fmt::Debug;
 use std::process::Output;
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
-pub const PROG_NAME: &str = "ruwi";
+pub static PROG_NAME: &str = "ruwi";
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum RuwiErrorKind {

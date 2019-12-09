@@ -145,15 +145,15 @@ where
 mod tests {
     use super::*;
 
-    const FIRST_NW_NAME: &str = "FIRSTNWLOL";
-    const SECND_NW_NAME: &str = "SECNDNWWUT";
-    const THIRD_NW_NAME: &str = "THIRDNWOKK";
+    static FIRST_NW_NAME: &str = "FIRSTNWLOL";
+    static SECND_NW_NAME: &str = "SECNDNWWUT";
+    static THIRD_NW_NAME: &str = "THIRDNWOKK";
 
-    const USED_MANUAL_WHEN_NOT_EXPECTED: &str =
+    static USED_MANUAL_WHEN_NOT_EXPECTED: &str =
         "Used manual selector when it should not have been enabled.";
-    const USED_AUTO_WHEN_NOT_EXPECTED: &str =
+    static USED_AUTO_WHEN_NOT_EXPECTED: &str =
         "Used auto selector when it should not have been enabled.";
-    const USED_AUTO_NO_ASK_WHEN_NOT_EXPECTED: &str =
+    static USED_AUTO_NO_ASK_WHEN_NOT_EXPECTED: &str =
         "Used auto-no-ask selector when it should not have been enabled.";
 
     fn get_3_networks() -> SortedUniqueNetworks {

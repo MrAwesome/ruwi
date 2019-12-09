@@ -24,7 +24,7 @@ static IW_SCAN_SYNC_ERR_MSG: &str = concat!(
     "or you can manually specify an essid with -e.",
 );
 
-const DEVICE_OR_RESOURCE_BUSY_EXIT_CODE: i32 = 240;
+static DEVICE_OR_RESOURCE_BUSY_EXIT_CODE: i32 = 240;
 
 pub(crate) fn wifi_scan(options: Options) -> Result<ScanResult, RuwiError> {
     let res = match &options.scan_type {
