@@ -7,13 +7,8 @@ use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
 pub const PROG_NAME: &str = "ruwi";
 
-pub(crate) type ErrBox = RuwiError;
-
 #[derive(Debug, PartialEq, Eq)]
 pub enum RuwiErrorKind {
-    FailedToRunIWScanAbort,
-    FailedToRunIWScanTrigger,
-    FailedToRunIWScanDump,
     FailedToBringInterfaceDown,
     FailedToBringInterfaceUp,
     FailedToConnectViaNetctl,
@@ -21,6 +16,9 @@ pub enum RuwiErrorKind {
     FailedToParseSelectedLine,
     FailedToRunCommand,
     FailedToRunIWDev,
+    FailedToRunIWScanAbort,
+    FailedToRunIWScanDump,
+    FailedToRunIWScanTrigger,
     FailedToScanWithWPACli,
     FailedToSpawnThread,
     FailedToWriteNetctlConfig,
@@ -304,7 +302,7 @@ pub struct RuwiResult {
     pub connection_result: ConnectionResult,
 }
 
-pub(crate) fn nie<T: Debug>(prog: T) -> ErrBox {
+pub(crate) fn nie<T: Debug>(prog: T) -> RuwiError {
     rerr!(
         RuwiErrorKind::NotImplementedError,
         format!("Functionality not implemented: {:?}", prog)

@@ -3,7 +3,7 @@ use crate::rerr;
 use crate::run_commands::*;
 use crate::structs::*;
 
-pub(crate) fn get_default_interface(debug: bool) -> Result<String, ErrBox> {
+pub(crate) fn get_default_interface(debug: bool) -> Result<String, RuwiError> {
     // NOTE: Other methods of determining the interface can be added here
     let interface = get_interface_with_iw(debug);
 
@@ -14,7 +14,7 @@ pub(crate) fn get_default_interface(debug: bool) -> Result<String, ErrBox> {
     interface
 }
 
-fn get_interface_with_iw(debug: bool) -> Result<String, ErrBox> {
+fn get_interface_with_iw(debug: bool) -> Result<String, RuwiError> {
     #[cfg(test)]
     {
         dbg!(&debug);
@@ -39,7 +39,7 @@ fn get_interface_with_iw(debug: bool) -> Result<String, ErrBox> {
     }
 }
 
-fn get_interface_from_iw_output(iw_output: &str) -> Result<String, ErrBox> {
+fn get_interface_from_iw_output(iw_output: &str) -> Result<String, RuwiError> {
     let interfaces = iw_output
         .lines()
         .filter(|line| line.trim().starts_with("Interface"))
@@ -68,7 +68,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_interface_from_iw_output() -> Result<(), ErrBox> {
+    fn test_get_interface_from_iw_output() -> Result<(), RuwiError> {
         let iw_dev_output = "phy#0
 Interface wlp3s0
         ifindex 3
@@ -85,7 +85,7 @@ Interface wlp3s0
     }
 
     #[test]
-    fn test_get_interface_from_malformed_iw_output() -> Result<(), ErrBox> {
+    fn test_get_interface_from_malformed_iw_output() -> Result<(), RuwiError> {
         let iw_dev_output = "jfdklsajfdklsajfkdlsjfjdkkkkkkkd";
 
         let res = get_interface_from_iw_output(iw_dev_output);

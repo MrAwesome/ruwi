@@ -14,7 +14,7 @@ fn bring_interface(
     options: &Options,
     interface_state: InterfaceState,
     err_kind: RuwiErrorKind,
-) -> Result<(), ErrBox> {
+) -> Result<(), RuwiError> {
     let if_name = &options.interface;
     let if_state = interface_state.to_string();
     run_command_pass_stdout(
@@ -31,7 +31,7 @@ fn bring_interface(
     Ok(())
 }
 
-pub(crate) fn bring_interface_up(options: &Options) -> Result<(), ErrBox> {
+pub(crate) fn bring_interface_up(options: &Options) -> Result<(), RuwiError> {
     bring_interface(
         options,
         InterfaceState::UP,
@@ -39,7 +39,7 @@ pub(crate) fn bring_interface_up(options: &Options) -> Result<(), ErrBox> {
     )
 }
 
-pub(crate) fn bring_interface_down(options: &Options) -> Result<(), ErrBox> {
+pub(crate) fn bring_interface_down(options: &Options) -> Result<(), RuwiError> {
     bring_interface(
         options,
         InterfaceState::DOWN,

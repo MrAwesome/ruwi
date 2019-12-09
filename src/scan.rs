@@ -26,7 +26,7 @@ static IW_SCAN_SYNC_ERR_MSG: &str = concat!(
 
 const DEVICE_OR_RESOURCE_BUSY_EXIT_CODE: i32 = 240;
 
-pub(crate) fn wifi_scan(options: Options) -> Result<ScanResult, ErrBox> {
+pub(crate) fn wifi_scan(options: Options) -> Result<ScanResult, RuwiError> {
     let res = match &options.scan_type {
         ScanType::WpaCli => run_wpa_cli_scan(&options),
         ScanType::IW => run_iw_scan(&options),
@@ -44,7 +44,7 @@ pub(crate) fn wifi_scan(options: Options) -> Result<ScanResult, ErrBox> {
     res
 }
 
-fn run_wpa_cli_scan(options: &Options) -> Result<ScanResult, ErrBox> {
+fn run_wpa_cli_scan(options: &Options) -> Result<ScanResult, RuwiError> {
     initialize_wpa_cli(options)?;
 
     let err_msg = concat!(
@@ -73,7 +73,7 @@ fn run_wpa_cli_scan(options: &Options) -> Result<ScanResult, ErrBox> {
 }
 
 // TODO: unit test
-fn run_iw_scan(options: &Options) -> Result<ScanResult, ErrBox> {
+fn run_iw_scan(options: &Options) -> Result<ScanResult, RuwiError> {
     bring_interface_up(options)?;
     let scan_output = if options.force_synchronous_scan {
         run_iw_scan_synchronous(options)?
@@ -94,7 +94,7 @@ fn run_iw_scan(options: &Options) -> Result<ScanResult, ErrBox> {
 }
 
 // TODO: unit test
-fn run_iw_scan_synchronous(options: &Options) -> Result<String, ErrBox> {
+fn run_iw_scan_synchronous(options: &Options) -> Result<String, RuwiError> {
     let mut retries = ALLOWED_SYNCHRONOUS_RETRIES;
     abort_ongoing_iw_scan(options).ok();
     loop {
@@ -121,11 +121,11 @@ fn run_iw_scan_synchronous(options: &Options) -> Result<String, ErrBox> {
     }
 }
 
-fn run_iw_scan_synchronous_cmd(options: &Options) -> Result<Output, ErrBox> {
+fn run_iw_scan_synchronous_cmd(options: &Options) -> Result<Output, RuwiError> {
     run_command_output(options.debug, "iw", &[&options.interface, "scan"])
 }
 
-fn run_iw_scan_dump(options: &Options) -> Result<String, ErrBox> {
+fn run_iw_scan_dump(options: &Options) -> Result<String, RuwiError> {
     run_command_pass_stdout(
         options.debug,
         "iw",
@@ -135,7 +135,7 @@ fn run_iw_scan_dump(options: &Options) -> Result<String, ErrBox> {
     )
 }
 
-fn run_iw_scan_trigger(options: &Options) -> Result<String, ErrBox> {
+fn run_iw_scan_trigger(options: &Options) -> Result<String, RuwiError> {
     // Initiate a rescan. This command should return instantaneously.
     run_command_pass_stdout(
         options.debug,
@@ -146,7 +146,7 @@ fn run_iw_scan_trigger(options: &Options) -> Result<String, ErrBox> {
     )
 }
 
-fn abort_ongoing_iw_scan(options: &Options) -> Result<String, ErrBox> {
+fn abort_ongoing_iw_scan(options: &Options) -> Result<String, RuwiError> {
     run_command_pass_stdout(
         options.debug,
         "iw",

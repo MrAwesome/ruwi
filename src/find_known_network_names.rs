@@ -19,7 +19,7 @@ impl Deref for KnownNetworks {
     }
 }
 
-pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworks, ErrBox> {
+pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworks, RuwiError> {
     let known_network_names = if options.output_type == OutputType::NetctlConfig
         || options.connect_via == ConnectionType::Netctl
     {

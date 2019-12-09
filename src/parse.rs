@@ -7,7 +7,7 @@ use unescape::unescape;
 pub(crate) fn parse_result(
     options: &Options,
     scan_result: &ScanResult,
-) -> Result<ParseResult, ErrBox> {
+) -> Result<ParseResult, RuwiError> {
     // TODO: if scan type isn't specified, and parsing or scanning fails, try another scan type
     let res = match &scan_result.scan_type {
         ScanType::WpaCli => parse_wpa_cli_scan(options, &scan_result.scan_output),
@@ -21,7 +21,7 @@ pub(crate) fn parse_result(
     res
 }
 
-fn parse_iw_scan(options: &Options, output: &str) -> Result<ParseResult, ErrBox> {
+fn parse_iw_scan(options: &Options, output: &str) -> Result<ParseResult, RuwiError> {
     let network_chunks = break_iw_output_into_chunks_per_network(options, output)?;
     let mut seen_networks = vec![];
     let mut line_parse_errors = vec![];
@@ -42,7 +42,7 @@ fn parse_iw_scan(options: &Options, output: &str) -> Result<ParseResult, ErrBox>
 fn break_iw_output_into_chunks_per_network(
     options: &Options,
     output: &str,
-) -> Result<Vec<Vec<String>>, ErrBox> {
+) -> Result<Vec<Vec<String>>, RuwiError> {
     let mut lines = output.trim().lines().map(|line| line.trim().to_string());
     let mut iw_network_line_groups = vec![];
 
@@ -132,7 +132,7 @@ fn get_iw_bss_regex() -> Regex {
 }
 
 // TODO: put the actual command run here
-fn err_iw_malformed_output(options: &Options) -> ErrBox {
+fn err_iw_malformed_output(options: &Options) -> RuwiError {
     rerr!(
         RuwiErrorKind::MalformedIWOutput,
         format!(
@@ -142,7 +142,7 @@ fn err_iw_malformed_output(options: &Options) -> ErrBox {
     )
 }
 
-fn err_iw_no_networks_seen(options: &Options) -> ErrBox {
+fn err_iw_no_networks_seen(options: &Options) -> RuwiError {
     rerr!(
         RuwiErrorKind::NoNetworksSeenWithIWScanDump,
         format!("No networks seen by `sudo iw {} scan dump`. Are you near wireless networks? Try running `sudo iw {} scan`.", 
@@ -150,7 +150,7 @@ fn err_iw_no_networks_seen(options: &Options) -> ErrBox {
             options.interface))
 }
 
-fn parse_wpa_cli_scan(_options: &Options, output: &str) -> Result<ParseResult, ErrBox> {
+fn parse_wpa_cli_scan(_options: &Options, output: &str) -> Result<ParseResult, RuwiError> {
     let mut lines = output.trim().lines().map(|x| x.to_string());
     let mut networks = vec![];
     let mut line_parse_errors = vec![];
@@ -179,13 +179,13 @@ fn parse_wpa_cli_scan(_options: &Options, output: &str) -> Result<ParseResult, E
     }
 }
 
-fn err_wpa_cli_no_networks_seen() -> ErrBox {
+fn err_wpa_cli_no_networks_seen() -> RuwiError {
     rerr!(
         RuwiErrorKind::NoNetworksSeenWithWPACliScanResults,
         "No networks seen by `sudo wpa_cli scan_results`. Are you near wireless networks? Try running `sudo wpa_cli scan`.")
 }
 
-fn missing_wpa_cli_header() -> ErrBox {
+fn missing_wpa_cli_header() -> RuwiError {
     rerr!(
         RuwiErrorKind::WPACliHeaderMalformedOrMissing,
         "`wpa_cli scan_results` header malformed or missing"
@@ -286,7 +286,7 @@ mod tests {
         }
     }
 
-    fn get_expected_result(text_type: NetworkTextType) -> Result<ParseResult, ErrBox> {
+    fn get_expected_result(text_type: NetworkTextType) -> Result<ParseResult, RuwiError> {
         match text_type {
             NetworkTextType::IWOneNetwork => Ok(ParseResult {
                 scan_type: ScanType::IW,

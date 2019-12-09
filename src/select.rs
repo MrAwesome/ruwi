@@ -11,7 +11,7 @@ pub(crate) fn run_dmenu(
     options: &Options,
     prompt: &str,
     elements: Vec<String>,
-) -> Result<String, ErrBox> {
+) -> Result<String, RuwiError> {
     run_prompt_cmd(options.debug, "dmenu", &["-i", "-p", prompt], elements)
 }
 
@@ -20,7 +20,7 @@ pub(crate) fn run_fzf(
     options: &Options,
     prompt: &str,
     elements: Vec<String>,
-) -> Result<String, ErrBox> {
+) -> Result<String, RuwiError> {
     run_prompt_cmd(
         options.debug,
         "fzf",
@@ -33,7 +33,7 @@ pub(crate) fn run_stdin_prompt_single_line(
     options: &Options,
     prompt: &str,
     elements: Vec<String>,
-) -> Result<String, ErrBox> {
+) -> Result<String, RuwiError> {
     run_stdin_prompt_single_line_impl(options, prompt, elements)
         .map_err(|e| rerr!(RuwiErrorKind::SingleLinePromptFailed, e.description()))
 }

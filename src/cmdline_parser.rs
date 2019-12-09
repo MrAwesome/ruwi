@@ -93,12 +93,12 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .arg(selection_method)
 }
 
-pub fn get_options() -> Result<Options, ErrBox> {
+pub fn get_options() -> Result<Options, RuwiError> {
     let m = get_arg_app().get_matches();
     get_options_impl(m)
 }
 
-fn get_options_impl<'a>(m: ArgMatches<'a>) -> Result<Options, ErrBox> {
+fn get_options_impl<'a>(m: ArgMatches<'a>) -> Result<Options, RuwiError> {
     let debug = m.is_present("debug");
 
     let auto_mode = if m.is_present("auto_no_ask") {
@@ -171,7 +171,7 @@ mod tests {
         get_options_impl(get_matches(args)).unwrap()
     }
 
-    fn getopts_safe(args: &[&str]) -> Result<Options, ErrBox> {
+    fn getopts_safe(args: &[&str]) -> Result<Options, RuwiError> {
         get_options_impl(get_matches_safe(args).map_err(|e| {
             rerr!(
                 RuwiErrorKind::TestCmdLineOptParserSafeFailed,

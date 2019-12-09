@@ -6,7 +6,7 @@ use crate::structs::*;
 pub(crate) fn connect_to_network(
     options: &Options,
     selected_network: &AnnotatedWirelessNetwork,
-) -> Result<ConnectionResult, ErrBox> {
+) -> Result<ConnectionResult, RuwiError> {
     let res = match &options.connect_via {
         ConnectionType::Netctl => connect_via_netctl(options, selected_network),
         ConnectionType::None => Ok(ConnectionResult {
@@ -31,7 +31,7 @@ pub(crate) fn connect_to_network(
 fn connect_via_netctl(
     options: &Options,
     selected_network: &AnnotatedWirelessNetwork,
-) -> Result<ConnectionResult, ErrBox> {
+) -> Result<ConnectionResult, RuwiError> {
     bring_interface_down(options)?;
 
     let netctl_file_name = get_netctl_file_name(&selected_network.essid);

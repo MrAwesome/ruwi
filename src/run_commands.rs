@@ -17,7 +17,7 @@ pub(crate) fn run_command_pass_stdout(
     args: &[&str],
     err_kind: RuwiErrorKind,
     err_msg: &str,
-) -> Result<String, ErrBox> {
+) -> Result<String, RuwiError> {
     if debug {
         dbg!(&debug, &cmd, &args, &err_kind, &err_msg);
     }
@@ -37,7 +37,11 @@ pub(crate) fn run_command_pass_stdout(
     }
 }
 
-pub(crate) fn run_command_output(debug: bool, cmd: &str, args: &[&str]) -> Result<Output, ErrBox> {
+pub(crate) fn run_command_output(
+    debug: bool,
+    cmd: &str,
+    args: &[&str],
+) -> Result<Output, RuwiError> {
     if debug {
         dbg!(&cmd, &args);
     }
@@ -77,7 +81,7 @@ pub(crate) fn run_prompt_cmd(
     cmd_name: &str,
     args: &[&str],
     elements: Vec<String>,
-) -> Result<String, ErrBox> {
+) -> Result<String, RuwiError> {
     if debug {
         dbg!(&cmd_name, &args, &elements);
     }
@@ -95,7 +99,7 @@ fn run_prompt_cmd_impl(
     cmd_name: &str,
     args: &[&str],
     elements: Vec<String>,
-) -> Result<String, ErrBox> {
+) -> Result<String, RuwiError> {
     let output = run_prompt_cmd_system_impl(debug, cmd_name, args, elements);
     if debug {
         dbg!(&output);

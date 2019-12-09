@@ -9,7 +9,7 @@ pub(crate) fn netctl_config_write(
     options: &Options,
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
-) -> Result<OutputResult, ErrBox> {
+) -> Result<OutputResult, RuwiError> {
     let contents = get_netctl_config_contents(options, network, encryption_key);
 
     let netctl_file_name = get_netctl_file_name(&network.essid);

@@ -16,7 +16,7 @@ impl SortedUniqueNetworks {
 pub(crate) fn select_network(
     options: &Options,
     networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     select_network_impl(
         options,
         networks,
@@ -30,7 +30,7 @@ pub(crate) fn select_network(
 fn prompt_user_for_selection(
     options: &Options,
     networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     let selection_tokens = networks.get_tokens_for_selection();
     let selected_network_line = match &options.selection_method {
         SelectionMethod::Dmenu => run_dmenu(
@@ -58,7 +58,7 @@ fn prompt_user_for_selection(
         })
 }
 
-fn get_index_of_selected_item(line: &str) -> Result<usize, ErrBox> {
+fn get_index_of_selected_item(line: &str) -> Result<usize, RuwiError> {
     line.split(") ")
         .next()
         .ok_or_else(|| get_line_parse_err(line))?
@@ -66,7 +66,7 @@ fn get_index_of_selected_item(line: &str) -> Result<usize, ErrBox> {
         .or_else(|_| Err(get_line_parse_err(line)))
 }
 
-fn get_line_parse_err(line: &str) -> ErrBox {
+fn get_line_parse_err(line: &str) -> RuwiError {
     rerr!(
         RuwiErrorKind::FailedToParseSelectedLine,
         format!("Failed to parse line {}", line)
@@ -77,28 +77,28 @@ fn get_line_parse_err(line: &str) -> ErrBox {
 fn prompt_user_for_selection(
     _options: &Options,
     _networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     panic!("Should not use this function in tests!");
 }
 
 fn auto_select_network_method(
     options: &Options,
     networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     select_first_known(options, networks)
 }
 
 fn auto_no_ask_select_network_method(
     options: &Options,
     networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     select_first_known(options, networks)
 }
 
 fn select_first_known(
     _options: &Options,
     networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     networks
         .networks
         .iter()
@@ -118,11 +118,11 @@ fn select_network_impl<'a, 'b, F, G, H>(
     manual_selector: F,
     auto_selector: G,
     auto_no_ask_selector: H,
-) -> Result<AnnotatedWirelessNetwork, ErrBox>
+) -> Result<AnnotatedWirelessNetwork, RuwiError>
 where
-    F: FnOnce(&'a Options, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, ErrBox>,
-    G: FnOnce(&'a Options, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, ErrBox>,
-    H: FnOnce(&'a Options, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, ErrBox>,
+    F: FnOnce(&'a Options, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, RuwiError>,
+    G: FnOnce(&'a Options, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, RuwiError>,
+    H: FnOnce(&'a Options, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, RuwiError>,
 {
     let selected_network = match &options.auto_mode {
         AutoMode::None => manual_selector(options, networks),
@@ -186,7 +186,7 @@ mod tests {
     fn err_should_not_have_used_manual(
         _opt: &Options,
         _nw: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+    ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
         Err(rerr!(
             RuwiErrorKind::TestUsedManualWhenNotExpected,
             USED_MANUAL_WHEN_NOT_EXPECTED
@@ -196,7 +196,7 @@ mod tests {
     fn err_should_not_have_used_auto(
         _opt: &Options,
         _nw: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+    ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
         Err(rerr!(
             RuwiErrorKind::TestUsedAutoWhenNotExpected,
             USED_AUTO_WHEN_NOT_EXPECTED
@@ -206,7 +206,7 @@ mod tests {
     fn err_should_not_have_used_auto_no_ask(
         _opt: &Options,
         _nw: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+    ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
         Err(rerr!(
             RuwiErrorKind::TestUsedAutoNoAskWhenNotExpected,
             USED_AUTO_NO_ASK_WHEN_NOT_EXPECTED
@@ -216,7 +216,7 @@ mod tests {
     fn select_first(
         _options: &Options,
         networks: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+    ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
         networks
             .networks
             .iter()
@@ -233,7 +233,7 @@ mod tests {
     fn select_last(
         _options: &Options,
         networks: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+    ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
         networks
             .networks
             .iter()
@@ -250,7 +250,7 @@ mod tests {
     fn fail_to_select(
         _options: &Options,
         _networks: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+    ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
         Err(rerr!(
             RuwiErrorKind::TestDeliberatelyFailedToFindNetworks,
             "No networks found!"
@@ -258,7 +258,7 @@ mod tests {
     }
 
     #[test]
-    fn test_manually_select_first_network() -> Result<(), ErrBox> {
+    fn test_manually_select_first_network() -> Result<(), RuwiError> {
         let options = Options::default();
         assert_eq![options.auto_mode, AutoMode::None];
         let networks = get_3_unknown_networks();
@@ -274,7 +274,7 @@ mod tests {
     }
 
     #[test]
-    fn test_manually_select_last_network() -> Result<(), ErrBox> {
+    fn test_manually_select_last_network() -> Result<(), RuwiError> {
         let options = Options::default();
         assert_eq![options.auto_mode, AutoMode::None];
         let networks = get_3_unknown_networks();
@@ -290,7 +290,7 @@ mod tests {
     }
 
     #[test]
-    fn test_fail_to_manually_select() -> Result<(), ErrBox> {
+    fn test_fail_to_manually_select() -> Result<(), RuwiError> {
         let options = Options::default();
         assert_eq![options.auto_mode, AutoMode::None];
         let networks = get_3_unknown_networks();
@@ -309,7 +309,7 @@ mod tests {
     }
 
     #[test]
-    fn test_auto_first_known() -> Result<(), ErrBox> {
+    fn test_auto_first_known() -> Result<(), RuwiError> {
         let mut options = Options::default();
         options.auto_mode = AutoMode::AutoNoAsk;
 
@@ -326,7 +326,7 @@ mod tests {
     }
 
     #[test]
-    fn test_auto_no_ask_first_known() -> Result<(), ErrBox> {
+    fn test_auto_no_ask_first_known() -> Result<(), RuwiError> {
         let mut options = Options::default();
         options.auto_mode = AutoMode::AutoNoAsk;
 
@@ -343,7 +343,7 @@ mod tests {
     }
 
     #[test]
-    fn test_auto_no_ask_first_known2() -> Result<(), ErrBox> {
+    fn test_auto_no_ask_first_known2() -> Result<(), RuwiError> {
         let mut options = Options::default();
         options.auto_mode = AutoMode::AutoNoAsk;
 
@@ -360,7 +360,7 @@ mod tests {
     }
 
     #[test]
-    fn test_auto_fallback() -> Result<(), ErrBox> {
+    fn test_auto_fallback() -> Result<(), RuwiError> {
         let mut options = Options::default();
         options.auto_mode = AutoMode::Auto;
 
@@ -377,8 +377,8 @@ mod tests {
     }
 
     #[test]
-    fn test_get_indices() -> Result<(), ErrBox> {
-        let test_cases: Vec<(&str, Result<usize, ErrBox>)> = vec![
+    fn test_get_indices() -> Result<(), RuwiError> {
+        let test_cases: Vec<(&str, Result<usize, RuwiError>)> = vec![
             ("1) jfdlskajfdlksa", Ok(1)),
             ("0) jfdlskajfdlksa", Ok(0)),
             ("22) jfdlskajfdlksa", Ok(22)),

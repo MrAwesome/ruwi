@@ -6,7 +6,7 @@ use crate::structs::*;
 //    options: &Options,
 //    network: &AnnotatedWirelessNetwork,
 //    encryption_key: &Option<String>,
-//) -> Vec<Result<OutputResult, ErrBox>> {
+//) -> Vec<Result<OutputResult, RuwiError>> {
 //    options
 //        .output_types
 //        .iter()
@@ -18,7 +18,7 @@ pub(crate) fn send_output(
     options: &Options,
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
-) -> Result<OutputResult, ErrBox> {
+) -> Result<OutputResult, RuwiError> {
     let res = match &options.output_type {
         OutputType::NetctlConfig => netctl_config_write(options, network, encryption_key),
         OutputType::None => Ok(OutputResult {

@@ -70,7 +70,7 @@ use structs::*;
 // TODO(think): consider just supporting netctl for now?
 // TODO(think): make -a the default?
 
-pub fn run_ruwi() -> Result<(), ErrBox> {
+pub fn run_ruwi() -> Result<(), RuwiError> {
     let options = &get_options()?;
     let selected_network = get_selected_network(options)?;
     if !selected_network.known {
@@ -83,7 +83,7 @@ pub fn run_ruwi() -> Result<(), ErrBox> {
     Ok(())
 }
 
-pub fn get_selected_network(options: &Options) -> Result<AnnotatedWirelessNetwork, ErrBox> {
+pub fn get_selected_network(options: &Options) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     if let Some(essid) = &options.given_essid {
         // TODO: make sure known: true is the right option here, or if more control flow is needed
         //       known: true might create issues with creating netctl configs - walk through it on
@@ -111,7 +111,7 @@ pub fn get_selected_network(options: &Options) -> Result<AnnotatedWirelessNetwor
 // until we've found the known network names and used them to annotate the seen networks.
 fn scan_parse_and_annotate_networks_with_retry(
     options: &Options,
-) -> Result<AnnotatedNetworks, ErrBox> {
+) -> Result<AnnotatedNetworks, RuwiError> {
     let annotated_networks_first_attempt = scan_parse_and_annotate_networks(options)?;
 
     Ok(
@@ -137,7 +137,7 @@ fn should_retry_with_synchronous_scan(
     conditions.iter().any(|&x| x)
 }
 
-fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetworks, ErrBox> {
+fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetworks, RuwiError> {
     let (known_network_names, scan_result) = gather_data(options)?;
     let parse_results = parse_result(options, &scan_result)?;
     let annotated_networks =
@@ -145,7 +145,7 @@ fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetwor
     Ok(annotated_networks)
 }
 
-fn gather_data(options: &Options) -> Result<(KnownNetworks, ScanResult), ErrBox> {
+fn gather_data(options: &Options) -> Result<(KnownNetworks, ScanResult), RuwiError> {
     let (opt1, opt2) = (options.clone(), options.clone());
     let get_nw_names = thread::spawn(|| find_known_network_names(opt1));
     let get_scan_results = thread::spawn(|| wifi_scan(opt2));
@@ -171,7 +171,7 @@ mod tests {
     // use super::*;
 
     // #[test]
-    // fn test_run_ruwi() -> Result<(), ErrBox> {
+    // fn test_run_ruwi() -> Result<(), RuwiError> {
     //     run_ruwi()
     // }
 }
