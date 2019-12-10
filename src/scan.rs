@@ -5,7 +5,10 @@ use crate::structs::*;
 use crate::wpa_cli_initialize::initialize_wpa_cli;
 
 use std::process::Output;
+
+#[cfg(not(test))]
 use std::thread;
+#[cfg(not(test))]
 use std::time::Duration;
 
 static ALLOWED_SYNCHRONOUS_RETRIES: u64 = 10;
@@ -94,13 +97,28 @@ fn run_iw_scan(options: &Options) -> Result<ScanResult, RuwiError> {
 
 // TODO: unit test
 fn run_iw_scan_synchronous(options: &Options) -> Result<String, RuwiError> {
+    run_iw_scan_synchronous_impl(options, run_iw_scan_synchronous_cmd)
+}
+
+fn run_iw_scan_synchronous_impl<'a, F>(
+    options: &Options,
+    mut synchronous_scan_func: F,
+) -> Result<String, RuwiError>
+where
+    F: FnMut(&Options) -> Result<Output, RuwiError>,
+{
+    abort_ongoing_iw_scan(&options).ok();
+
     let mut retries = ALLOWED_SYNCHRONOUS_RETRIES;
-    abort_ongoing_iw_scan(options).ok();
     loop {
-        let synchronous_run_output = run_iw_scan_synchronous_cmd(options)?;
-        if synchronous_run_output.status.code() == Some(DEVICE_OR_RESOURCE_BUSY_EXIT_CODE) {
+        let synchronous_run_output = synchronous_scan_func(options)?;
+
+        if synchronous_run_output.status.success() {
+            return Ok(String::from_utf8_lossy(&synchronous_run_output.stdout).to_string());
+        } else if synchronous_run_output.status.code() == Some(DEVICE_OR_RESOURCE_BUSY_EXIT_CODE) {
             retries -= 1;
             if retries > 0 {
+                #[cfg(not(test))]
                 thread::sleep(Duration::from_secs_f64(SYNCHRONOUS_RETRY_DELAY_SECS));
                 continue;
             } else {
@@ -109,13 +127,11 @@ fn run_iw_scan_synchronous(options: &Options) -> Result<String, RuwiError> {
                     IW_SCAN_SYNC_ERR_MSG
                 ));
             }
-        } else if !synchronous_run_output.status.success() {
+        } else {
             return Err(rerr!(
                 RuwiErrorKind::IWSynchronousScanFailed,
                 IW_SCAN_SYNC_ERR_MSG
             ));
-        } else {
-            return Ok(String::from_utf8_lossy(&synchronous_run_output.stdout).to_string());
         }
     }
 }
@@ -158,6 +174,102 @@ fn abort_ongoing_iw_scan(options: &Options) -> Result<String, RuwiError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::process::{Command, Stdio};
+
+    static FAKE_OUTPUT: &str = "LOLWUTFAKEIWLOL";
+    fn command_fail_with_exitcode(code: i32) -> Output {
+        Command::new("/bin/sh")
+            .arg("-c")
+            .arg(format!("exit {}", code))
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()
+            .unwrap()
+    }
+
+    fn command_fail_with_exitcode_1(_options: &Options) -> Result<Output, RuwiError> {
+        Ok(command_fail_with_exitcode(1))
+    }
+
+    fn command_fail_with_device_or_resource_busy(_options: &Options) -> Result<Output, RuwiError> {
+        Ok(command_fail_with_exitcode(
+            DEVICE_OR_RESOURCE_BUSY_EXIT_CODE,
+        ))
+    }
+
+    fn command_pass(_opts: &Options) -> Result<Output, RuwiError> {
+        Ok(Command::new("/bin/echo")
+            .arg(FAKE_OUTPUT)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()
+            .unwrap())
+    }
+
+    #[test]
+    fn test_synchronous_scan_pass() {
+        let options = &Options::default();
+        let res = run_iw_scan_synchronous_impl(options, command_pass);
+
+        assert_eq![res.ok().unwrap().trim(), FAKE_OUTPUT];
+    }
+
+    #[test]
+    fn test_synchronous_scan_failed() {
+        let options = &Options::default();
+        let res = run_iw_scan_synchronous_impl(options, command_fail_with_exitcode_1);
+
+        assert_eq![
+            res.err().unwrap().kind,
+            RuwiErrorKind::IWSynchronousScanFailed
+        ];
+    }
+
+    #[test]
+    fn test_synchronous_scan_ran_out_of_retries() {
+        let options = &Options::default();
+        let res = run_iw_scan_synchronous_impl(options, command_fail_with_device_or_resource_busy);
+
+        assert_eq![
+            res.err().unwrap().kind,
+            RuwiErrorKind::IWSynchronousScanRanOutOfRetries
+        ];
+    }
+
+    #[test]
+    fn test_synchronous_scan_retried_successfully() {
+        let options = &Options::default();
+        let mut allowed_retries = 2;
+        let res = run_iw_scan_synchronous_impl(options, |opts| {
+            allowed_retries -= 1;
+            if allowed_retries > 0 {
+                command_fail_with_device_or_resource_busy(opts)
+            } else {
+                command_pass(opts)
+            }
+        });
+
+        assert_eq![res.ok().unwrap().trim(), FAKE_OUTPUT];
+    }
+
+    #[test]
+    fn test_synchronous_scan_ran_out_of_retries_explicit() {
+        let options = &Options::default();
+        let mut allowed_retries = ALLOWED_SYNCHRONOUS_RETRIES + 1;
+        let res = run_iw_scan_synchronous_impl(options, |opts| {
+            allowed_retries -= 1;
+            if allowed_retries > 0 {
+                command_fail_with_device_or_resource_busy(opts)
+            } else {
+                command_pass(opts)
+            }
+        });
+
+        assert_eq![
+            res.err().unwrap().kind,
+            RuwiErrorKind::IWSynchronousScanRanOutOfRetries
+        ];
+    }
 
     #[test]
     fn test_enough_time_to_retry() {
