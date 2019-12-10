@@ -1,7 +1,7 @@
 use crate::select::*;
 use crate::structs::*;
 
-pub(crate) fn get_password(
+pub(crate) fn possibly_get_encryption_key(
     options: &Options,
     selected_network: &AnnotatedWirelessNetwork,
 ) -> Result<Option<String>, RuwiError> {
@@ -10,27 +10,28 @@ pub(crate) fn get_password(
     // * the output type we have doesn't require a password
     // * the network isn't wpa
     // TODO(high): unit test this
-    let pw = match &options.given_password {
-        Some(pw) => Ok(Some(pw.clone())),
-        None => match options.output_type {
-            OutputType::NetctlConfig | OutputType::NetworkManagerConfig => {
-                if selected_network.is_encrypted {
-                    Ok(Some(prompt_for_password(options, &selected_network.essid)?))
+    let pw = match &options.given_encryption_key {
+        Some(pw) => Some(pw.clone()),
+        None => match options.connect_via {
+            ConnectionType::Netctl => {
+                if !selected_network.known && selected_network.is_encrypted {
+                    Some(prompt_for_encryption_key(options, &selected_network.essid)?)
                 } else {
-                    Ok(None)
+                    None
                 }
             }
-            _ => Ok(None),
+            _ => panic!("Not implemented!"),
         },
     };
 
     if options.debug {
         dbg![&pw];
     }
-    pw
+
+    Ok(pw)
 }
 
-pub(crate) fn prompt_for_password(
+pub(crate) fn prompt_for_encryption_key(
     options: &Options,
     network_name: &str,
 ) -> Result<String, RuwiError> {

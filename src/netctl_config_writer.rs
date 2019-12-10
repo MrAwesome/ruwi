@@ -9,7 +9,7 @@ pub(crate) fn netctl_config_write(
     options: &Options,
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
-) -> Result<OutputResult, RuwiError> {
+) -> Result<ConfigResult, RuwiError> {
     let contents = get_netctl_config_contents(options, network, encryption_key);
 
     let netctl_file_name = get_netctl_file_name(&network.essid);
@@ -21,11 +21,17 @@ pub(crate) fn netctl_config_write(
         .map_err(|e| rerr!(RuwiErrorKind::FailedToWriteNetctlConfig, e.description()))?;
 
     eprintln!("[NOTE]: Wrote netctl config: {}", &fullpath);
-    eprintln!("[NOTE]: If you encounter problems with your connection, try editing that file directly and/or running `netctl switch-to {}` as root.", netctl_file_name);
+    eprintln!(
+        "[NOTE]: If you encounter problems with your connection, try 
+        editing that file directly and/or running `netctl switch-to {}` as root.",
+        netctl_file_name
+    );
 
-    Ok(OutputResult {
-        output_type: OutputType::NetctlConfig,
-        output_output: None,
+    Ok(ConfigResult {
+        connection_type: ConnectionType::Netctl,
+        config_data: ConfigData {
+            config_path: Some(fullpath),
+        },
     })
 }
 

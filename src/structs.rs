@@ -2,7 +2,6 @@ use crate::rerr;
 use std::error::Error;
 use std::fmt;
 use std::fmt::Debug;
-use std::process::Output;
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
 pub static PROG_NAME: &str = "ruwi";
@@ -26,9 +25,9 @@ pub enum RuwiErrorKind {
     IWSynchronousScanRanOutOfRetries,
     KnownNetworksFetchError,
     MalformedIWOutput,
+    NoInterfacesFoundWithIW,
     NoKnownNetworksFound,
     NoNetworksFoundMatchingSelectionResult,
-    NoNetworksFoundWithIW,
     NoNetworksSeenWithIWScanDump,
     NoNetworksSeenWithWPACliScanResults,
     NotImplementedError,
@@ -80,24 +79,6 @@ impl Default for ScanType {
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
 #[strum(serialize_all = "snake_case")]
-pub enum OutputType {
-    None,
-    PrintSelectedNetwork,
-    PrintSelectedNetworkInfo,
-    NetctlConfig,
-    #[strum(serialize = "networkmanager_config")]
-    NetworkManagerConfig,
-}
-
-impl Default for OutputType {
-    fn default() -> Self {
-        // TODO: come up with a better value
-        OutputType::NetctlConfig
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
-#[strum(serialize_all = "snake_case")]
 pub enum SelectionMethod {
     Dmenu,
     Fzf,
@@ -141,11 +122,10 @@ pub struct Options {
     pub scan_type: ScanType,
     pub selection_method: SelectionMethod,
     pub interface: String,
-    pub output_type: OutputType,
     pub connect_via: ConnectionType,
     pub debug: bool,
     pub given_essid: Option<String>,
-    pub given_password: Option<String>,
+    pub given_encryption_key: Option<String>,
     pub auto_mode: AutoMode,
     pub force_synchronous_scan: bool,
 }
@@ -156,11 +136,10 @@ impl Default for Options {
             scan_type: ScanType::IW,
             interface: "some_fake_name".to_string(),
             selection_method: SelectionMethod::Fzf,
-            output_type: OutputType::None,
             connect_via: ConnectionType::None,
             debug: true,
             given_essid: None,
-            given_password: None,
+            given_encryption_key: None,
             auto_mode: AutoMode::None,
             force_synchronous_scan: false,
         }
@@ -283,9 +262,15 @@ impl From<AnnotatedNetworks> for SortedUniqueNetworks {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct OutputResult {
-    pub output_type: OutputType,
-    pub output_output: Option<Output>,
+pub struct ConfigResult {
+    pub connection_type: ConnectionType,
+    pub config_data: ConfigData,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct ConfigData {
+    pub config_path: Option<String>,
+    //command_run: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -294,12 +279,6 @@ pub struct ConnectionResult {
     pub cmd_output: Option<String>,
     //ipv4_addr: Option<String>,
     //ipv6_addr: Option<String>,
-}
-
-#[derive(Debug)]
-pub struct RuwiResult {
-    pub output_result: OutputResult,
-    pub connection_result: ConnectionResult,
 }
 
 pub(crate) fn nie<T: Debug>(prog: T) -> RuwiError {

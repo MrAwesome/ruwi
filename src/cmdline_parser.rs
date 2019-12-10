@@ -62,13 +62,6 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .possible_values(&possible_vals::<SelectionMethod, _>())
         .help("The program to use to prompt for input.");
 
-    let output_type = Arg::with_name("output_type")
-        .short("o")
-        .long("output-type")
-        .default_value(&OutputType::default().as_static())
-        .possible_values(&possible_vals::<OutputType, _>())
-        .help("The program to use to prompt for input.");
-
     let connect_via = Arg::with_name("connect_via")
         .short("c")
         .long("connect-via")
@@ -87,7 +80,6 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .arg(essid)
         .arg(force_synchronous)
         .arg(interface)
-        .arg(output_type)
         .arg(password)
         .arg(scan_type)
         .arg(selection_method)
@@ -112,7 +104,7 @@ fn get_options_impl<'a>(m: ArgMatches<'a>) -> Result<Options, RuwiError> {
     let force_synchronous_scan = m.is_present("force_synchronous_scan");
 
     let given_essid = m.value_of("essid").map(String::from);
-    let given_password = m.value_of("password").map(String::from);
+    let given_encryption_key = m.value_of("password").map(String::from);
     let interface = match m.value_of("interface") {
         Some(val) => String::from(val),
         None => get_default_interface(debug)?,
@@ -120,18 +112,16 @@ fn get_options_impl<'a>(m: ArgMatches<'a>) -> Result<Options, RuwiError> {
 
     let scan_type = get_val_as_enum::<ScanType>(&m, "scan_type");
     let selection_method = get_val_as_enum::<SelectionMethod>(&m, "selection_method");
-    let output_type = get_val_as_enum::<OutputType>(&m, "output_type");
     let connect_via = get_val_as_enum::<ConnectionType>(&m, "connect_via");
 
     let opts = Options {
         scan_type,
         selection_method,
-        output_type,
         interface,
         connect_via,
         debug,
         given_essid,
-        given_password,
+        given_encryption_key,
         auto_mode,
         force_synchronous_scan,
     };
@@ -201,17 +191,6 @@ mod tests {
         let expected = ScanType::IW.to_string();
         let opts = getopts(&["--scan-type", expected.as_ref()]);
         assert_eq![opts.scan_type.to_string(), expected];
-    }
-
-    #[test]
-    fn test_output_type() {
-        let expected = OutputType::NetctlConfig.to_string();
-        let opts = getopts(&["-o", expected.as_ref()]);
-        assert_eq![opts.output_type.to_string(), expected];
-
-        let expected = OutputType::NetworkManagerConfig.to_string();
-        let opts = getopts(&["--output-type", expected.as_ref()]);
-        assert_eq![opts.output_type.to_string(), expected];
     }
 
     #[test]

@@ -102,7 +102,7 @@ fn select_first_known(
     networks
         .networks
         .iter()
-        .find(|nw| nw.known == true)
+        .find(|nw| nw.known)
         .ok_or_else(|| {
             rerr!(
                 RuwiErrorKind::NoKnownNetworksFound,
@@ -124,7 +124,7 @@ where
     G: FnOnce(&'a Options, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, RuwiError>,
     H: FnOnce(&'a Options, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, RuwiError>,
 {
-    let selected_network = match &options.auto_mode {
+    let selected_network_res = match &options.auto_mode {
         AutoMode::None => manual_selector(options, networks),
         AutoMode::Auto => {
             auto_selector(options, networks).or_else(|_| manual_selector(options, networks))
@@ -132,13 +132,16 @@ where
         AutoMode::AutoNoAsk => auto_no_ask_selector(options, networks),
     };
 
-    let todo = "sensible error messages for when auto no ask fails";
-    let todo = "eprintln! that you've found a network and what the ssid is";
+    // TODO: sensible error messages for when auto no ask fails
+
+    if let Ok(nw) = &selected_network_res {
+        eprintln!("Selected network: \"{}\"", nw.essid);
+    }
 
     if options.debug {
-        dbg![&selected_network];
+        dbg![&selected_network_res];
     }
-    selected_network
+    selected_network_res
 }
 
 #[cfg(test)]

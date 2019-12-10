@@ -20,12 +20,9 @@ impl Deref for KnownNetworks {
 }
 
 pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworks, RuwiError> {
-    let known_network_names = if options.output_type == OutputType::NetctlConfig
-        || options.connect_via == ConnectionType::Netctl
-    {
-        find_known_netctl_networks()
-    } else {
-        Ok(KnownNetworks(HashSet::new()))
+    let known_network_names = match options.connect_via {
+        ConnectionType::Netctl => find_known_netctl_networks(),
+        _ => panic!("Not implemented"),
     };
 
     if options.debug {

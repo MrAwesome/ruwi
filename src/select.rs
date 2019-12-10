@@ -46,9 +46,8 @@ fn run_stdin_prompt_single_line_impl(
     print!("{}", prompt);
     io::stdout().flush()?;
     let stdin = io::stdin();
-    let line =
-        stdin.lock().lines().next().ok_or_else(|| {
-            io::Error::new(io::ErrorKind::InvalidInput, "Failed to read from stdin.")
-        })?;
-    line
+    let line_res = stdin.lock().lines().next();
+
+    line_res
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "Failed to read from stdin."))?
 }

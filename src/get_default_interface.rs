@@ -35,7 +35,7 @@ fn get_interface_with_iw(debug: bool) -> Result<String, RuwiError> {
             err_msg,
         )?;
 
-        return get_interface_from_iw_output(&iw_dev_output);
+        get_interface_from_iw_output(&iw_dev_output)
     }
 }
 
@@ -57,7 +57,7 @@ fn get_interface_from_iw_output(iw_output: &str) -> Result<String, RuwiError> {
     match interfaces.first() {
         Some(intf) => Ok(intf.to_string()),
         None => Err(rerr!(
-            RuwiErrorKind::NoNetworksFoundWithIW,
+            RuwiErrorKind::NoInterfacesFoundWithIW,
             "No interfaces found with `iw dev`!"
         )),
     }

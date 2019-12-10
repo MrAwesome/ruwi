@@ -34,9 +34,8 @@ pub(crate) fn wifi_scan(options: Options) -> Result<ScanResult, RuwiError> {
         // TODO: Add nmcli scan
         // nmcli device wifi rescan
         // nmcli device wifi list
+        // for iwlist, you can scan with scan and dump with scan_last
     };
-
-    let todo = "for iwlist, you can scan with scan and dump with scan_last";
 
     if options.debug {
         dbg![&res];

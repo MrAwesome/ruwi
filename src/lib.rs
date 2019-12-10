@@ -14,15 +14,15 @@ extern crate strum_macros;
 
 pub(crate) mod annotate_networks;
 pub(crate) mod cmdline_parser;
+pub(crate) mod configure_network;
 pub(crate) mod connect;
 pub(crate) mod display_network_for_selection;
+pub(crate) mod encryption_key;
 pub(crate) mod find_known_network_names;
 pub(crate) mod get_default_interface;
 pub(crate) mod interface_management;
 pub(crate) mod netctl_config_writer;
-pub(crate) mod output;
 pub(crate) mod parse;
-pub(crate) mod password_prompt;
 pub(crate) mod run_commands;
 pub(crate) mod scan;
 pub(crate) mod select;
@@ -36,11 +36,11 @@ pub(crate) mod wpa_cli_initialize;
 
 use annotate_networks::*;
 use cmdline_parser::*;
+use configure_network::*;
 use connect::*;
+use encryption_key::*;
 use find_known_network_names::*;
-use output::*;
 use parse::*;
-use password_prompt::*;
 use scan::*;
 use select_network::*;
 use sort_networks::*;
@@ -72,36 +72,44 @@ use structs::*;
 
 pub fn run_ruwi() -> Result<(), RuwiError> {
     let options = &get_options()?;
-    let selected_network = get_selected_network(options)?;
-    if !selected_network.known {
-        let encryption_key = get_password(options, &selected_network)?;
-        // TODO: still do output for types which aren't config-based (like "print selected network")?
-        let _output_result = send_output(options, &selected_network, &encryption_key)?;
+    // let command = options.command;
+    // match command {
+    // }
+    // This is the primary run type / command. What are others?
+    {
+        let selected_network = use_given_or_scan_and_select_network(options)?;
+        let encryption_key = possibly_get_encryption_key(options, &selected_network)?;
+        let _output_result =
+            possibly_configure_network(options, &selected_network, &encryption_key)?;
+        let _connection_result = connect_to_network(options, &selected_network)?;
     }
-
-    let _connection_result = connect_to_network(options, &selected_network)?;
     Ok(())
 }
 
-pub fn get_selected_network(options: &Options) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-    if let Some(essid) = &options.given_essid {
-        // TODO: make sure known: true is the right option here, or if more control flow is needed
-        //       known: true might create issues with creating netctl configs - walk through it on
-        //       paper to find out
-        //  TODO: decide if this functionality is worth supporting.
-        let is_known = true; // ????
-        let is_encrypted = options.given_password.is_some();
-        Ok(AnnotatedWirelessNetwork::from_essid(
-            essid.clone(),
-            is_known,
-            is_encrypted,
-        ))
-    } else {
-        let annotated_networks = scan_parse_and_annotate_networks_with_retry(options)?;
-        let sorted_networks = sort_and_filter_networks(options, annotated_networks);
-        let selected_network = select_network(options, &sorted_networks)?;
-        Ok(selected_network)
+fn use_given_or_scan_and_select_network(
+    options: &Options,
+) -> Result<AnnotatedWirelessNetwork, RuwiError> {
+    match &options.given_essid {
+        Some(essid) => Ok(get_network_from_given_essid(options, essid)),
+        None => scan_and_select_network(options),
     }
+}
+
+fn get_network_from_given_essid(options: &Options, essid: &str) -> AnnotatedWirelessNetwork {
+    // TODO: make sure known: true is the right option here, or if more control flow is needed
+    //       known: true might create issues with creating netctl configs - walk through it on
+    //       paper to find out
+    //  TODO: decide if this functionality is worth supporting.
+    //
+    let is_known = true; // ????
+    let is_encrypted = options.given_encryption_key.is_some();
+    AnnotatedWirelessNetwork::from_essid(essid.into(), is_known, is_encrypted)
+}
+
+fn scan_and_select_network(options: &Options) -> Result<AnnotatedWirelessNetwork, RuwiError> {
+    let annotated_networks = scan_parse_and_annotate_networks_with_retry(options)?;
+    let sorted_networks = sort_and_filter_networks(options, annotated_networks);
+    select_network(options, &sorted_networks)
 }
 
 // In automatic mode, we want to make a strong attempt to prioritize known networks.
@@ -112,16 +120,14 @@ pub fn get_selected_network(options: &Options) -> Result<AnnotatedWirelessNetwor
 fn scan_parse_and_annotate_networks_with_retry(
     options: &Options,
 ) -> Result<AnnotatedNetworks, RuwiError> {
-    let annotated_networks_first_attempt = scan_parse_and_annotate_networks(options)?;
+    let annotated_networks = scan_parse_and_annotate_networks(options)?;
 
-    Ok(
-        if should_retry_with_synchronous_scan(options, &annotated_networks_first_attempt) {
-            eprintln!("[NOTE]: No known networks seen in auto mode using cached scan results. Manually scanning now. ");
-            scan_parse_and_annotate_networks(&options.with_synchronous_scan())?
-        } else {
-            annotated_networks_first_attempt
-        },
-    )
+    if should_retry_with_synchronous_scan(options, &annotated_networks) {
+        eprintln!("[NOTE]: No known networks seen in auto mode using cached scan results. Manually scanning now. ");
+        scan_parse_and_annotate_networks(&options.with_synchronous_scan())
+    } else {
+        Ok(annotated_networks)
+    }
 }
 
 fn should_retry_with_synchronous_scan(
