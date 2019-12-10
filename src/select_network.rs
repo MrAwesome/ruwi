@@ -130,7 +130,7 @@ where
     // TODO: sensible error messages for when auto no ask fails
 
     if let Ok(nw) = &selected_network_res {
-        eprintln!("Selected network: \"{}\"", nw.essid);
+        eprintln!("[NOTE]: Selected network: \"{}\"", nw.essid);
     }
 
     if options.debug {
