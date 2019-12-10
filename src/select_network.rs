@@ -45,17 +45,12 @@ fn prompt_user_for_selection(
 
     let index = get_index_of_selected_item(&selected_network_line)?;
 
-    networks
-        .networks
-        .iter()
-        .nth(index)
-        .map(|x| x.clone())
-        .ok_or_else(|| {
-            rerr!(
-                RuwiErrorKind::NoNetworksFoundMatchingSelectionResult,
-                format!("No network matching {} found.", selected_network_line)
-            )
-        })
+    networks.networks.get(index).cloned().ok_or_else(|| {
+        rerr!(
+            RuwiErrorKind::NoNetworksFoundMatchingSelectionResult,
+            format!("No network matching {} found.", selected_network_line)
+        )
+    })
 }
 
 fn get_index_of_selected_item(line: &str) -> Result<usize, RuwiError> {

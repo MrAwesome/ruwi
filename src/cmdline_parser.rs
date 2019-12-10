@@ -90,7 +90,7 @@ pub fn get_options() -> Result<Options, RuwiError> {
     get_options_impl(m)
 }
 
-fn get_options_impl<'a>(m: ArgMatches<'a>) -> Result<Options, RuwiError> {
+fn get_options_impl(m: ArgMatches) -> Result<Options, RuwiError> {
     let debug = m.is_present("debug");
 
     let auto_mode = if m.is_present("auto_no_ask") {
