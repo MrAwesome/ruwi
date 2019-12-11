@@ -58,6 +58,7 @@ use structs::*;
 // TODO(mid): figure out if networkmanager connection add with wifi password works - looks like not, just fail if output networkmanager is chosen without connection (or combine output and connection as a single concept, and have "print" as one)
 // TODO(mid): add integration test, which takes -e and -p, doesn't try to connect, make sure it creates a netctl config?
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
+// TODO(low): move majority of code from here into another file
 // TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
 // TODO(wishlist): json scan output mode
 // TODO(wishlist): find a generalized way to do x notifications, for dmenu mode, use to surface failures
@@ -91,7 +92,7 @@ fn use_given_or_scan_and_select_network(
 ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     match &options.given_essid {
         Some(essid) => Ok(get_network_from_given_essid(options, essid)),
-        None => scan_and_select_network(options),
+        None => scan_and_select_network_with_retry(options),
     }
 }
 
@@ -104,6 +105,24 @@ fn get_network_from_given_essid(options: &Options, essid: &str) -> AnnotatedWire
     let is_known = true; // ????
     let is_encrypted = options.given_encryption_key.is_some();
     AnnotatedWirelessNetwork::from_essid(essid.into(), is_known, is_encrypted)
+}
+
+fn scan_and_select_network_with_retry(
+    options: &Options,
+) -> Result<AnnotatedWirelessNetwork, RuwiError> {
+    match scan_and_select_network(options) {
+        Err(err) => match err.kind {
+            // TODO: create "refresh_fast" and "refresh_slow"
+            RuwiErrorKind::RefreshRequested => scan_and_select_network_with_retry(
+                &options.with_synchronous_retry(SynchronousRetryType::ManuallyRequested),
+            ),
+            RuwiErrorKind::RetryWithSynchronousScan => scan_and_select_network(
+                &options.with_synchronous_retry(SynchronousRetryType::Automatic),
+            ),
+            _ => Err(err),
+        },
+        x => x,
+    }
 }
 
 fn scan_and_select_network(options: &Options) -> Result<AnnotatedWirelessNetwork, RuwiError> {
@@ -120,27 +139,32 @@ fn scan_and_select_network(options: &Options) -> Result<AnnotatedWirelessNetwork
 fn scan_parse_and_annotate_networks_with_retry(
     options: &Options,
 ) -> Result<AnnotatedNetworks, RuwiError> {
-    let annotated_networks = scan_parse_and_annotate_networks(options)?;
+    let annotated_networks_res = scan_parse_and_annotate_networks(options);
 
-    if should_retry_with_synchronous_scan(options, &annotated_networks) {
-        eprintln!("[NOTE]: No known networks seen in auto mode using cached scan results. Manually scanning now. ");
-        scan_parse_and_annotate_networks(&options.with_synchronous_scan())
-    } else {
-        Ok(annotated_networks)
+    if let Ok(annotated_networks) = &annotated_networks_res {
+        if should_retry_with_synchronous_scan(options, &annotated_networks) {
+            eprintln!("[NOTE]: No known networks seen in auto mode using cached scan results. Manually scanning now. ");
+            return Err(rerr!(
+                RuwiErrorKind::RetryWithSynchronousScan,
+                "Attempting synchonous retry."
+            ));
+        }
     }
+    Ok(annotated_networks_res?)
 }
 
 fn should_retry_with_synchronous_scan(
-    opts: &Options,
+    options: &Options,
     annotated_networks: &AnnotatedNetworks,
 ) -> bool {
     // TODO: possibly just rerun everything in synchronous mode if any problems are encountered?
-    let is_an_auto_mode = opts.auto_mode == AutoMode::Auto || opts.auto_mode == AutoMode::AutoNoAsk;
+    // TODO: unit test
+    let todo = "manual retry more than once is broken";
+    // not necessary since you can just not recurse in automatic mode above
+    let is_an_auto_mode =
+        options.auto_mode == AutoMode::Auto || options.auto_mode == AutoMode::AutoNoAsk;
     let known_network_found = annotated_networks.networks.iter().any(|x| x.known);
-    let no_known_networks_found_in_auto_modes = is_an_auto_mode && !known_network_found;
-
-    let conditions = vec![no_known_networks_found_in_auto_modes];
-    conditions.iter().any(|&x| x)
+    is_an_auto_mode && !known_network_found
 }
 
 fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetworks, RuwiError> {
@@ -148,6 +172,7 @@ fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetwor
     let parse_results = parse_result(options, &scan_result)?;
     let annotated_networks =
         annotate_networks(options, &parse_results.seen_networks, &known_network_names);
+
     Ok(annotated_networks)
 }
 

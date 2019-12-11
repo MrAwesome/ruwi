@@ -124,6 +124,7 @@ fn get_options_impl(m: ArgMatches) -> Result<Options, RuwiError> {
         given_encryption_key,
         auto_mode,
         force_synchronous_scan,
+        ..Default::default()
     };
 
     if opts.debug {

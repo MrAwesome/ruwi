@@ -20,6 +20,7 @@ pub(crate) fn possibly_get_encryption_key(
                     None
                 }
             }
+            ConnectionType::None => None,
             _ => panic!("Not implemented!"),
         },
     };

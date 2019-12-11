@@ -16,14 +16,28 @@ pub(crate) fn connect_to_network(
         x => Err(nie(x)),
     };
 
+    let todo = "retry connection once if failed";
+
     if options.debug {
         dbg![&res];
     }
 
-    eprintln!(
-        "[NOTE]: Successfully connected to: \"{}\"",
-        &selected_network.essid
-    );
+    if let Ok(connection_result) = &res {
+        match &connection_result.connection_type {
+            conn_type @ ConnectionType::None => {
+                eprintln!(
+                    "[NOTE]: Running in `{}` connection mode, so did not connect to: \"{}\"",
+                    conn_type, &selected_network.essid
+                );
+            }
+            _ => {
+                eprintln!(
+                    "[NOTE]: Successfully connected to: \"{}\"",
+                    &selected_network.essid
+                );
+            }
+        }
+    }
 
     res
 }

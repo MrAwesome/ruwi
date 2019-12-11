@@ -3,8 +3,27 @@ use crate::rerr;
 use crate::select::*;
 use crate::structs::*;
 
+use crate::strum_utils::possible_vals;
+
+#[cfg(not(test))]
+use std::str::FromStr;
+
+fn get_possible_selection_options_as_strings() -> Vec<String> {
+    possible_vals::<SelectionOption, _>()
+        .iter()
+        .map(|&x| x.into())
+        .collect()
+}
+
 impl SortedUniqueNetworks {
     pub fn get_tokens_for_selection(&self) -> Vec<String> {
+        self.get_network_tokens()
+            .into_iter()
+            .chain(get_possible_selection_options_as_strings())
+            .collect()
+    }
+
+    pub fn get_network_tokens(&self) -> Vec<String> {
         self.networks
             .iter()
             .enumerate()
@@ -32,7 +51,7 @@ fn prompt_user_for_selection(
     networks: &SortedUniqueNetworks,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     let selection_tokens = networks.get_tokens_for_selection();
-    let selected_network_line = match &options.selection_method {
+    let selector_output = match &options.selection_method {
         SelectionMethod::Dmenu => run_dmenu(
             &options,
             &"Select a network: ".to_string(),
@@ -42,15 +61,24 @@ fn prompt_user_for_selection(
             run_fzf(&options, &"Select a network:".to_string(), selection_tokens)
         }
     }?;
+    let selector_output = selector_output.trim();
 
-    let index = get_index_of_selected_item(&selected_network_line)?;
+    if let Ok(selection_option) = SelectionOption::from_str(selector_output) {
+        match selection_option {
+            SelectionOption::Refresh => {
+                Err(rerr!(RuwiErrorKind::RefreshRequested, "Refresh requested."))
+            }
+        }
+    } else {
+        let index = get_index_of_selected_item(&selector_output)?;
 
-    networks.networks.get(index).cloned().ok_or_else(|| {
-        rerr!(
-            RuwiErrorKind::NoNetworksFoundMatchingSelectionResult,
-            format!("No network matching {} found.", selected_network_line)
-        )
-    })
+        networks.networks.get(index).cloned().ok_or_else(|| {
+            rerr!(
+                RuwiErrorKind::NoNetworksFoundMatchingSelectionResult,
+                format!("No network matching {} found.", selector_output)
+            )
+        })
+    }
 }
 
 fn get_index_of_selected_item(line: &str) -> Result<usize, RuwiError> {
@@ -142,6 +170,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::strum::AsStaticRef;
 
     static FIRST_NW_NAME: &str = "FIRSTNWLOL";
     static SECND_NW_NAME: &str = "SECNDNWWUT";
@@ -245,6 +274,13 @@ mod tests {
             .map(|x| x.clone())
     }
 
+    fn select_refresh(
+        _options: &Options,
+        _networks: &SortedUniqueNetworks,
+    ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
+        Err(rerr!(RuwiErrorKind::RefreshRequested, "Refresh requested."))
+    }
+
     fn fail_to_select(
         _options: &Options,
         _networks: &SortedUniqueNetworks,
@@ -288,22 +324,18 @@ mod tests {
     }
 
     #[test]
-    fn test_fail_to_manually_select() -> Result<(), RuwiError> {
+    fn test_fail_to_manually_select() {
         let options = Options::default();
         assert_eq![options.auto_mode, AutoMode::None];
         let networks = get_3_unknown_networks();
-        let nw = select_network_impl(
+        let res = select_network_impl(
             &options,
             &networks,
             select_first_known,
             err_should_not_have_used_auto,
             err_should_not_have_used_auto_no_ask,
         );
-        match nw {
-            Ok(_) => panic!(),
-            Err(err) => assert_eq![RuwiErrorKind::NoKnownNetworksFound, err.kind],
-        };
-        Ok(())
+        assert_eq![RuwiErrorKind::NoKnownNetworksFound, res.err().unwrap().kind];
     }
 
     #[test]
@@ -372,6 +404,24 @@ mod tests {
         )?;
         assert_eq![networks.networks[0], nw];
         Ok(())
+    }
+
+    #[test]
+    fn test_manually_refresh() {
+        let options = Options::default();
+        assert_eq![options.auto_mode, AutoMode::None];
+        let networks = get_3_unknown_networks();
+        assert![networks
+            .get_tokens_for_selection()
+            .contains(&SelectionOption::Refresh.as_static().into())];
+        let res = select_network_impl(
+            &options,
+            &networks,
+            select_refresh,
+            err_should_not_have_used_auto,
+            err_should_not_have_used_auto_no_ask,
+        );
+        assert_eq![RuwiErrorKind::RefreshRequested, res.err().unwrap().kind];
     }
 
     #[test]

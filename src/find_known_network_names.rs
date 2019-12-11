@@ -12,6 +12,12 @@ use unescape::unescape;
 #[derive(Debug)]
 pub struct KnownNetworks(HashSet<String>);
 
+impl Default for KnownNetworks {
+    fn default() -> Self {
+        KnownNetworks(HashSet::new())
+    }
+}
+
 impl Deref for KnownNetworks {
     type Target = HashSet<String>;
     fn deref(&self) -> &HashSet<String> {
@@ -22,6 +28,7 @@ impl Deref for KnownNetworks {
 pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworks, RuwiError> {
     let known_network_names = match options.connect_via {
         ConnectionType::Netctl => find_known_netctl_networks(),
+        ConnectionType::None => Ok(Default::default()),
         _ => panic!("Not implemented"),
     };
 
@@ -45,7 +52,7 @@ fn find_known_netctl_networks() -> io::Result<KnownNetworks> {
 
         Ok(KnownNetworks(known_essids))
     } else {
-        Ok(KnownNetworks(HashSet::new()))
+        Ok(Default::default())
     }
 }
 

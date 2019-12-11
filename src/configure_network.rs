@@ -41,6 +41,10 @@ fn configure_network(
 ) -> Result<ConfigResult, RuwiError> {
     match &options.connect_via {
         ConnectionType::Netctl => netctl_config_write(options, network, encryption_key),
+        ConnectionType::None => Ok(ConfigResult {
+            connection_type: ConnectionType::None,
+            config_data: Default::default(),
+        }),
         _ => panic!("Not implemented."),
     }
 }

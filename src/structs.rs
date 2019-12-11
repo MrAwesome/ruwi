@@ -33,10 +33,13 @@ pub enum RuwiErrorKind {
     NotImplementedError,
     PromptCommandFailed,
     PromptCommandSpawnFailed,
+    RefreshRequested,
+    RetryWithSynchronousScan,
     SingleLinePromptFailed,
     TestCmdLineOptParserSafeFailed,
     TestDeliberatelyFailedToFindNetworks,
     TestNoNetworksFoundWhenLookingForFirst,
+    TestNoRefreshOptionFound,
     TestNoNetworksFoundWhenLookingForLast,
     TestUsedAutoNoAskWhenNotExpected,
     TestUsedAutoWhenNotExpected,
@@ -92,6 +95,12 @@ impl Default for SelectionMethod {
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
 #[strum(serialize_all = "snake_case")]
+pub enum SelectionOption {
+    Refresh,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
+#[strum(serialize_all = "snake_case")]
 pub enum ConnectionType {
     None,
     Netctl,
@@ -117,6 +126,12 @@ impl Default for AutoMode {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SynchronousRetryType {
+    ManuallyRequested,
+    Automatic,
+}
+
 #[derive(Debug, Clone)]
 pub struct Options {
     pub scan_type: ScanType,
@@ -128,6 +143,7 @@ pub struct Options {
     pub given_encryption_key: Option<String>,
     pub auto_mode: AutoMode,
     pub force_synchronous_scan: bool,
+    pub synchronous_retry: Option<SynchronousRetryType>,
 }
 
 impl Default for Options {
@@ -142,14 +158,15 @@ impl Default for Options {
             given_encryption_key: None,
             auto_mode: AutoMode::None,
             force_synchronous_scan: false,
+            synchronous_retry: None,
         }
     }
 }
 
 impl Options {
-    pub fn with_synchronous_scan(&self) -> Self {
+    pub fn with_synchronous_retry(&self, t: SynchronousRetryType) -> Self {
         Options {
-            force_synchronous_scan: true,
+            synchronous_retry: Some(t.clone()),
             ..self.clone()
         }
     }

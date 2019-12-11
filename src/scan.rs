@@ -77,7 +77,7 @@ fn run_wpa_cli_scan(options: &Options) -> Result<ScanResult, RuwiError> {
 // TODO: unit test
 fn run_iw_scan(options: &Options) -> Result<ScanResult, RuwiError> {
     bring_interface_up(options)?;
-    let scan_output = if options.force_synchronous_scan {
+    let scan_output = if options.force_synchronous_scan || options.synchronous_retry.is_some() {
         run_iw_scan_synchronous(options)?
     } else {
         let mut scan_output = run_iw_scan_dump(options)?;
@@ -100,7 +100,7 @@ fn run_iw_scan_synchronous(options: &Options) -> Result<String, RuwiError> {
     run_iw_scan_synchronous_impl(options, run_iw_scan_synchronous_cmd)
 }
 
-fn run_iw_scan_synchronous_impl<'a, F>(
+fn run_iw_scan_synchronous_impl<F>(
     options: &Options,
     mut synchronous_scan_func: F,
 ) -> Result<String, RuwiError>
