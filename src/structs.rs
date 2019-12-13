@@ -125,6 +125,8 @@ pub enum ConnectionType {
     Netctl,
     #[strum(serialize = "networkmanager")]
     NetworkManager,
+    Print,
+    // PrintWithPassword
 }
 
 impl Default for ConnectionType {
@@ -315,7 +317,7 @@ pub struct ConfigData {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConnectionResult {
     pub connection_type: ConnectionType,
-    pub cmd_output: Option<String>,
+    //pub cmd_output: Option<String>,
     //ipv4_addr: Option<String>,
     //ipv6_addr: Option<String>,
 }

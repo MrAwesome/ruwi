@@ -39,11 +39,14 @@ fn configure_network(
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> Result<ConfigResult, RuwiError> {
-    match &options.connect_via {
+    let cv = &options.connect_via;
+    match cv {
         ConnectionType::Netctl => netctl_config_write(options, network, encryption_key),
-        x @ ConnectionType::NetworkManager | x @ ConnectionType::None => Ok(ConfigResult {
-            connection_type: x.clone(),
-            config_data: Default::default(),
-        }),
+        ConnectionType::NetworkManager | ConnectionType::None | ConnectionType::Print => {
+            Ok(ConfigResult {
+                connection_type: cv.clone(),
+                config_data: Default::default(),
+            })
+        }
     }
 }

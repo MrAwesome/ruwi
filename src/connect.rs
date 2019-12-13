@@ -9,7 +9,9 @@ pub(crate) fn connect_to_network(
     selected_network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> Result<ConnectionResult, RuwiError> {
-    match &options.connect_via {
+    let cv = &options.connect_via;
+    match cv {
+        ConnectionType::Print => {}
         conn_type @ ConnectionType::None => {
             eprintln!(
                 "[NOTE]: Running in `{}` connection mode, so will not connect to: \"{}\"",
@@ -23,14 +25,21 @@ pub(crate) fn connect_to_network(
             );
         }
     }
-    let res = match &options.connect_via {
+    let res = match cv {
         ConnectionType::Netctl => connect_via_netctl(options, selected_network),
         ConnectionType::NetworkManager => {
             connect_via_networkmanager(options, selected_network, encryption_key)
         }
+        ConnectionType::Print => {
+            let essid = selected_network.essid.clone();
+            // TODO: integration tests to ensure this happens
+            println!("{}", essid);
+            Ok(ConnectionResult {
+                connection_type: cv.clone(),
+            })
+        }
         ConnectionType::None => Ok(ConnectionResult {
             connection_type: ConnectionType::None,
-            cmd_output: None,
         }),
     };
 
@@ -48,6 +57,7 @@ pub(crate) fn connect_to_network(
                     conn_type, &selected_network.essid
                 );
             }
+            ConnectionType::Print => {}
             ConnectionType::Netctl | ConnectionType::NetworkManager => {
                 eprintln!(
                     "[NOTE]: Successfully connected to: \"{}\"",
@@ -74,12 +84,11 @@ fn connect_via_netctl(
     if res.status.success() {
         Ok(ConnectionResult {
             connection_type: ConnectionType::Netctl,
-            cmd_output: Some(String::from_utf8_lossy(&res.stdout).into()),
         })
     } else {
         Err(rerr!(
             RuwiErrorKind::FailedToConnectViaNetctl,
-            String::from_utf8_lossy(&res.stdout),
+            String::from_utf8_lossy(&res.stderr),
         ))
     }
 }
@@ -111,12 +120,11 @@ fn connect_via_networkmanager(
     if res.status.success() {
         Ok(ConnectionResult {
             connection_type: ConnectionType::NetworkManager,
-            cmd_output: Some(String::from_utf8_lossy(&res.stdout).into()),
         })
     } else {
         Err(rerr!(
             RuwiErrorKind::FailedToConnectViaNetworkManager,
-            String::from_utf8_lossy(&res.stdout),
+            String::from_utf8_lossy(&res.stderr),
         ))
     }
 }

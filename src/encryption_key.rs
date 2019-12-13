@@ -20,7 +20,7 @@ pub(crate) fn possibly_get_encryption_key(
                     None
                 }
             }
-            ConnectionType::None => None,
+            ConnectionType::None | ConnectionType::Print => None,
         },
     };
 

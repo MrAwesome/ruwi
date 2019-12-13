@@ -31,7 +31,7 @@ pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworks
         ConnectionType::Netctl => find_known_netctl_networks()
             .map_err(|e| rerr!(RuwiErrorKind::KnownNetworksFetchError, e.description())),
         ConnectionType::NetworkManager => find_known_networkmanager_networks(&options),
-        ConnectionType::None => Ok(KnownNetworks::default()),
+        ConnectionType::None | ConnectionType::Print => Ok(KnownNetworks::default()),
     };
 
     if options.debug {
