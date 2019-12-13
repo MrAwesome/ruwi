@@ -4,6 +4,9 @@ use crate::run_commands::*;
 use crate::structs::*;
 use crate::wpa_cli_initialize::initialize_wpa_cli;
 
+use std::error::Error;
+use std::io;
+use std::io::Read;
 use std::process::Output;
 
 #[cfg(not(test))]
@@ -30,14 +33,12 @@ static IW_SCAN_SYNC_ERR_MSG: &str = concat!(
 static DEVICE_OR_RESOURCE_BUSY_EXIT_CODE: i32 = 240;
 
 pub(crate) fn wifi_scan(options: Options) -> Result<ScanResult, RuwiError> {
-    let res = match &options.scan_type {
-        ScanType::WpaCli => run_wpa_cli_scan(&options),
-        ScanType::IW => run_iw_scan(&options),
-        x @ ScanType::IWList => Err(nie(x)),
-        // TODO: Add nmcli scan
-        // nmcli device wifi rescan
-        // nmcli device wifi list
-        // for iwlist, you can scan with scan and dump with scan_last
+    // TODO: match scan method first
+    let st = options.scan_type.clone();
+    let res = match &st {
+        ScanType::WpaCli => run_wpa_cli_scan(&options, st),
+        ScanType::IW => run_iw_scan(&options, st),
+        ScanType::RuwiJSON => Err(nie("No JSON support yet.")),
     };
 
     if options.debug {
@@ -46,7 +47,24 @@ pub(crate) fn wifi_scan(options: Options) -> Result<ScanResult, RuwiError> {
     res
 }
 
-fn run_wpa_cli_scan(options: &Options) -> Result<ScanResult, RuwiError> {
+fn _get_scan_contents_from_stdin(
+    _options: &Options,
+    scan_type: ScanType,
+) -> Result<ScanResult, RuwiError> {
+    let mut stdin_contents = "".into();
+    io::stdin()
+        .read_to_end(&mut stdin_contents)
+        .map_err(|e| rerr!(RuwiErrorKind::FailedToReadFromStdin, e.description()))?;
+
+    let scan_output = String::from_utf8_lossy(&stdin_contents).into();
+
+    Ok(ScanResult {
+        scan_type,
+        scan_output,
+    })
+}
+
+fn run_wpa_cli_scan(options: &Options, scan_type: ScanType) -> Result<ScanResult, RuwiError> {
     initialize_wpa_cli(options)?;
 
     let err_msg = concat!(
@@ -69,13 +87,13 @@ fn run_wpa_cli_scan(options: &Options) -> Result<ScanResult, RuwiError> {
         dbg![&scan_output];
     }
     Ok(ScanResult {
-        scan_type: ScanType::WpaCli,
+        scan_type,
         scan_output,
     })
 }
 
 // TODO: unit test
-fn run_iw_scan(options: &Options) -> Result<ScanResult, RuwiError> {
+fn run_iw_scan(options: &Options, scan_type: ScanType) -> Result<ScanResult, RuwiError> {
     bring_interface_up(options)?;
     let scan_output = if options.force_synchronous_scan || options.synchronous_retry.is_some() {
         run_iw_scan_synchronous(options)?
@@ -90,7 +108,7 @@ fn run_iw_scan(options: &Options) -> Result<ScanResult, RuwiError> {
     };
 
     Ok(ScanResult {
-        scan_type: ScanType::IW,
+        scan_type,
         scan_output,
     })
 }

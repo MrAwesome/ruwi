@@ -24,7 +24,7 @@ impl AnnotatedWirelessNetwork {
 
     pub(crate) fn get_strenth_string(&self) -> String {
         match self.signal_strength {
-            Some(st) => format!("[{}] ", st + 90),
+            Some(st) => format!("[{}] ", st),
             None => "".to_string(),
         }
     }
@@ -59,7 +59,7 @@ mod tests {
         assert_eq![is_open, tags_string.contains(&OPEN_TOKEN)];
 
         if let Some(st) = signal_strength {
-            assert![strength_string.contains(&format!("{}", st + 90))];
+            assert![strength_string.contains(&format!("{}", st))];
         } else {
             assert![strength_string.is_empty()];
         }
@@ -69,7 +69,7 @@ mod tests {
     fn test_display() {
         verify_display_strength_and_tags(true, true, None);
         verify_display_strength_and_tags(false, true, None);
-        verify_display_strength_and_tags(true, false, Some(-32));
+        verify_display_strength_and_tags(true, false, Some(32));
         verify_display_strength_and_tags(false, false, Some(-90));
     }
 }

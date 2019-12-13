@@ -47,6 +47,7 @@ use sort_networks::*;
 use std::thread;
 use structs::*;
 
+// TODO(high): stop/start the relevant services (in particular, stop networkmanager if it's running before trying to do netctl things) - - pkill wpa_supplicant, systemctl stop NetworkManager, etc etc etc
 // TODO(high): figure out how to unit test / mock command calls
 // TODO(high): find a way to unit test without actually running commands. maybe with cfg(test)?
 // TODO(high): if networkmanager is used, start it up before going - same with netctl. possibly also stop
@@ -59,6 +60,7 @@ use structs::*;
 // TODO(mid): add integration test, which takes -e and -p, doesn't try to connect, make sure it creates a netctl config?
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
 // TODO(low): move majority of code from here into another file
+// TODO(low): flag to disable looking for known networks
 // TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
 // TODO(wishlist): json scan output mode
 // TODO(wishlist): find a generalized way to do x notifications, for dmenu mode, use to surface failures
@@ -82,7 +84,7 @@ pub fn run_ruwi() -> Result<(), RuwiError> {
         let encryption_key = possibly_get_encryption_key(options, &selected_network)?;
         let _output_result =
             possibly_configure_network(options, &selected_network, &encryption_key)?;
-        let _connection_result = connect_to_network(options, &selected_network)?;
+        let _connection_result = connect_to_network(options, &selected_network, &encryption_key)?;
     }
     Ok(())
 }
@@ -159,8 +161,6 @@ fn should_retry_with_synchronous_scan(
 ) -> bool {
     // TODO: possibly just rerun everything in synchronous mode if any problems are encountered?
     // TODO: unit test
-    let todo = "manual retry more than once is broken";
-    // not necessary since you can just not recurse in automatic mode above
     let is_an_auto_mode =
         options.auto_mode == AutoMode::Auto || options.auto_mode == AutoMode::AutoNoAsk;
     let known_network_found = annotated_networks.networks.iter().any(|x| x.known);

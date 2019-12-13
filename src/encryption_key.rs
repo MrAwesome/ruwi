@@ -13,7 +13,7 @@ pub(crate) fn possibly_get_encryption_key(
     let pw = match &options.given_encryption_key {
         Some(pw) => Some(pw.clone()),
         None => match options.connect_via {
-            ConnectionType::Netctl => {
+            ConnectionType::Netctl | ConnectionType::NetworkManager => {
                 if !selected_network.known && selected_network.is_encrypted {
                     Some(prompt_for_encryption_key(options, &selected_network.essid)?)
                 } else {
@@ -21,7 +21,6 @@ pub(crate) fn possibly_get_encryption_key(
                 }
             }
             ConnectionType::None => None,
-            _ => panic!("Not implemented!"),
         },
     };
 

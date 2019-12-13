@@ -27,6 +27,7 @@ pub(crate) fn run_command_pass_stdout(
 
     #[cfg(not(test))]
     {
+        // TODO: allow the err_msg to be or contain stderr somehow, esp for netctl switch-to
         let output_res = run_command_output(debug, cmd, args);
         if let Ok(output) = &output_res {
             if output.status.success() {

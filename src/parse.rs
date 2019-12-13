@@ -9,10 +9,12 @@ pub(crate) fn parse_result(
     scan_result: &ScanResult,
 ) -> Result<ParseResult, RuwiError> {
     // TODO: if scan type isn't specified, and parsing or scanning fails, try another scan type
-    let res = match &scan_result.scan_type {
-        ScanType::WpaCli => parse_wpa_cli_scan(options, &scan_result.scan_output),
-        ScanType::IW => parse_iw_scan(options, &scan_result.scan_output),
-        x @ ScanType::IWList => Err(nie(x)),
+
+    let st = scan_result.scan_type.clone();
+    let res = match &st {
+        ScanType::WpaCli => parse_wpa_cli_scan(options, &scan_result.scan_output, st),
+        ScanType::IW => parse_iw_scan(options, &scan_result.scan_output, st),
+        ScanType::RuwiJSON => Err(nie("JSON support is coming soon!")),
     };
 
     if options.debug {
@@ -21,7 +23,11 @@ pub(crate) fn parse_result(
     res
 }
 
-fn parse_iw_scan(options: &Options, output: &str) -> Result<ParseResult, RuwiError> {
+fn parse_iw_scan(
+    options: &Options,
+    output: &str,
+    scan_type: ScanType,
+) -> Result<ParseResult, RuwiError> {
     let network_chunks = break_iw_output_into_chunks_per_network(options, output)?;
     let mut seen_networks = vec![];
     let mut line_parse_errors = vec![];
@@ -33,7 +39,7 @@ fn parse_iw_scan(options: &Options, output: &str) -> Result<ParseResult, RuwiErr
         };
     }
     Ok(ParseResult {
-        scan_type: ScanType::IW,
+        scan_type,
         seen_networks,
         line_parse_errors,
     })
@@ -116,7 +122,8 @@ fn parse_iw_chunk_into_network(chunk: &[String]) -> Result<WirelessNetwork, Indi
                 .parse::<i32>()
                 .ok()
         })
-        .next();
+        .next()
+        .map(|x| x + 90);
 
     Ok(WirelessNetwork {
         essid,
@@ -150,7 +157,11 @@ fn err_iw_no_networks_seen(options: &Options) -> RuwiError {
             options.interface))
 }
 
-fn parse_wpa_cli_scan(_options: &Options, output: &str) -> Result<ParseResult, RuwiError> {
+fn parse_wpa_cli_scan(
+    _options: &Options,
+    output: &str,
+    scan_type: ScanType,
+) -> Result<ParseResult, RuwiError> {
     let mut lines = output.trim().lines().map(|x| x.to_string());
     let mut networks = vec![];
     let mut line_parse_errors = vec![];
@@ -172,7 +183,7 @@ fn parse_wpa_cli_scan(_options: &Options, output: &str) -> Result<ParseResult, R
         Err(err_wpa_cli_no_networks_seen())
     } else {
         Ok(ParseResult {
-            scan_type: ScanType::WpaCli,
+            scan_type,
             seen_networks: networks,
             line_parse_errors,
         })
@@ -210,6 +221,7 @@ fn parse_wpa_line_into_network(line: String) -> Result<WirelessNetwork, Individu
     let is_encrypted = flags.contains("WPA");
     let signal_strength = signal_level
         .parse::<i32>()
+        .map(|x| x + 90)
         .or(Err(IndividualParseError::FailedToParseSignalLevel))?;
 
     Ok(WirelessNetwork {
@@ -220,6 +232,9 @@ fn parse_wpa_line_into_network(line: String) -> Result<WirelessNetwork, Individu
         ..Default::default()
     })
 }
+
+// TODO: for networkmanager: shorten to nm in options
+// TODO: check behavior of SSIDs with colons in them for scan/parse
 
 #[cfg(test)]
 mod tests {
@@ -294,7 +309,7 @@ mod tests {
                     essid: "Pee Pee Poo Poo Man".to_string(),
                     is_encrypted: true,
                     bssid: Some("32:ac:a3:7b:ab:0b".to_string()),
-                    signal_strength: Some(-38),
+                    signal_strength: Some(52),
                     ..Default::default()
                 }],
                 line_parse_errors: vec![],
@@ -306,14 +321,14 @@ mod tests {
                         essid: "Valparaiso_Guest_House 1".to_string(),
                         is_encrypted: true,
                         bssid: Some("f4:28:53:fe:a5:d0".to_string()),
-                        signal_strength: Some(-65),
+                        signal_strength: Some(25),
                         ..Default::default()
                     },
                     WirelessNetwork {
                         essid: "Valparaiso_Guest_House 2".to_string(),
                         is_encrypted: true,
                         bssid: Some("68:72:51:68:73:da".to_string()),
-                        signal_strength: Some(-46),
+                        signal_strength: Some(44),
                         ..Default::default()
                     },
                 ],
@@ -326,14 +341,14 @@ mod tests {
                         essid: "Valparaiso_Guest_House 1".to_string(),
                         is_encrypted: true,
                         bssid: Some("f4:28:53:fe:a5:d0".to_string()),
-                        signal_strength: Some(-66),
+                        signal_strength: Some(24),
                         ..Default::default()
                     },
                     WirelessNetwork {
                         essid: "Valparaiso_Guest_House 2".to_string(),
                         is_encrypted: true,
                         bssid: Some("68:72:51:68:73:da".to_string()),
-                        signal_strength: Some(-47),
+                        signal_strength: Some(43),
                         ..Default::default()
                     },
                 ],
@@ -348,49 +363,49 @@ mod tests {
                         essid: "Nima Lodge".to_string(),
                         is_encrypted: true,
                         bssid: Some("78:8a:20:e3:9d:62".to_string()),
-                        signal_strength: Some(-41),
+                        signal_strength: Some(49),
                         ..Default::default()
                     },
                     WirelessNetwork {
                         essid: "DIRECT-AF-HP DeskJet 3830 series".to_string(),
                         is_encrypted: true,
                         bssid: Some("fc:3f:db:a1:5e:b0".to_string()),
-                        signal_strength: Some(-68),
+                        signal_strength: Some(22),
                         ..Default::default()
                     },
                     WirelessNetwork {
                         essid: "Nima Lodge".to_string(),
                         is_encrypted: true,
                         bssid: Some("fc:ec:da:69:e0:3e".to_string()),
-                        signal_strength: Some(-85),
+                        signal_strength: Some(5),
                         ..Default::default()
                     },
                     WirelessNetwork {
                         essid: "".to_string(),
                         is_encrypted: true,
                         bssid: Some("fe:ec:da:69:e0:3e".to_string()),
-                        signal_strength: Some(-85),
+                        signal_strength: Some(5),
                         ..Default::default()
                     },
                     WirelessNetwork {
                         essid: "WISPerNET-George-Sentraal1".to_string(),
                         is_encrypted: false,
                         bssid: Some("ba:69:f4:1f:2d:15".to_string()),
-                        signal_strength: Some(-89),
+                        signal_strength: Some(1),
                         ..Default::default()
                     },
                     WirelessNetwork {
                         essid: "WISPerNET-Bosplaas-SW-802.11".to_string(),
                         is_encrypted: false,
                         bssid: Some("b8:69:f4:1f:2d:15".to_string()),
-                        signal_strength: Some(-89),
+                        signal_strength: Some(1),
                         ..Default::default()
                     },
                     WirelessNetwork {
                         essid: "".to_string(),
                         is_encrypted: true,
                         bssid: Some("7a:8a:20:e3:9d:62".to_string()),
-                        signal_strength: Some(-39),
+                        signal_strength: Some(51),
                         ..Default::default()
                     },
                 ],
@@ -402,7 +417,7 @@ mod tests {
                     essid: "Valparaiso_Guest_House 1".to_string(),
                     is_encrypted: true,
                     bssid: Some("f4:28:53:fe:a5:d0".to_string()),
-                    signal_strength: Some(-66),
+                    signal_strength: Some(24),
                     ..Default::default()
                 }],
                 line_parse_errors: vec![
@@ -422,7 +437,7 @@ mod tests {
                     essid: "Valparaiso_Guest_House 1".to_string(),
                     is_encrypted: true,
                     bssid: Some("f4:28:53:fe:a5:d0".to_string()),
-                    signal_strength: Some(-66),
+                    signal_strength: Some(24),
                     ..Default::default()
                 }],
                 line_parse_errors: vec![(

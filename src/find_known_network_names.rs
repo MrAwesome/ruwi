@@ -1,4 +1,5 @@
 use crate::rerr;
+use crate::run_commands::*;
 use crate::structs::*;
 use std::collections::HashSet;
 use std::error::Error;
@@ -27,22 +28,34 @@ impl Deref for KnownNetworks {
 
 pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworks, RuwiError> {
     let known_network_names = match options.connect_via {
-        ConnectionType::Netctl => find_known_netctl_networks(),
-        ConnectionType::None => Ok(Default::default()),
-        _ => panic!("Not implemented"),
+        ConnectionType::Netctl => find_known_netctl_networks()
+            .map_err(|e| rerr!(RuwiErrorKind::KnownNetworksFetchError, e.description())),
+        ConnectionType::NetworkManager => find_known_networkmanager_networks(&options),
+        ConnectionType::None => Ok(KnownNetworks::default()),
     };
 
     if options.debug {
         dbg![&known_network_names];
     }
 
-    known_network_names.map_err(|e| rerr!(RuwiErrorKind::KnownNetworksFetchError, e.description()))
+    known_network_names
+}
+
+fn find_known_networkmanager_networks(options: &Options) -> Result<KnownNetworks, RuwiError> {
+    Ok(KnownNetworks(run_command_pass_stdout(
+        options.debug,
+        "nmcli",
+        &["-g", "NAME", "connection", "show"],
+        RuwiErrorKind::FailedToListKnownNetworksWithNetworkManager,
+        "Failed to list known networks with NetworkManager. Try running `nmcli -g NAME connection show`.",
+    )?
+    .lines().map(|x| x.into()).collect::<HashSet<String>>()))
 }
 
 fn find_known_netctl_networks() -> io::Result<KnownNetworks> {
     let netctl_path = Path::new("/etc/netctl");
     if netctl_path.is_dir() {
-        // TODO: use tokio/etc to asynchronously read from these files
+        // TODO: Use tokio/etc to asynchronously read from these files
         let known_essids = read_dir(netctl_path)?
             .filter_map(|entry| get_essid_from_netctl_config_file(entry).ok())
             .filter_map(|x| x)

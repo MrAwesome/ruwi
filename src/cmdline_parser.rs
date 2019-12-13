@@ -1,4 +1,5 @@
 use crate::get_default_interface::get_default_interface;
+use crate::rerr;
 use crate::structs::*;
 use crate::strum_utils::{get_val_as_enum, possible_vals};
 use clap::{App, Arg, ArgMatches};
@@ -49,14 +50,21 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .help("Manually specify encryption key (aka password). To read from a file, try \"$(cat your/file/name)\".");
 
     let scan_type = Arg::with_name("scan_type")
-        .short("t")
+        .short("s")
         .long("scan-type")
         .default_value(&ScanType::default().as_static())
         .possible_values(&possible_vals::<ScanType, _>())
-        .help("The wifi scanning program to use under the hood. If none given, will be inferred using wpa_cli.");
+        .help("The wifi scanning program to use to get results.");
+
+    let scan_method = Arg::with_name("scan_method")
+        .short("S")
+        .long("scan-method")
+        .default_value(&ScanMethod::default().as_static())
+        .possible_values(&possible_vals::<ScanMethod, _>())
+        .help("How to get the scan output - by running the scan now, by reading from a file, or by reading from stdin. Unless you're a power user or writing tests, you can safely ignore this option.");
 
     let selection_method = Arg::with_name("selection_method")
-        .short("s")
+        .short("m")
         .long("selection-method")
         .default_value(&SelectionMethod::default().as_static())
         .possible_values(&possible_vals::<SelectionMethod, _>())
@@ -82,6 +90,7 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .arg(interface)
         .arg(password)
         .arg(scan_type)
+        .arg(scan_method)
         .arg(selection_method)
 }
 
@@ -111,11 +120,16 @@ fn get_options_impl(m: ArgMatches) -> Result<Options, RuwiError> {
     };
 
     let scan_type = get_val_as_enum::<ScanType>(&m, "scan_type");
+    let scan_method = get_val_as_enum::<ScanMethod>(&m, "scan_method");
+
+    validate_scan_type_and_method(&scan_type, &scan_method)?;
+
     let selection_method = get_val_as_enum::<SelectionMethod>(&m, "selection_method");
     let connect_via = get_val_as_enum::<ConnectionType>(&m, "connect_via");
 
     let opts = Options {
         scan_type,
+        scan_method,
         selection_method,
         interface,
         connect_via,
@@ -131,6 +145,19 @@ fn get_options_impl(m: ArgMatches) -> Result<Options, RuwiError> {
         dbg![&opts];
     }
     Ok(opts)
+}
+
+fn validate_scan_type_and_method(
+    scan_type: &ScanType,
+    scan_method: &ScanMethod,
+) -> Result<(), RuwiError> {
+    match (scan_type, scan_method) {
+        (ScanType::RuwiJSON, ScanMethod::ByRunning) => Err(rerr!(
+                RuwiErrorKind::InvalidScanTypeAndMethod,
+                "There is currently no binary for providing JSON results, you must format them yourself and pass in via stdin or from a file.",
+        )),
+        (_, _) => Ok(()),
+    }
 }
 
 #[cfg(test)]
@@ -185,8 +212,8 @@ mod tests {
 
     #[test]
     fn test_scan_type() {
-        let expected = ScanType::IWList.to_string();
-        let opts = getopts(&["-t", expected.as_ref()]);
+        let expected = ScanType::WpaCli.to_string();
+        let opts = getopts(&["-s", expected.as_ref()]);
         assert_eq![opts.scan_type.to_string(), expected];
 
         let expected = ScanType::IW.to_string();
@@ -195,9 +222,28 @@ mod tests {
     }
 
     #[test]
+    fn test_scan_method() {
+        let expected = ScanMethod::ByRunning.to_string();
+        let opts = getopts(&["-S", expected.as_ref()]);
+        assert_eq![opts.scan_method.to_string(), expected];
+
+        let expected = ScanMethod::FromFile.to_string();
+        let opts = getopts(&["--scan-method", expected.as_ref()]);
+        assert_eq![opts.scan_method.to_string(), expected];
+    }
+
+    #[test]
+    fn test_invalid_type_and_method() {
+        let st = ScanType::RuwiJSON.to_string();
+        let sm = ScanMethod::ByRunning.to_string();
+        let opts = getopts_safe(&["-s", st.as_ref(), "-S", sm.as_ref()]);
+        assert![opts.is_err()];
+    }
+
+    #[test]
     fn test_selection_method() {
         let expected = SelectionMethod::Fzf.to_string();
-        let opts = getopts(&["-s", expected.as_ref()]);
+        let opts = getopts(&["-m", expected.as_ref()]);
         assert_eq![opts.selection_method.to_string(), expected];
 
         let expected = SelectionMethod::Dmenu.to_string();

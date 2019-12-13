@@ -8,11 +8,15 @@ pub static PROG_NAME: &str = "ruwi";
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum RuwiErrorKind {
+    InvalidScanTypeAndMethod,
+    FailedToListKnownNetworksWithNetworkManager,
     FailedToBringInterfaceDown,
     FailedToBringInterfaceUp,
     FailedToConnectViaNetctl,
+    FailedToConnectViaNetworkManager,
     FailedToConnectViaWPACli,
     FailedToParseSelectedLine,
+    FailedToReadFromStdin,
     FailedToRunCommand,
     FailedToRunIWDev,
     FailedToRunIWScanAbort,
@@ -67,16 +71,31 @@ impl fmt::Display for RuwiError {
 
 #[strum(serialize_all = "snake_case")]
 #[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
+pub enum ScanMethod {
+    ByRunning,
+    FromFile,
+    FromStdin,
+}
+
+impl Default for ScanMethod {
+    fn default() -> Self {
+        Self::ByRunning
+    }
+}
+
+#[strum(serialize_all = "snake_case")]
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
 pub enum ScanType {
     IW,
-    #[strum(serialize = "iwlist")]
-    IWList,
     WpaCli,
+    RuwiJSON,
+    //#[strum(serialize = "iwlist")]
+    //IWList,
 }
 
 impl Default for ScanType {
     fn default() -> Self {
-        ScanType::IW
+        Self::IW
     }
 }
 
@@ -89,7 +108,7 @@ pub enum SelectionMethod {
 
 impl Default for SelectionMethod {
     fn default() -> Self {
-        SelectionMethod::Fzf
+        Self::Fzf
     }
 }
 
@@ -104,12 +123,13 @@ pub enum SelectionOption {
 pub enum ConnectionType {
     None,
     Netctl,
+    #[strum(serialize = "networkmanager")]
     NetworkManager,
 }
 
 impl Default for ConnectionType {
     fn default() -> Self {
-        ConnectionType::Netctl
+        Self::Netctl
     }
 }
 
@@ -122,7 +142,7 @@ pub enum AutoMode {
 
 impl Default for AutoMode {
     fn default() -> Self {
-        AutoMode::None
+        Self::None
     }
 }
 
@@ -135,6 +155,7 @@ pub enum SynchronousRetryType {
 #[derive(Debug, Clone)]
 pub struct Options {
     pub scan_type: ScanType,
+    pub scan_method: ScanMethod,
     pub selection_method: SelectionMethod,
     pub interface: String,
     pub connect_via: ConnectionType,
@@ -148,8 +169,9 @@ pub struct Options {
 
 impl Default for Options {
     fn default() -> Self {
-        Options {
+        Self {
             scan_type: ScanType::IW,
+            scan_method: ScanMethod::ByRunning,
             interface: "some_fake_name".to_string(),
             selection_method: SelectionMethod::Fzf,
             connect_via: ConnectionType::None,
@@ -206,7 +228,7 @@ pub struct WirelessNetwork {
 
 impl Default for WirelessNetwork {
     fn default() -> Self {
-        WirelessNetwork {
+        Self {
             essid: "FAKE_ESSID_SHOULD_NOT_BE_SEEN".to_string(),
             is_encrypted: false,
             bssid: None,
