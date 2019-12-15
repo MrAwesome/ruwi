@@ -169,6 +169,7 @@ pub struct Options {
     pub given_encryption_key: Option<String>,
     pub auto_mode: AutoMode,
     pub force_synchronous_scan: bool,
+    pub force_ask_password: bool,
     pub synchronous_retry: Option<SynchronousRetryType>,
 }
 
@@ -186,6 +187,7 @@ impl Default for Options {
             given_encryption_key: None,
             auto_mode: Default::default(),
             force_synchronous_scan: false,
+            force_ask_password: false,
             synchronous_retry: None,
         }
     }

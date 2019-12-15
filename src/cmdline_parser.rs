@@ -52,13 +52,18 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .short("e")
         .long("essid")
         .takes_value(true)
-        .help("Manually specify wireless network name (aka SSID or ESSID). Will be asked for if not given.");
+        .help("Manually specify wireless network name (aka SSID or ESSID). Will be asked for if not given. Assumes the network is open, use `-P` to prompt for password or `-p`  to pass one in directly.");
 
     let password = Arg::with_name("password")
         .short("p")
         .long("password")
         .takes_value(true)
-        .help("Manually specify encryption key (aka password). To read from a file, try \"$(cat your/file/name)\".");
+        .help("Manually specify encryption key (aka password). To read from a file, try \"$(cat your/file/name)\". Will replace any existing password for the selected or given network.");
+
+    let force_ask_password = Arg::with_name("force_ask_password")
+        .short("P")
+        .long("force-ask-password")
+        .help("Will always prompt for a password when selecting a network, or passing an SSID with `-e`. Ignored with `-p`.");
 
     let scan_type = Arg::with_name("scan_type")
         .short("s")
@@ -94,6 +99,7 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .arg(debug)
         .arg(essid)
         .arg(force_synchronous)
+        .arg(force_ask_password)
         .arg(interface)
         .arg(input_file)
         .arg(input_stdin)
@@ -111,6 +117,7 @@ fn get_options_impl(m: ArgMatches) -> Result<Options, RuwiError> {
     let debug = m.is_present("debug");
 
     let force_synchronous_scan = m.is_present("force_synchronous_scan");
+    let force_ask_password = m.is_present("force_ask_password");
 
     let given_essid = m.value_of("essid").map(String::from);
     let given_encryption_key = m.value_of("password").map(String::from);
@@ -151,6 +158,7 @@ fn get_options_impl(m: ArgMatches) -> Result<Options, RuwiError> {
         given_encryption_key,
         auto_mode,
         force_synchronous_scan,
+        force_ask_password,
         ..Default::default()
     };
 
@@ -275,6 +283,29 @@ mod tests {
         let expected = SelectionMethod::Dmenu;
         let opts = getopts(&["--selection-method", expected.to_string().as_ref()]);
         assert_eq![opts.selection_method, expected];
+    }
+
+    #[test]
+    fn test_give_password() {
+        let pw = "fakepasswordddd";
+        let opts = getopts(&["-p", pw]);
+        assert_eq![opts.given_encryption_key.unwrap(), pw];
+
+        let pw = "FAKEP_SSS_A_W_W_W_W";
+        let opts = getopts(&["--password", pw]);
+        assert_eq![opts.given_encryption_key.unwrap(), pw];
+    }
+
+    #[test]
+    fn test_force_ask_password() {
+        let opts = getopts(&[]);
+        assert![!opts.force_ask_password];
+
+        let opts = getopts(&["-P"]);
+        assert![opts.force_ask_password];
+
+        let opts = getopts(&["--force-ask-password"]);
+        assert![opts.force_ask_password];
     }
 
     #[test]

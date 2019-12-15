@@ -41,7 +41,11 @@ pub(crate) fn wifi_scan(options: Options) -> Result<ScanResult, RuwiError> {
         ScanMethod::ByRunning => match &st {
             ScanType::WpaCli => run_wpa_cli_scan(&options, st),
             ScanType::IW => run_iw_scan(&options, st),
-            ScanType::RuwiJSON => Err(nie("No JSON support yet.")),
+            ScanType::RuwiJSON => 
+                Err(rerr!(
+                    RuwiErrorKind::InvalidScanTypeAndMethod,
+                    "There is currently no binary for providing JSON results, you must format them yourself and pass in via stdin or from a file.",
+                ))
         },
         ScanMethod::FromFile(filename) => get_scan_contents_from_file(&options, st, &filename),
         ScanMethod::FromStdin => get_scan_contents_from_stdin(&options, st),

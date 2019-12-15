@@ -114,7 +114,6 @@ fn scan_and_select_network_with_retry(
 ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     match scan_and_select_network(options) {
         Err(err) => match err.kind {
-            // TODO: create "refresh_fast" and "refresh_slow"
             RuwiErrorKind::RefreshRequested => scan_and_select_network_with_retry(
                 &options.with_synchronous_retry(SynchronousRetryType::ManuallyRequested),
             ),
