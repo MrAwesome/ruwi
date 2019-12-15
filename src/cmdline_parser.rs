@@ -75,12 +75,12 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .long("connect-via")
         .default_value(&ConnectionType::default().as_static())
         .possible_values(&possible_vals::<ConnectionType, _>())
-        .help("Which network management suite to use to connect.");
+        .help("Which network management suite to use to connect, or whether to just print the selected SSID for use elsewhere.");
 
     App::new("Rust Wireless Manager")
         .version("0.2")
         .author("Glenn Hope <glenn.alexander.hope@gmail.com>")
-        .about("Finds, selects, configures, and connects to new wireless networks.")
+        .about("Combines existing network management layers (netctl, NetworkManager, wicd) and selection utilities (fzf, dmenu) to find, select, configure, and connect to wireless networks.")
         .arg(auto)
         .arg(auto_no_ask)
         .arg(connect_via)
