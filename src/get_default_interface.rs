@@ -17,7 +17,7 @@ pub(crate) fn get_default_interface(debug: bool) -> Result<String, RuwiError> {
 fn get_interface_with_iw(debug: bool) -> Result<String, RuwiError> {
     #[cfg(test)]
     {
-        dbg!(&debug);
+        let _ = debug;
         return Ok("FAKE_INTERFACE".to_string());
     }
 

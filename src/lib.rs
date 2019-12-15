@@ -161,10 +161,14 @@ fn should_retry_with_synchronous_scan(
 ) -> bool {
     // TODO: possibly just rerun everything in synchronous mode if any problems are encountered?
     // TODO: unit test
-    let is_an_auto_mode =
-        options.auto_mode == AutoMode::Auto || options.auto_mode == AutoMode::AutoNoAsk;
-    let known_network_found = annotated_networks.networks.iter().any(|x| x.known);
-    is_an_auto_mode && !known_network_found
+    match options.auto_mode {
+        AutoMode::KnownOrAsk | AutoMode::KnownOrFail => {
+            annotated_networks.networks.iter().any(|x| x.known)
+        }
+
+        AutoMode::First => annotated_networks.networks.is_empty(),
+        AutoMode::Ask => false,
+    }
 }
 
 fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetworks, RuwiError> {

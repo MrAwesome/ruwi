@@ -1,11 +1,8 @@
 use crate::rerr;
-#[cfg(not(test))]
 use crate::select_utils::*;
 use crate::structs::*;
 
 use crate::strum_utils::possible_vals;
-
-#[cfg(not(test))]
 use std::str::FromStr;
 
 fn get_possible_selection_options_as_strings() -> Vec<String> {
@@ -36,34 +33,16 @@ pub(crate) fn select_network(
     options: &Options,
     networks: &SortedUniqueNetworks,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-    select_network_impl(
-        options,
-        networks,
-        prompt_user_for_selection,
-        auto_select_network_method,
-        auto_no_ask_select_network_method,
-    )
+    select_network_impl(options, networks, prompt_user_for_selection)
 }
 
-#[cfg(not(test))]
 fn prompt_user_for_selection(
     options: &Options,
     networks: &SortedUniqueNetworks,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-    let selection_tokens = networks.get_tokens_for_selection();
-    let selector_output = match &options.selection_method {
-        SelectionMethod::Dmenu => run_dmenu(
-            &options,
-            &"Select a network: ".to_string(),
-            selection_tokens,
-        ),
-        SelectionMethod::Fzf => {
-            run_fzf(&options, &"Select a network:".to_string(), selection_tokens)
-        }
-    }?;
-    let selector_output = selector_output.trim();
+    let selector_output = run_manual_selector(options, networks)?;
 
-    if let Ok(selection_option) = SelectionOption::from_str(selector_output) {
+    if let Ok(selection_option) = SelectionOption::from_str(&selector_output) {
         match selection_option {
             SelectionOption::Refresh => {
                 Err(rerr!(RuwiErrorKind::RefreshRequested, "Refresh requested."))
@@ -80,6 +59,23 @@ fn prompt_user_for_selection(
         })
     }
 }
+fn run_manual_selector(
+    options: &Options,
+    networks: &SortedUniqueNetworks,
+) -> Result<String, RuwiError> {
+    let selection_tokens = networks.get_tokens_for_selection();
+    match &options.selection_method {
+        SelectionMethod::Dmenu => run_dmenu(
+            &options,
+            &"Select a network: ".to_string(),
+            selection_tokens,
+        ),
+        SelectionMethod::Fzf => {
+            run_fzf(&options, &"Select a network:".to_string(), selection_tokens)
+        }
+    }
+    .map(|x| x.trim().into())
+}
 
 fn get_index_of_selected_item(line: &str) -> Result<usize, RuwiError> {
     line.split(") ")
@@ -94,28 +90,6 @@ fn get_line_parse_err(line: &str) -> RuwiError {
         RuwiErrorKind::FailedToParseSelectedLine,
         format!("Failed to parse line {}", line)
     )
-}
-
-#[cfg(test)]
-fn prompt_user_for_selection(
-    _options: &Options,
-    _networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-    panic!("Should not use this function in tests!");
-}
-
-fn auto_select_network_method(
-    options: &Options,
-    networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-    select_first_known(options, networks)
-}
-
-fn auto_no_ask_select_network_method(
-    options: &Options,
-    networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-    select_first_known(options, networks)
 }
 
 fn select_first_known(
@@ -135,24 +109,38 @@ fn select_first_known(
         .map(|x| x.clone())
 }
 
-fn select_network_impl<'a, 'b, F, G, H>(
+fn select_first(
+    _options: &Options,
+    networks: &SortedUniqueNetworks,
+) -> Result<AnnotatedWirelessNetwork, RuwiError> {
+    networks
+        .networks
+        .iter()
+        .next()
+        .ok_or_else(|| {
+            rerr!(
+                RuwiErrorKind::TestNoNetworksFoundWhenLookingForFirst,
+                "No networks found!"
+            )
+        })
+        .map(|x| x.clone())
+}
+
+fn select_network_impl<'a, 'b, F>(
     options: &'a Options,
     networks: &'b SortedUniqueNetworks,
     manual_selector: F,
-    auto_selector: G,
-    auto_no_ask_selector: H,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError>
 where
     F: FnOnce(&'a Options, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, RuwiError>,
-    G: FnOnce(&'a Options, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, RuwiError>,
-    H: FnOnce(&'a Options, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, RuwiError>,
 {
     let selected_network_res = match &options.auto_mode {
-        AutoMode::None => manual_selector(options, networks),
-        AutoMode::Auto => {
-            auto_selector(options, networks).or_else(|_| manual_selector(options, networks))
+        AutoMode::Ask => manual_selector(options, networks),
+        AutoMode::KnownOrAsk => {
+            select_first_known(options, networks).or_else(|_| manual_selector(options, networks))
         }
-        AutoMode::AutoNoAsk => auto_no_ask_selector(options, networks),
+        AutoMode::KnownOrFail => select_first_known(options, networks),
+        AutoMode::First => select_first(options, networks),
     };
 
     // TODO: sensible error messages for when auto no ask fails
@@ -175,13 +163,6 @@ mod tests {
     static FIRST_NW_NAME: &str = "FIRSTNWLOL";
     static SECND_NW_NAME: &str = "SECNDNWWUT";
     static THIRD_NW_NAME: &str = "THIRDNWOKK";
-
-    static USED_MANUAL_WHEN_NOT_EXPECTED: &str =
-        "Used manual selector when it should not have been enabled.";
-    static USED_AUTO_WHEN_NOT_EXPECTED: &str =
-        "Used auto selector when it should not have been enabled.";
-    static USED_AUTO_NO_ASK_WHEN_NOT_EXPECTED: &str =
-        "Used auto-no-ask selector when it should not have been enabled.";
 
     fn get_3_networks() -> SortedUniqueNetworks {
         let networks = vec![FIRST_NW_NAME, SECND_NW_NAME, THIRD_NW_NAME]
@@ -210,53 +191,6 @@ mod tests {
         networks
     }
 
-    fn err_should_not_have_used_manual(
-        _opt: &Options,
-        _nw: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-        Err(rerr!(
-            RuwiErrorKind::TestUsedManualWhenNotExpected,
-            USED_MANUAL_WHEN_NOT_EXPECTED
-        ))
-    }
-
-    fn err_should_not_have_used_auto(
-        _opt: &Options,
-        _nw: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-        Err(rerr!(
-            RuwiErrorKind::TestUsedAutoWhenNotExpected,
-            USED_AUTO_WHEN_NOT_EXPECTED
-        ))
-    }
-
-    fn err_should_not_have_used_auto_no_ask(
-        _opt: &Options,
-        _nw: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-        Err(rerr!(
-            RuwiErrorKind::TestUsedAutoNoAskWhenNotExpected,
-            USED_AUTO_NO_ASK_WHEN_NOT_EXPECTED
-        ))
-    }
-
-    fn select_first(
-        _options: &Options,
-        networks: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-        networks
-            .networks
-            .iter()
-            .next()
-            .ok_or_else(|| {
-                rerr!(
-                    RuwiErrorKind::TestNoNetworksFoundWhenLookingForFirst,
-                    "No networks found!"
-                )
-            })
-            .map(|x| x.clone())
-    }
-
     fn select_last(
         _options: &Options,
         networks: &SortedUniqueNetworks,
@@ -281,28 +215,22 @@ mod tests {
         Err(rerr!(RuwiErrorKind::RefreshRequested, "Refresh requested."))
     }
 
-    fn fail_to_select(
-        _options: &Options,
-        _networks: &SortedUniqueNetworks,
+    fn err_should_not_have_used_manual(
+        _opt: &Options,
+        _nw: &SortedUniqueNetworks,
     ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
         Err(rerr!(
-            RuwiErrorKind::TestDeliberatelyFailedToFindNetworks,
-            "No networks found!"
+            RuwiErrorKind::TestUsedManualWhenNotExpected,
+            "Used manual selector in test when should not have!",
         ))
     }
 
     #[test]
     fn test_manually_select_first_network() -> Result<(), RuwiError> {
         let options = Options::default();
-        assert_eq![options.auto_mode, AutoMode::None];
+        assert_eq![options.auto_mode, AutoMode::Ask];
         let networks = get_3_unknown_networks();
-        let nw = select_network_impl(
-            &options,
-            &networks,
-            select_first,
-            err_should_not_have_used_auto,
-            err_should_not_have_used_auto_no_ask,
-        )?;
+        let nw = select_network_impl(&options, &networks, select_first)?;
         assert_eq![networks.networks[0], nw];
         Ok(())
     }
@@ -310,15 +238,9 @@ mod tests {
     #[test]
     fn test_manually_select_last_network() -> Result<(), RuwiError> {
         let options = Options::default();
-        assert_eq![options.auto_mode, AutoMode::None];
+        assert_eq![options.auto_mode, AutoMode::Ask];
         let networks = get_3_unknown_networks();
-        let nw = select_network_impl(
-            &options,
-            &networks,
-            select_last,
-            err_should_not_have_used_auto,
-            err_should_not_have_used_auto_no_ask,
-        )?;
+        let nw = select_network_impl(&options, &networks, select_last)?;
         assert_eq![networks.networks[2], nw];
         Ok(())
     }
@@ -326,31 +248,19 @@ mod tests {
     #[test]
     fn test_fail_to_manually_select() {
         let options = Options::default();
-        assert_eq![options.auto_mode, AutoMode::None];
+        assert_eq![options.auto_mode, AutoMode::Ask];
         let networks = get_3_unknown_networks();
-        let res = select_network_impl(
-            &options,
-            &networks,
-            select_first_known,
-            err_should_not_have_used_auto,
-            err_should_not_have_used_auto_no_ask,
-        );
+        let res = select_network_impl(&options, &networks, select_first_known);
         assert_eq![RuwiErrorKind::NoKnownNetworksFound, res.err().unwrap().kind];
     }
 
     #[test]
     fn test_auto_first_known() -> Result<(), RuwiError> {
         let mut options = Options::default();
-        options.auto_mode = AutoMode::AutoNoAsk;
+        options.auto_mode = AutoMode::KnownOrFail;
 
         let networks = get_3_networks_last_known();
-        let nw = select_network_impl(
-            &options,
-            &networks,
-            err_should_not_have_used_manual,
-            err_should_not_have_used_auto,
-            select_first_known,
-        )?;
+        let nw = select_network_impl(&options, &networks, err_should_not_have_used_manual)?;
         assert_eq![networks.networks[2], nw];
         Ok(())
     }
@@ -358,16 +268,10 @@ mod tests {
     #[test]
     fn test_auto_no_ask_first_known() -> Result<(), RuwiError> {
         let mut options = Options::default();
-        options.auto_mode = AutoMode::AutoNoAsk;
+        options.auto_mode = AutoMode::KnownOrFail;
 
         let networks = get_3_networks_first_known();
-        let nw = select_network_impl(
-            &options,
-            &networks,
-            err_should_not_have_used_manual,
-            err_should_not_have_used_auto,
-            select_first_known,
-        )?;
+        let nw = select_network_impl(&options, &networks, err_should_not_have_used_manual)?;
         assert_eq![networks.networks[0], nw];
         Ok(())
     }
@@ -375,16 +279,10 @@ mod tests {
     #[test]
     fn test_auto_no_ask_first_known2() -> Result<(), RuwiError> {
         let mut options = Options::default();
-        options.auto_mode = AutoMode::AutoNoAsk;
+        options.auto_mode = AutoMode::KnownOrFail;
 
         let networks = get_3_networks_last_known();
-        let nw = select_network_impl(
-            &options,
-            &networks,
-            err_should_not_have_used_manual,
-            err_should_not_have_used_auto,
-            select_first_known,
-        )?;
+        let nw = select_network_impl(&options, &networks, err_should_not_have_used_manual)?;
         assert_eq![networks.networks[2], nw];
         Ok(())
     }
@@ -392,16 +290,10 @@ mod tests {
     #[test]
     fn test_auto_fallback() -> Result<(), RuwiError> {
         let mut options = Options::default();
-        options.auto_mode = AutoMode::Auto;
+        options.auto_mode = AutoMode::KnownOrAsk;
 
         let networks = get_3_unknown_networks();
-        let nw = select_network_impl(
-            &options,
-            &networks,
-            select_first,
-            fail_to_select,
-            err_should_not_have_used_auto_no_ask,
-        )?;
+        let nw = select_network_impl(&options, &networks, select_first)?;
         assert_eq![networks.networks[0], nw];
         Ok(())
     }
@@ -409,18 +301,12 @@ mod tests {
     #[test]
     fn test_manually_refresh() {
         let options = Options::default();
-        assert_eq![options.auto_mode, AutoMode::None];
+        assert_eq![options.auto_mode, AutoMode::Ask];
         let networks = get_3_unknown_networks();
         assert![networks
             .get_tokens_for_selection()
             .contains(&SelectionOption::Refresh.as_static().into())];
-        let res = select_network_impl(
-            &options,
-            &networks,
-            select_refresh,
-            err_should_not_have_used_auto,
-            err_should_not_have_used_auto_no_ask,
-        );
+        let res = select_network_impl(&options, &networks, select_refresh);
         assert_eq![RuwiErrorKind::RefreshRequested, res.err().unwrap().kind];
     }
 

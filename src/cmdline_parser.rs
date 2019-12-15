@@ -6,20 +6,13 @@ use clap::{App, Arg, ArgMatches};
 use strum::AsStaticRef;
 
 // TODO: fail if not run as root
-// TODO: allow essid to be provided with -e XXX
 // TODO: use subcommands for configurations of options, but still go through all functions always?
 //       or just run certain functions for certain subcommands?
-// TODO: arg for not connecting?
 fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
-    // TODO: move these to be subcommand args for only the relevant subcommands
     let debug = Arg::with_name("debug")
         .short("d")
         .long("debug")
         .help("Print out debug information on what ruwi sees.");
-
-    let auto = Arg::with_name("auto").short("a").long("auto").help(
-        "Connect to the strongest known network seen. Will prompt for selection if no known networks are seen.",
-    );
 
     let input_file = Arg::with_name("input_file")
         .short("F")
@@ -32,10 +25,17 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .long("input-stdin")
         .help("Instead of running a scan, use scan results from stdin.");
 
-    let auto_no_ask = Arg::with_name("auto_no_ask")
+    let auto = Arg::with_name("auto").short("a").long("auto").help(
+        "Connect to the strongest known network seen. Will prompt for selection if no known networks are seen. Shorthand for `-A known_or_ask`. Takes precedence over `-A`.",
+    );
+
+    let auto_mode = Arg::with_name("auto_mode")
         .short("A")
-        .long("auto-no-ask")
-        .help("When in auto mode, just fail if no know networks are seen. Takes precedence over `-a`.");
+        .long("auto-mode")
+        .takes_value(true)
+        .default_value(&AutoMode::default().as_static())
+        .possible_values(&possible_vals::<AutoMode, _>())
+        .help("The auto mode to use.");
 
     let force_synchronous = Arg::with_name("force_synchronous_scan")
         .short("f")
@@ -63,6 +63,7 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
     let scan_type = Arg::with_name("scan_type")
         .short("s")
         .long("scan-type")
+        .takes_value(true)
         .default_value(&ScanType::default().as_static())
         .possible_values(&possible_vals::<ScanType, _>())
         .help("The wifi scanning program to use to get results.");
@@ -70,6 +71,7 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
     let selection_method = Arg::with_name("selection_method")
         .short("m")
         .long("selection-method")
+        .takes_value(true)
         .default_value(&SelectionMethod::default().as_static())
         .possible_values(&possible_vals::<SelectionMethod, _>())
         .help("The program to use to prompt for input.");
@@ -77,16 +79,17 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
     let connect_via = Arg::with_name("connect_via")
         .short("c")
         .long("connect-via")
+        .takes_value(true)
         .default_value(&ConnectionType::default().as_static())
         .possible_values(&possible_vals::<ConnectionType, _>())
         .help("Which network management suite to use to connect, or whether to just print the selected SSID for use elsewhere.");
 
-    App::new("Rust Wireless Manager")
+    App::new("Ruwi")
         .version("0.2")
         .author("Glenn Hope <glenn.alexander.hope@gmail.com>")
         .about("Combines existing network management layers (netctl, NetworkManager, wicd) and selection utilities (fzf, dmenu) to find, select, configure, and connect to wireless networks.")
         .arg(auto)
-        .arg(auto_no_ask)
+        .arg(auto_mode)
         .arg(connect_via)
         .arg(debug)
         .arg(essid)
@@ -99,21 +102,13 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .arg(selection_method)
 }
 
-pub fn get_options() -> Result<Options, RuwiError> {
+pub(crate) fn get_options() -> Result<Options, RuwiError> {
     let m = get_arg_app().get_matches();
     get_options_impl(m)
 }
 
 fn get_options_impl(m: ArgMatches) -> Result<Options, RuwiError> {
     let debug = m.is_present("debug");
-
-    let auto_mode = if m.is_present("auto_no_ask") {
-        AutoMode::AutoNoAsk
-    } else if m.is_present("auto") {
-        AutoMode::Auto
-    } else {
-        AutoMode::None
-    };
 
     let force_synchronous_scan = m.is_present("force_synchronous_scan");
 
@@ -125,10 +120,7 @@ fn get_options_impl(m: ArgMatches) -> Result<Options, RuwiError> {
     };
 
     let scan_type = get_val_as_enum::<ScanType>(&m, "scan_type");
-
-    let input_filename = m.value_of("input_file").map(String::from);
-    dbg!(&input_filename);
-    let scan_method = if let Some(filename) = input_filename {
+    let scan_method = if let Some(filename) = m.value_of("input_file").map(String::from) {
         ScanMethod::FromFile(filename)
     } else {
         if m.is_present("input_stdin") {
@@ -137,8 +129,13 @@ fn get_options_impl(m: ArgMatches) -> Result<Options, RuwiError> {
             ScanMethod::ByRunning
         }
     };
-
     validate_scan_method_and_type(&scan_method, &scan_type)?;
+
+    let auto_mode = if m.is_present("auto") {
+        AutoMode::KnownOrAsk
+    } else {
+        get_val_as_enum::<AutoMode>(&m, "auto_mode")
+    };
 
     let selection_method = get_val_as_enum::<SelectionMethod>(&m, "selection_method");
     let connect_via = get_val_as_enum::<ConnectionType>(&m, "connect_via");
@@ -283,19 +280,22 @@ mod tests {
     #[test]
     fn test_auto_mode() {
         let opts = getopts(&[]);
-        assert_eq![opts.auto_mode, AutoMode::None];
+        assert_eq![opts.auto_mode, AutoMode::default()];
 
         let opts = getopts(&["-a"]);
-        assert_eq![opts.auto_mode, AutoMode::Auto];
+        assert_eq![opts.auto_mode, AutoMode::KnownOrAsk];
 
         let opts = getopts(&["--auto"]);
-        assert_eq![opts.auto_mode, AutoMode::Auto];
+        assert_eq![opts.auto_mode, AutoMode::KnownOrAsk];
 
-        let opts = getopts(&["-A"]);
-        assert_eq![opts.auto_mode, AutoMode::AutoNoAsk];
+        let opts = getopts(&["-A", AutoMode::KnownOrFail.to_string().as_ref()]);
+        assert_eq![opts.auto_mode, AutoMode::KnownOrFail];
 
-        let opts = getopts(&["--auto-no-ask"]);
-        assert_eq![opts.auto_mode, AutoMode::AutoNoAsk];
+        let opts = getopts(&["-A", AutoMode::First.to_string().as_ref()]);
+        assert_eq![opts.auto_mode, AutoMode::First];
+
+        let opts = getopts(&["--auto-mode", AutoMode::KnownOrAsk.to_string().as_ref()]);
+        assert_eq![opts.auto_mode, AutoMode::KnownOrAsk];
     }
 
     #[test]

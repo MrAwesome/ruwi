@@ -6,6 +6,7 @@ use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
 pub static PROG_NAME: &str = "ruwi";
 
+// TODO: set to pub(crate) temporarily to find unused values
 #[derive(Debug, PartialEq, Eq)]
 pub enum RuwiErrorKind {
     InvalidScanTypeAndMethod,
@@ -135,16 +136,18 @@ impl Default for ConnectionType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
+#[strum(serialize_all = "snake_case")]
 pub enum AutoMode {
-    None,
-    Auto,
-    AutoNoAsk,
+    Ask,
+    KnownOrAsk,
+    KnownOrFail,
+    First,
 }
 
 impl Default for AutoMode {
     fn default() -> Self {
-        Self::None
+        Self::Ask
     }
 }
 
