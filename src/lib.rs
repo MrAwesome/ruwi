@@ -25,8 +25,8 @@ pub(crate) mod netctl_config_writer;
 pub(crate) mod parse;
 pub(crate) mod run_commands;
 pub(crate) mod scan;
-pub(crate) mod select;
 pub(crate) mod select_network;
+pub(crate) mod select_utils;
 pub(crate) mod sort_networks;
 pub(crate) mod structs;
 #[macro_use]

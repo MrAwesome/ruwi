@@ -1,6 +1,6 @@
 use crate::rerr;
 #[cfg(not(test))]
-use crate::select::*;
+use crate::select_utils::*;
 use crate::structs::*;
 
 use crate::strum_utils::possible_vals;
