@@ -5,6 +5,7 @@ use crate::structs::*;
 use crate::wpa_cli_initialize::initialize_wpa_cli;
 
 use std::error::Error;
+use std::fs::File;
 use std::io;
 use std::io::Read;
 use std::process::Output;
@@ -34,11 +35,16 @@ static DEVICE_OR_RESOURCE_BUSY_EXIT_CODE: i32 = 240;
 
 pub(crate) fn wifi_scan(options: Options) -> Result<ScanResult, RuwiError> {
     // TODO: match scan method first
+    let sm = options.scan_method.clone();
     let st = options.scan_type.clone();
-    let res = match &st {
-        ScanType::WpaCli => run_wpa_cli_scan(&options, st),
-        ScanType::IW => run_iw_scan(&options, st),
-        ScanType::RuwiJSON => Err(nie("No JSON support yet.")),
+    let res = match sm {
+        ScanMethod::ByRunning => match &st {
+            ScanType::WpaCli => run_wpa_cli_scan(&options, st),
+            ScanType::IW => run_iw_scan(&options, st),
+            ScanType::RuwiJSON => Err(nie("No JSON support yet.")),
+        },
+        ScanMethod::FromFile(filename) => get_scan_contents_from_file(&options, st, &filename),
+        ScanMethod::FromStdin => get_scan_contents_from_stdin(&options, st),
     };
 
     if options.debug {
@@ -47,16 +53,44 @@ pub(crate) fn wifi_scan(options: Options) -> Result<ScanResult, RuwiError> {
     res
 }
 
-fn _get_scan_contents_from_stdin(
+fn get_scan_contents_from_stdin(
     _options: &Options,
     scan_type: ScanType,
 ) -> Result<ScanResult, RuwiError> {
     let mut stdin_contents = "".into();
-    io::stdin()
-        .read_to_end(&mut stdin_contents)
-        .map_err(|e| rerr!(RuwiErrorKind::FailedToReadFromStdin, e.description()))?;
+    io::stdin().read_to_end(&mut stdin_contents).map_err(|e| {
+        rerr!(
+            RuwiErrorKind::FailedToReadScanResultsFromStdin,
+            e.description()
+        )
+    })?;
 
     let scan_output = String::from_utf8_lossy(&stdin_contents).into();
+
+    Ok(ScanResult {
+        scan_type,
+        scan_output,
+    })
+}
+
+fn get_scan_contents_from_file(
+    _options: &Options,
+    scan_type: ScanType,
+    filename: &str,
+) -> Result<ScanResult, RuwiError> {
+    let file_read_err = |e: io::Error| {
+        rerr!(
+            RuwiErrorKind::FailedToReadScanResultsFromFile,
+            e.description()
+        )
+    };
+    let mut file_contents = "".into();
+    File::open(filename)
+        .map_err(file_read_err)?
+        .read_to_end(&mut file_contents)
+        .map_err(file_read_err)?;
+
+    let scan_output = String::from_utf8_lossy(&file_contents).into();
 
     Ok(ScanResult {
         scan_type,

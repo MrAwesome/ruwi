@@ -16,7 +16,8 @@ pub enum RuwiErrorKind {
     FailedToConnectViaNetworkManager,
     FailedToConnectViaWPACli,
     FailedToParseSelectedLine,
-    FailedToReadFromStdin,
+    FailedToReadScanResultsFromStdin,
+    FailedToReadScanResultsFromFile,
     FailedToRunCommand,
     FailedToRunIWDev,
     FailedToRunIWScanAbort,
@@ -69,11 +70,10 @@ impl fmt::Display for RuwiError {
     }
 }
 
-#[strum(serialize_all = "snake_case")]
-#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ScanMethod {
     ByRunning,
-    FromFile,
+    FromFile(String),
     FromStdin,
 }
 
@@ -172,15 +172,16 @@ pub struct Options {
 impl Default for Options {
     fn default() -> Self {
         Self {
-            scan_type: ScanType::IW,
-            scan_method: ScanMethod::ByRunning,
+            scan_type: Default::default(),
+            scan_method: Default::default(),
+            // TODO: prevent this from ever being seen? How?
             interface: "some_fake_name".to_string(),
-            selection_method: SelectionMethod::Fzf,
-            connect_via: ConnectionType::None,
-            debug: true,
+            selection_method: Default::default(),
+            connect_via: Default::default(),
+            debug: false,
             given_essid: None,
             given_encryption_key: None,
-            auto_mode: AutoMode::None,
+            auto_mode: Default::default(),
             force_synchronous_scan: false,
             synchronous_retry: None,
         }
