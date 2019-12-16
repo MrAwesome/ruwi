@@ -29,6 +29,7 @@ pub(crate) mod select_network;
 pub(crate) mod select_utils;
 pub(crate) mod sort_networks;
 pub(crate) mod structs;
+pub(crate) mod synchronous_retry_logic;
 #[macro_use]
 pub(crate) mod macros;
 pub(crate) mod strum_utils;
@@ -46,31 +47,27 @@ use select_network::*;
 use sort_networks::*;
 use std::thread;
 use structs::*;
+use synchronous_retry_logic::*;
 
+// TODO(high): mock out known-network finding in integration tests, ensure it isn't happening in unit tests. --dry-run flag? behave differently when not run as root? something.
 // TODO(high): stop/start the relevant services (in particular, stop networkmanager if it's running before trying to do netctl things) - - pkill wpa_supplicant, systemctl stop NetworkManager, etc etc etc
 // TODO(high): figure out how to unit test / mock command calls
-// TODO(high): find a way to unit test without actually running commands. maybe with cfg(test)?
 // TODO(high): if networkmanager is used, start it up before going - same with netctl. possibly also stop
-// TODO(think): come up with subcommands which only run specified pieces, or at least decide on the functionality this command should have
 // TODO(mid): add colors to output / use a real logging library
-// TODO(mid): go back to using enums for errors, with a mapping to error message to print (enums are MUCH faster than boxing errors)
-// TODO(mid): if no networks are seen by `iw dump`, go ahead and just run scan? may need to dump before trigger then
-// the other, to prevent cross-contamination
-// TODO(mid): figure out if networkmanager connection add with wifi password works - looks like not, just fail if output networkmanager is chosen without connection (or combine output and connection as a single concept, and have "print" as one)
-// TODO(mid): add integration test, which takes -e and -p, doesn't try to connect, make sure it creates a netctl config?
+// TODO(mid): list all inputs, and create appropriate command line flags - Options should not be created with filenames, but with the appropriate structs already populated during the cmdline parsing stage (knownnetwork names, password, etc read from a file)? or are filenames fine? i don't think it matters, just affects how you test
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
+// TODO(low): integration test with -e and -p
 // TODO(low): move majority of code from here into another file
 // TODO(low): flag to disable looking for known networks
 // TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
-// TODO(wishlist): json scan output mode
+// TODO(wishlist): implement json scan output mode
 // TODO(wishlist): find a generalized way to do x notifications, for dmenu mode, use to surface failures
 // TODO(wishlist): determine whether to use dmenu/fzf/etc based on terminal/X
 // TODO(wishlist): connection/scan type: wicd-cli
-// TODO(wishlist): connection/scan type: iw raw (would need to store encryption keys, and at that point ruwi is a connection manager)
+// TODO(wishlist): containers which emulate systems on which ruwi should act a particular way (interface name, etc)
 // TODO(later): make sure fzf and dmenu are listed as dependencies
 // TODO(think): instead of functions which take options, make a big struct/impl? maybe more than one?
 // TODO(think): add a -w/--wait or --verify or something to attempt to connect to google/etc?
-// TODO(think): consider just supporting netctl for now?
 // TODO(think): make -a the default?
 
 pub fn run_ruwi() -> Result<(), RuwiError> {
@@ -143,6 +140,7 @@ fn scan_parse_and_annotate_networks_with_retry(
     let annotated_networks_res = scan_parse_and_annotate_networks(options);
 
     if let Ok(annotated_networks) = &annotated_networks_res {
+        // TODO: possibly just rerun everything in synchronous mode if any problems are encountered?
         if should_retry_with_synchronous_scan(options, &annotated_networks) {
             eprintln!("[NOTE]: No known networks seen in auto mode using cached scan results. Manually scanning now. ");
             return Err(rerr!(
@@ -152,22 +150,6 @@ fn scan_parse_and_annotate_networks_with_retry(
         }
     }
     Ok(annotated_networks_res?)
-}
-
-fn should_retry_with_synchronous_scan(
-    options: &Options,
-    annotated_networks: &AnnotatedNetworks,
-) -> bool {
-    // TODO: possibly just rerun everything in synchronous mode if any problems are encountered?
-    // TODO: unit test
-    match options.auto_mode {
-        AutoMode::KnownOrAsk | AutoMode::KnownOrFail => {
-            annotated_networks.networks.iter().any(|x| x.known)
-        }
-
-        AutoMode::First => annotated_networks.networks.is_empty(),
-        AutoMode::Ask => false,
-    }
 }
 
 fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetworks, RuwiError> {
@@ -203,7 +185,7 @@ fn await_thread<T>(handle: thread::JoinHandle<T>) -> Result<T, RuwiError> {
 #[cfg(test)]
 mod tests {
     // use super::*;
-
+    //
     // #[test]
     // fn test_run_ruwi() -> Result<(), RuwiError> {
     //     run_ruwi()

@@ -1,13 +1,21 @@
+#[cfg(not(test))]
 use crate::rerr;
+#[cfg(not(test))]
 use crate::run_commands::*;
 use crate::structs::*;
 use std::collections::HashSet;
+#[cfg(not(test))]
 use std::error::Error;
+#[cfg(not(test))]
 use std::fs::{read_dir, DirEntry, File};
+#[cfg(not(test))]
 use std::io;
+#[cfg(not(test))]
 use std::io::prelude::*;
 use std::ops::Deref;
+#[cfg(not(test))]
 use std::path::Path;
+#[cfg(not(test))]
 use unescape::unescape;
 
 #[derive(Debug)]
@@ -26,6 +34,12 @@ impl Deref for KnownNetworks {
     }
 }
 
+#[cfg(test)]
+pub(crate) fn find_known_network_names(_options: Options) -> Result<KnownNetworks, RuwiError> {
+    return Ok(KnownNetworks::default());
+}
+
+#[cfg(not(test))]
 pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworks, RuwiError> {
     let known_network_names = match options.connect_via {
         ConnectionType::Netctl => find_known_netctl_networks()
@@ -41,6 +55,7 @@ pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworks
     known_network_names
 }
 
+#[cfg(not(test))]
 fn find_known_networkmanager_networks(options: &Options) -> Result<KnownNetworks, RuwiError> {
     Ok(KnownNetworks(run_command_pass_stdout(
         options.debug,
@@ -52,6 +67,7 @@ fn find_known_networkmanager_networks(options: &Options) -> Result<KnownNetworks
     .lines().map(|x| x.into()).collect::<HashSet<String>>()))
 }
 
+#[cfg(not(test))]
 fn find_known_netctl_networks() -> io::Result<KnownNetworks> {
     let netctl_path = Path::new("/etc/netctl");
     if netctl_path.is_dir() {
@@ -69,6 +85,7 @@ fn find_known_netctl_networks() -> io::Result<KnownNetworks> {
     }
 }
 
+#[cfg(not(test))]
 fn get_essid_from_netctl_config_file(entry: io::Result<DirEntry>) -> io::Result<Option<String>> {
     let entry = entry?;
     let path = entry.path();

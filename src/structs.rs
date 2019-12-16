@@ -290,7 +290,7 @@ impl Default for AnnotatedWirelessNetwork {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct AnnotatedNetworks {
     pub networks: Vec<AnnotatedWirelessNetwork>,
 }
