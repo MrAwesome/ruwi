@@ -1,4 +1,3 @@
-extern crate rexpect;
 use rexpect::errors::*;
 use rexpect::spawn;
 
@@ -8,7 +7,7 @@ fn test_fzf_ctrl_c_exits() -> Result<()> {
         "./target/debug/ruwi -m fzf -F src/samples/iw_many_networks.txt -c print -s iw",
         Some(2000),
     )?;
-    p.exp_regex("Select a network:")?;
+    p.exp_regex("Select a network")?;
     p.send_control('c')?;
     p.exp_eof()?;
     let x = p.process.status().unwrap();
@@ -19,6 +18,5 @@ fn test_fzf_ctrl_c_exits() -> Result<()> {
     } else {
         panic!("Ruwi process did not terminate correctly when ctrl-c was passed in fzf mode!");
     };
-    //p.exp_string("alltheinternets")?;
     Ok(())
 }

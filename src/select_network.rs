@@ -45,6 +45,7 @@ fn prompt_user_for_selection(
     if let Ok(selection_option) = SelectionOption::from_str(&selector_output) {
         match selection_option {
             SelectionOption::Refresh => {
+                eprintln!("[NOTE]: Refresh requested, running synchronous scan.");
                 Err(rerr!(RuwiErrorKind::RefreshRequested, "Refresh requested."))
             }
         }
@@ -70,10 +71,13 @@ fn run_manual_selector(
             &"Select a network: ".to_string(),
             selection_tokens,
         ),
-        SelectionMethod::Fzf => {
-            run_fzf(&options, &"Select a network:".to_string(), selection_tokens)
-        }
+        SelectionMethod::Fzf => run_fzf(
+            &options,
+            &"Select a network (ctrl-r or \"refresh\" to refresh results): ".to_string(),
+            selection_tokens,
+        ),
     }
+    // TODO: unit test that this trim happens, it is very important.
     .map(|x| x.trim().into())
 }
 

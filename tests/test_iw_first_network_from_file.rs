@@ -1,5 +1,3 @@
-extern crate assert_cmd;
-extern crate ruwi;
 use assert_cmd::prelude::*;
 use std::process::Command;
 

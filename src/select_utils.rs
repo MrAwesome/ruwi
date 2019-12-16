@@ -24,7 +24,13 @@ pub(crate) fn run_fzf(
     run_prompt_cmd(
         options.debug,
         "fzf",
-        &["--layout", "reverse", &format!("--prompt={}", prompt)],
+        &[
+            "--layout",
+            "reverse",
+            &format!("--prompt={}", prompt),
+            "--bind",
+            "ctrl-r:execute(echo refresh)+end-of-line+unix-line-discard+print-query",
+        ],
         elements,
     )
 }

@@ -5,6 +5,8 @@ use crate::strum_utils::{get_val_as_enum, possible_vals};
 use clap::{App, Arg, ArgMatches};
 use strum::AsStaticRef;
 
+fn TODO_AUTO_MODE_IS_BROKEN() {}
+
 // TODO: fail if not run as root
 // TODO: use subcommands for configurations of options, but still go through all functions always?
 //       or just run certain functions for certain subcommands?
