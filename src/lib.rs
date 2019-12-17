@@ -49,11 +49,15 @@ use std::thread;
 use structs::*;
 use synchronous_retry_logic::*;
 
+// TODO(high): integrate `cargo watch -x test`
+// TODO(high): better error message when fzf/etc is not installed
+// TODO(high): use `ip link set dev <int> up`
 // TODO(high): mock out known-network finding in integration tests, ensure it isn't happening in unit tests. --dry-run flag? behave differently when not run as root? something.
 // TODO(high): stop/start the relevant services (in particular, stop networkmanager if it's running before trying to do netctl things) - - pkill wpa_supplicant, systemctl stop NetworkManager, etc etc etc
 // TODO(high): figure out how to unit test / mock command calls
 // TODO(high): if networkmanager is used, start it up before going - same with netctl. possibly also stop
 // TODO(mid): add colors to output / use a real logging library
+// TODO(mid): add a "list seen networks" mode?
 // TODO(mid): list all inputs, and create appropriate command line flags - Options should not be created with filenames, but with the appropriate structs already populated during the cmdline parsing stage (knownnetwork names, password, etc read from a file)? or are filenames fine? i don't think it matters, just affects how you test
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
 // TODO(low): integration test with -e and -p
@@ -64,6 +68,7 @@ use synchronous_retry_logic::*;
 // TODO(wishlist): find a generalized way to do x notifications, for dmenu mode, use to surface failures
 // TODO(wishlist): determine whether to use dmenu/fzf/etc based on terminal/X
 // TODO(wishlist): connection/scan type: wicd-cli
+// TODO(wishlist): fzf keyboard shortcuts for getting more info about a network?
 // TODO(wishlist): containers which emulate systems on which ruwi should act a particular way (interface name, etc)
 // TODO(later): make sure fzf and dmenu are listed as dependencies
 // TODO(think): instead of functions which take options, make a big struct/impl? maybe more than one?
@@ -90,20 +95,27 @@ fn use_given_or_scan_and_select_network(
     options: &Options,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     match &options.given_essid {
-        Some(essid) => Ok(get_network_from_given_essid(options, essid)),
+        Some(essid) => get_network_from_given_essid(options, essid),
         None => scan_and_select_network_with_retry(options),
     }
 }
 
-fn get_network_from_given_essid(options: &Options, essid: &str) -> AnnotatedWirelessNetwork {
+fn get_network_from_given_essid(
+    options: &Options,
+    essid: &str,
+) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     // TODO: make sure known: true is the right option here, or if more control flow is needed
     //       known: true might create issues with creating netctl configs - walk through it on
     //       paper to find out
     //  TODO: decide if this functionality is worth supporting.
     //
-    let is_known = true; // ????
+    let is_known = find_known_network_names(options.clone())?.contains(essid);
     let is_encrypted = options.given_encryption_key.is_some();
-    AnnotatedWirelessNetwork::from_essid(essid.into(), is_known, is_encrypted)
+    Ok(AnnotatedWirelessNetwork::from_essid(
+        essid.into(),
+        is_known,
+        is_encrypted,
+    ))
 }
 
 fn scan_and_select_network_with_retry(
