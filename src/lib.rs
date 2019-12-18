@@ -49,10 +49,7 @@ use std::thread;
 use structs::*;
 use synchronous_retry_logic::*;
 
-// TODO(high): integrate `cargo watch -x test`
-// TODO(high): remove deps, use just expect in tests
 // TODO(high): better error message when fzf/etc is not installed
-// TODO(high): use `ip link set dev <int> up`
 // TODO(high): mock out known-network finding in integration tests, ensure it isn't happening in unit tests. --dry-run flag? behave differently when not run as root? something.
 // TODO(high): stop/start the relevant services (in particular, stop networkmanager if it's running before trying to do netctl things) - - pkill wpa_supplicant, systemctl stop NetworkManager, etc etc etc
 // TODO(high): figure out how to unit test / mock command calls
