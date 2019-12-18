@@ -3,6 +3,7 @@ use crate::rerr;
 #[cfg(not(test))]
 use crate::run_commands::*;
 use crate::structs::*;
+#[cfg(not(test))]
 use std::collections::HashSet;
 #[cfg(not(test))]
 use std::error::Error;
@@ -12,40 +13,23 @@ use std::fs::{read_dir, DirEntry, File};
 use std::io;
 #[cfg(not(test))]
 use std::io::prelude::*;
-use std::ops::Deref;
 #[cfg(not(test))]
 use std::path::Path;
 #[cfg(not(test))]
 use unescape::unescape;
 
-#[derive(Debug)]
-pub struct KnownNetworks(HashSet<String>);
-
-impl Default for KnownNetworks {
-    fn default() -> Self {
-        KnownNetworks(HashSet::new())
-    }
-}
-
-impl Deref for KnownNetworks {
-    type Target = HashSet<String>;
-    fn deref(&self) -> &HashSet<String> {
-        &self.0
-    }
-}
-
 #[cfg(test)]
-pub(crate) fn find_known_network_names(_options: Options) -> Result<KnownNetworks, RuwiError> {
-    return Ok(KnownNetworks::default());
+pub(crate) fn find_known_network_names(_options: Options) -> Result<KnownNetworkNames, RuwiError> {
+    return Ok(KnownNetworkNames::default());
 }
 
 #[cfg(not(test))]
-pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworks, RuwiError> {
+pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworkNames, RuwiError> {
     let known_network_names = match options.connect_via {
         ConnectionType::Netctl => find_known_netctl_networks()
             .map_err(|e| rerr!(RuwiErrorKind::KnownNetworksFetchError, e.description())),
         ConnectionType::NetworkManager => find_known_networkmanager_networks(&options),
-        ConnectionType::None | ConnectionType::Print => Ok(KnownNetworks::default()),
+        ConnectionType::None | ConnectionType::Print => Ok(KnownNetworkNames::default()),
     };
 
     if options.debug {
@@ -56,8 +40,8 @@ pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworks
 }
 
 #[cfg(not(test))]
-fn find_known_networkmanager_networks(options: &Options) -> Result<KnownNetworks, RuwiError> {
-    Ok(KnownNetworks(run_command_pass_stdout(
+fn find_known_networkmanager_networks(options: &Options) -> Result<KnownNetworkNames, RuwiError> {
+    Ok(KnownNetworkNames(run_command_pass_stdout(
         options.debug,
         "nmcli",
         &["-g", "NAME", "connection", "show"],
@@ -68,7 +52,7 @@ fn find_known_networkmanager_networks(options: &Options) -> Result<KnownNetworks
 }
 
 #[cfg(not(test))]
-fn find_known_netctl_networks() -> io::Result<KnownNetworks> {
+fn find_known_netctl_networks() -> io::Result<KnownNetworkNames> {
     let netctl_path = Path::new("/etc/netctl");
     if netctl_path.is_dir() {
         // TODO: Use tokio/etc to asynchronously read from these files
@@ -79,7 +63,7 @@ fn find_known_netctl_networks() -> io::Result<KnownNetworks> {
             .map(|x| unescape(&x).unwrap_or(x))
             .collect::<HashSet<String>>();
 
-        Ok(KnownNetworks(known_essids))
+        Ok(KnownNetworkNames(known_essids))
     } else {
         Ok(Default::default())
     }

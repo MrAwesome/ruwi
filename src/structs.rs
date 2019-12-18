@@ -1,7 +1,9 @@
 use crate::rerr;
+use std::collections::HashSet;
 use std::error::Error;
 use std::fmt;
 use std::fmt::Debug;
+use std::ops::{Deref, DerefMut};
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
 pub static PROG_NAME: &str = "ruwi";
@@ -287,6 +289,28 @@ impl Default for AnnotatedWirelessNetwork {
     fn default() -> Self {
         let nw = WirelessNetwork::default();
         AnnotatedWirelessNetwork::from_nw(nw, false)
+    }
+}
+
+#[derive(Debug)]
+pub struct KnownNetworkNames(pub HashSet<String>);
+
+impl Default for KnownNetworkNames {
+    fn default() -> Self {
+        KnownNetworkNames(HashSet::new())
+    }
+}
+
+impl Deref for KnownNetworkNames {
+    type Target = HashSet<String>;
+    fn deref(&self) -> &HashSet<String> {
+        &self.0
+    }
+}
+
+impl DerefMut for KnownNetworkNames {
+    fn deref_mut(&mut self) -> &mut HashSet<String> {
+        &mut self.0
     }
 }
 

@@ -1,13 +1,10 @@
 use crate::structs::*;
 
-// TODO: make type for known network names
-use std::collections::HashSet;
-
 // TODO: unit test that networks passed in equal networks passed out
 pub(crate) fn annotate_networks(
     options: &Options,
     networks: &[WirelessNetwork],
-    known_network_names: &HashSet<String>,
+    known_network_names: &KnownNetworkNames,
 ) -> AnnotatedNetworks {
     let networks = networks
         .iter()
@@ -40,7 +37,7 @@ mod tests {
             essid: essid.clone(),
             ..Default::default()
         };
-        let mut known_networks = HashSet::new();
+        let mut known_networks = KnownNetworkNames::default();
         known_networks.insert(essid);
         let annotated_networks = annotate_networks(&Options::default(), &vec![nw], &known_networks);
 
