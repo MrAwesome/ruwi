@@ -5,6 +5,7 @@ use crate::strum_utils::{get_val_as_enum, possible_vals};
 use clap::{App, Arg, ArgMatches};
 use strum::AsStaticRef;
 
+// TODO: respect force_ask_password
 // TODO: fail if not run as root
 // TODO: use subcommands for configurations of options, but still go through all functions always?
 //       or just run certain functions for certain subcommands?
@@ -63,7 +64,7 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
     let force_ask_password = Arg::with_name("force_ask_password")
         .short("P")
         .long("force-ask-password")
-        .help("Will always prompt for a password when selecting a network, or passing an SSID with `-e`. Ignored with `-p`.");
+        .help("Will always prompt for a password when selecting a network, or passing an SSID with `-e`. Ignored with `-p`, or on connection/output types where a password wouldn't be used anyway.");
 
     let scan_type = Arg::with_name("scan_type")
         .short("s")

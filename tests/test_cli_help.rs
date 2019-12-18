@@ -1,9 +1,11 @@
-use assert_cmd::prelude::*;
-use std::process::Command;
+use rexpect::errors::*;
+use rexpect::spawn;
 
 #[test]
-fn test_cli_help() {
-    let mut cmd = Command::main_binary().unwrap();
-    cmd.arg("--help");
-    cmd.assert().success();
+fn test_cli_help() -> Result<()> {
+    let mut p = spawn("./target/debug/ruwi --help", Some(1000))?;
+    p.exp_string("USAGE:")?;
+    p.exp_string("FLAGS:")?;
+    p.exp_string("OPTIONS:")?;
+    Ok(())
 }
