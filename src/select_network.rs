@@ -60,6 +60,7 @@ fn prompt_user_for_selection(
         })
     }
 }
+
 fn run_manual_selector(
     options: &Options,
     networks: &SortedUniqueNetworks,
@@ -322,7 +323,7 @@ mod tests {
             ("22) jfdlskajfdlksa", Ok(22)),
             ("69) 54) jfdlskajfdlksa", Ok(69)),
             ("4000) jfdlskajfdlksa", Ok(4000)),
-            ("4000000000) jfdlskajfdlksa", Ok(4000000000)),
+            ("4000000000) jfdlskajfdlksa", Ok(4_000_000_000)),
             ("-12) negawifi", Err(get_line_parse_err("-12) negawifi"))),
             ("jf jfjf", Err(get_line_parse_err("jf jfjf"))),
             ("!@&*(#@!", Err(get_line_parse_err("!@&*(#@!"))),
@@ -348,9 +349,9 @@ mod tests {
             ],
         };
         let tokens = networks.get_tokens_for_selection();
-        for i in 0..networks.networks.len() {
-            let expected_token = format!("{}) {}", i, &networks.networks[i].get_display_string());
-            assert_eq![expected_token, tokens[i]];
+        for (i, (nw, token)) in networks.networks.iter().zip(tokens).enumerate() {
+            let expected_token = format!("{}) {}", i, nw.get_display_string());
+            assert_eq![expected_token, token];
         }
     }
 }

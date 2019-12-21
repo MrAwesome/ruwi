@@ -1,79 +1,77 @@
-#[cfg(not(test))]
 use crate::rerr;
 use crate::structs::*;
-#[cfg(not(test))]
 use std::error::Error;
-#[cfg(not(test))]
 use std::io;
 #[cfg(not(test))]
 use std::io::Write;
 use std::process::Output;
-#[cfg(not(test))]
 use std::process::{Command, Stdio};
+
+// TODO: create unit tests which test the non-spawning parts of these functions
+// TODO: assert args are actually being passed to commands
+
 
 pub(crate) fn run_command_pass_stdout(
     debug: bool,
-    cmd: &str,
+    cmd_name: &str,
     args: &[&str],
     err_kind: RuwiErrorKind,
     err_msg: &str,
 ) -> Result<String, RuwiError> {
     if debug {
-        dbg!(&debug, &cmd, &args, &err_kind, &err_msg);
+        dbg!(&debug, &cmd_name, &args, &err_kind, &err_msg);
     }
 
-    #[cfg(test)]
-    return Ok("FAKE_COMMAND_OUTPUT".to_string());
-
-    #[cfg(not(test))]
-    {
-        // TODO: allow the err_msg to be or contain stderr somehow, esp for netctl switch-to
-        let output_res = run_command_output(debug, cmd, args);
-        if let Ok(output) = &output_res {
-            if output.status.success() {
-                return Ok(String::from_utf8_lossy(&output.stdout).to_string());
-            }
+    // TODO: allow the err_msg to be or contain stderr somehow, esp for netctl switch-to
+    let output_res = run_command_output(debug, cmd_name, args);
+    if let Ok(output) = &output_res {
+        if output.status.success() {
+            return Ok(String::from_utf8_lossy(&output.stdout).to_string());
         }
-        Err(rerr!(err_kind, err_msg))
     }
+    Err(rerr!(err_kind, err_msg))
 }
 
 pub(crate) fn run_command_output(
     debug: bool,
-    cmd: &str,
+    cmd_name: &str,
     args: &[&str],
 ) -> Result<Output, RuwiError> {
     if debug {
-        dbg!(&cmd, &args);
+        dbg!(&cmd_name, &args);
+    }
+
+    run_command_impl(debug, cmd_name, args)
+        .map_err(|e| rerr!(RuwiErrorKind::FailedToRunCommand, e.description()))
+}
+
+fn run_command_impl(debug: bool, cmd_name: &str, args: &[&str]) -> io::Result<Output> {
+    let mut cmd = Command::new(cmd_name);
+    cmd.args(args).stdout(Stdio::piped()).stderr(Stdio::piped());
+
+    if debug {
+        dbg!(&cmd);
     }
 
     #[cfg(test)]
     panic!("Prevented command usage in test!");
 
     #[cfg(not(test))]
-    run_command_impl(debug, cmd, args)
-        .map_err(|e| rerr!(RuwiErrorKind::FailedToRunCommand, e.description()))
-}
+    {
+        let spawn_res = cmd.spawn();
 
-#[cfg(not(test))]
-fn run_command_impl(debug: bool, cmd: &str, args: &[&str]) -> io::Result<Output> {
-    let spawn_res = Command::new(cmd)
-        .args(args)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn();
+        if debug {
+            dbg!(&spawn_res);
+        }
 
-    if debug {
-        dbg!(&spawn_res);
+        let output_res = spawn_res?.wait_with_output();
+
+        if debug {
+            dbg!(&output_res);
+        }
+
+        output_res
     }
-
-    let output_res = spawn_res?.wait_with_output();
-
-    if debug {
-        dbg!(&output_res);
-    }
-
-    output_res
 }
 
 // Special runner for fzf, dmenu, etc
@@ -87,27 +85,15 @@ pub(crate) fn run_prompt_cmd(
         dbg!(&cmd_name, &args, &elements);
     }
 
-    #[cfg(test)]
-    panic!("Prevented prompt command usage in test!");
-
-    #[cfg(not(test))]
-    run_prompt_cmd_impl(debug, cmd_name, args, elements)
-}
-
-#[cfg(not(test))]
-fn run_prompt_cmd_impl(
-    debug: bool,
-    cmd_name: &str,
-    args: &[&str],
-    elements: Vec<String>,
-) -> Result<String, RuwiError> {
-    let output = run_prompt_cmd_system_impl(debug, cmd_name, args, elements);
+    let res = run_prompt_cmd_system_impl(debug, cmd_name, args, elements);
     if debug {
-        dbg!(&output);
+        dbg!(&res);
     }
 
+    is_cmd_installed(debug, cmd_name)?;
+
     let output =
-        output.map_err(|e| rerr!(RuwiErrorKind::PromptCommandSpawnFailed, e.description()))?;
+        res.map_err(|e| rerr!(RuwiErrorKind::PromptCommandSpawnFailed, format!("{}", e)))?;
 
     if output.status.success() {
         Ok(String::from_utf8_lossy(&output.stdout)
@@ -116,19 +102,21 @@ fn run_prompt_cmd_impl(
     } else {
         Err(rerr!(
             RuwiErrorKind::PromptCommandFailed,
-            "Prompt command exited with non-zero exit code"
+            "Prompt command exited with non-zero exit code."
         ))
     }
 }
 
-#[cfg(not(test))]
 fn run_prompt_cmd_system_impl(
     debug: bool,
     cmd_name: &str,
     args: &[&str],
     elements: Vec<String>,
 ) -> io::Result<Output> {
-    let input_text = elements.join("\n");
+    if debug {
+        dbg!(&cmd_name, &args, &elements);
+    }
+
     let mut cmd = Command::new(cmd_name);
     let cmd = cmd
         .args(args)
@@ -141,16 +129,97 @@ fn run_prompt_cmd_system_impl(
         dbg![&cmd];
     }
 
-    let mut child = cmd.spawn()?;
-    let stdin = child.stdin.as_mut().ok_or_else(|| {
-        io::Error::new(
-            io::ErrorKind::Other,
-            "Could not acquire write access to stdin.",
+    #[cfg(test)]
+    panic!("Prevented prompt command usage in test!");
+
+    #[cfg(not(test))]
+    {
+        let mut child = cmd.spawn()?;
+        let stdin = child.stdin.as_mut().ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::Other,
+                "Could not acquire write access to stdin.",
+            )
+        })?;
+
+        stdin.write_all(elements.join("\n").as_bytes())?;
+
+        let output = child.wait_with_output()?;
+
+        Ok(output)
+    }
+}
+
+fn is_cmd_installed(debug: bool, cmd_name: &str) -> Result<(), RuwiError> {
+    let mut cmd = Command::new("which");
+    cmd.arg(cmd_name)
+        .stdin(Stdio::null())
+        .stderr(Stdio::null())
+        .stdout(Stdio::null());
+
+    if debug {
+        dbg!(&cmd);
+    }
+
+    #[cfg(test)]
+    panic!("Prevented is_cmd_installed command usage in test!");
+
+    #[cfg(not(test))]
+    {
+        let status = cmd.status();
+
+        if debug {
+            dbg!(&status);
+        }
+
+        let is_installed = match status {
+            Ok(exit_status) => exit_status.success(),
+            Err(_) => false,
+        };
+
+        if is_installed {
+            Ok(())
+        } else {
+            Err(rerr!(
+                RuwiErrorKind::CommandNotInstalled,
+                format!("`{}` is not installed or is not in $PATH.", cmd_name),
+            ))
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic = "Prevented command usage in test!"]
+    fn test_cmd_use_in_test_panics() {
+        run_command_pass_stdout(
+            true,
+            "echo",
+            &["lawl"],
+            RuwiErrorKind::TestShouldNeverBeSeen,
+            "If you see this error from a test, system commands may be running in tests!",
         )
-    })?;
-    stdin.write_all(input_text.as_bytes())?;
+        .unwrap();
+    }
 
-    let output = child.wait_with_output()?;
+    #[test]
+    #[should_panic = "Prevented prompt command usage in test!"]
+    fn test_prompt_cmd_use_in_test_panics() {
+        run_prompt_cmd(
+            true,
+            "echo",
+            &["loooool"],
+            vec!["lawl".into()],
+        )
+        .unwrap();
+    }
 
-    Ok(output)
+    #[test]
+    #[should_panic = "Prevented is_cmd_installed command usage in test!"]
+    fn test_is_cmd_installed_use_in_test_panics() {
+        is_cmd_installed(true, "FUFAJKFL").unwrap();
+    }
 }

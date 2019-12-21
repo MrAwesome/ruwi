@@ -11,6 +11,7 @@ pub static PROG_NAME: &str = "ruwi";
 // TODO: set to pub(crate) temporarily to find unused values
 #[derive(Debug, PartialEq, Eq)]
 pub enum RuwiErrorKind {
+    CommandNotInstalled,
     InvalidScanTypeAndMethod,
     FailedToListKnownNetworksWithNetworkManager,
     FailedToBringInterfaceDown,
@@ -49,6 +50,7 @@ pub enum RuwiErrorKind {
     TestNoNetworksFoundWhenLookingForFirst,
     TestNoRefreshOptionFound,
     TestNoNetworksFoundWhenLookingForLast,
+    TestShouldNeverBeSeen,
     TestUsedAutoNoAskWhenNotExpected,
     TestUsedAutoWhenNotExpected,
     TestUsedManualWhenNotExpected,

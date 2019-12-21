@@ -151,7 +151,6 @@ fn run_iw_scan(options: &Options, scan_type: ScanType) -> Result<ScanResult, Ruw
     })
 }
 
-// TODO: unit test
 fn run_iw_scan_synchronous(options: &Options) -> Result<String, RuwiError> {
     run_iw_scan_synchronous_impl(options, run_iw_scan_synchronous_cmd)
 }
@@ -163,6 +162,7 @@ fn run_iw_scan_synchronous_impl<F>(
 where
     F: FnMut(&Options) -> Result<Output, RuwiError>,
 {
+    #[cfg(not(test))]
     abort_ongoing_iw_scan(&options).ok();
 
     let mut retries = ALLOWED_SYNCHRONOUS_RETRIES;
@@ -217,6 +217,7 @@ fn run_iw_scan_trigger(options: &Options) -> Result<String, RuwiError> {
     )
 }
 
+#[cfg(not(test))]
 fn abort_ongoing_iw_scan(options: &Options) -> Result<String, RuwiError> {
     run_command_pass_stdout(
         options.debug,
