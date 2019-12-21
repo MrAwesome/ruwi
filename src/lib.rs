@@ -4,6 +4,7 @@
 
 // #![deny(warnings)]
 // #![deny(clippy::all)]
+#![warn(clippy::all)]
 
 extern crate clap;
 //extern crate fern;
@@ -55,6 +56,7 @@ use synchronous_retry_logic::*;
 // TODO(high): figure out how to unit test / mock command calls
 // TODO(high): if networkmanager is used, start it up before going - same with netctl. possibly also stop
 // TODO(mid): add colors to output / use a real logging library
+// TODO(mid): figure out what to do about existing netctl configs
 // TODO(mid): add a "list seen networks" mode?
 // TODO(mid): list all inputs, and create appropriate command line flags - Options should not be created with filenames, but with the appropriate structs already populated during the cmdline parsing stage (knownnetwork names, password, etc read from a file)? or are filenames fine? i don't think it matters, just affects how you test
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager

@@ -130,12 +130,10 @@ fn get_options_impl(m: ArgMatches) -> Result<Options, RuwiError> {
     let scan_type = get_val_as_enum::<ScanType>(&m, "scan_type");
     let scan_method = if let Some(filename) = m.value_of("input_file").map(String::from) {
         ScanMethod::FromFile(filename)
+    } else if m.is_present("input_stdin") {
+        ScanMethod::FromStdin
     } else {
-        if m.is_present("input_stdin") {
-            ScanMethod::FromStdin
-        } else {
-            ScanMethod::ByRunning
-        }
+        ScanMethod::ByRunning
     };
     validate_scan_method_and_type(&scan_method, &scan_type)?;
 
