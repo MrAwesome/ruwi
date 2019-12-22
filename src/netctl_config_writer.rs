@@ -17,15 +17,17 @@ pub(crate) fn netctl_config_write(
 
     let fullpath = netctl_location + &netctl_file_name;
 
-    write_to_netctl_config(&fullpath, &contents)
-        .map_err(|e| rerr!(RuwiErrorKind::FailedToWriteNetctlConfig, e.description()))?;
+    if !options.dry_run {
+        write_to_netctl_config(&fullpath, &contents)
+            .map_err(|e| rerr!(RuwiErrorKind::FailedToWriteNetctlConfig, e.description()))?;
+        eprintln!("[NOTE]: Wrote netctl config: {}", &fullpath);
+        eprintln!(
+            "[NOTE]: If you encounter problems with your connection, try 
+            editing that file directly and/or running `netctl switch-to {}` as root.",
+            netctl_file_name
+        );
+    }
 
-    eprintln!("[NOTE]: Wrote netctl config: {}", &fullpath);
-    eprintln!(
-        "[NOTE]: If you encounter problems with your connection, try 
-        editing that file directly and/or running `netctl switch-to {}` as root.",
-        netctl_file_name
-    );
 
     Ok(ConfigResult {
         connection_type: ConnectionType::Netctl,

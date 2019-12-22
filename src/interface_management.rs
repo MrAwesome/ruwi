@@ -19,20 +19,22 @@ fn bring_interface(
     let if_state = interface_state.to_string();
     let cmd = "ip";
     let cmd_args = &["link", "set", "dev", if_name, &if_state];
-    run_command_pass_stdout(
-        options.debug,
-        cmd,
-        cmd_args,
-        err_kind,
-        &format!(
-            "Failed to bring interface {} {} with `{} {}`. Try running {} with `sudo`.",
-            if_name,
-            if_state,
+    if !options.dry_run {
+        run_command_pass_stdout(
+            options.debug,
             cmd,
-            cmd_args.join(" "),
-            PROG_NAME
-        ),
-    )?;
+            cmd_args,
+            err_kind,
+            &format!(
+                "Failed to bring interface {} {} with `{} {}`. Try running {} with `sudo`.",
+                if_name,
+                if_state,
+                cmd,
+                cmd_args.join(" "),
+                PROG_NAME
+            ),
+        )?;
+    }
 
     Ok(())
 }

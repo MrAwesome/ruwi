@@ -10,6 +10,7 @@ pub(crate) fn connect_to_network(
     encryption_key: &Option<String>,
 ) -> Result<ConnectionResult, RuwiError> {
     let cv = &options.connect_via;
+
     match cv {
         ConnectionType::Print => {}
         conn_type @ ConnectionType::None => {
@@ -25,22 +26,29 @@ pub(crate) fn connect_to_network(
             );
         }
     }
-    let res = match cv {
-        ConnectionType::Netctl => connect_via_netctl(options, selected_network),
-        ConnectionType::NetworkManager => {
-            connect_via_networkmanager(options, selected_network, encryption_key)
+
+    let res = if options.dry_run {
+        Ok(ConnectionResult {
+            connection_type: cv.clone(),
+        })
+    } else {
+        match cv {
+            ConnectionType::Netctl => connect_via_netctl(options, selected_network),
+            ConnectionType::NetworkManager => {
+                connect_via_networkmanager(options, selected_network, encryption_key)
+            }
+            ConnectionType::Print => {
+                let essid = selected_network.essid.clone();
+                // TODO: integration tests to ensure this happens
+                println!("{}", essid);
+                Ok(ConnectionResult {
+                    connection_type: cv.clone(),
+                })
+            }
+            ConnectionType::None => Ok(ConnectionResult {
+                connection_type: ConnectionType::None,
+            }),
         }
-        ConnectionType::Print => {
-            let essid = selected_network.essid.clone();
-            // TODO: integration tests to ensure this happens
-            println!("{}", essid);
-            Ok(ConnectionResult {
-                connection_type: cv.clone(),
-            })
-        }
-        ConnectionType::None => Ok(ConnectionResult {
-            connection_type: ConnectionType::None,
-        }),
     };
 
     // TODO: retry connection once if failed

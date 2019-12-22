@@ -126,6 +126,9 @@ fn get_options_impl(m: ArgMatches) -> Result<Options, RuwiError> {
     let force_synchronous_scan = m.is_present("force_synchronous_scan");
     let force_ask_password = m.is_present("force_ask_password");
     let dry_run = m.is_present("dry_run");
+    if dry_run {
+        eprintln!("[NOTE] Running in dryrun mode! Will not run any external commands, write/read from disk, and will only use cached scan results.");
+    }
 
     let given_essid = m.value_of("essid").map(String::from);
     let given_encryption_key = m.value_of("password").map(String::from);
