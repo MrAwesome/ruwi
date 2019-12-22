@@ -4,7 +4,7 @@ use rexpect::spawn;
 #[test]
 fn test_fzf_respects_refresh_string_refresh() -> Result<()> {
     let mut p = spawn(
-        "./target/debug/ruwi -m fzf -F src/samples/iw_many_networks.txt -c print -s iw",
+        "./target/debug/ruwi -D -m fzf -F src/samples/iw_many_networks.txt -c print -s iw",
         Some(2000),
     )?;
     p.exp_regex("Select a network")?;

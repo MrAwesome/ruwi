@@ -27,28 +27,22 @@ pub(crate) fn connect_to_network(
         }
     }
 
-    let res = if options.dry_run {
-        Ok(ConnectionResult {
-            connection_type: cv.clone(),
-        })
-    } else {
-        match cv {
-            ConnectionType::Netctl => connect_via_netctl(options, selected_network),
-            ConnectionType::NetworkManager => {
-                connect_via_networkmanager(options, selected_network, encryption_key)
-            }
-            ConnectionType::Print => {
-                let essid = selected_network.essid.clone();
-                // TODO: integration tests to ensure this happens
-                println!("{}", essid);
-                Ok(ConnectionResult {
-                    connection_type: cv.clone(),
-                })
-            }
-            ConnectionType::None => Ok(ConnectionResult {
-                connection_type: ConnectionType::None,
-            }),
+    let res = match cv {
+        ConnectionType::Netctl => connect_via_netctl(options, selected_network),
+        ConnectionType::NetworkManager => {
+            connect_via_networkmanager(options, selected_network, encryption_key)
         }
+        ConnectionType::Print => {
+            let essid = selected_network.essid.clone();
+            // TODO: integration tests to ensure this happens
+            println!("{}", essid);
+            Ok(ConnectionResult {
+                connection_type: cv.clone(),
+            })
+        }
+        ConnectionType::None => Ok(ConnectionResult {
+            connection_type: ConnectionType::None,
+        }),
     };
 
     // TODO: retry connection once if failed
@@ -82,6 +76,11 @@ fn connect_via_netctl(
     options: &Options,
     selected_network: &AnnotatedWirelessNetwork,
 ) -> Result<ConnectionResult, RuwiError> {
+    if options.dry_run {
+        return Ok(ConnectionResult {
+            connection_type: ConnectionType::Netctl,
+        });
+    }
     bring_interface_down(options)?;
 
     // TODO: don't lock so hard into filename?
@@ -115,6 +114,12 @@ fn connect_via_networkmanager(
     // TODO: kill wpa_supplicant and any active netctl profiles, or print message saying to do so
     //       if connection is unsuccessful?
     // TODO TODO TODO TODO
+
+    if options.dry_run {
+        return Ok(ConnectionResult {
+            connection_type: ConnectionType::NetworkManager,
+        });
+    }
 
     let args = vec!["device", "wifi", "connect", &selected_network.essid];
     let args = if let Some(pw) = encryption_key {
