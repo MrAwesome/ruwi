@@ -12,6 +12,7 @@ update_config=1
 See https://wiki.archlinux.org/index.php/WPA_supplicant#Connecting_with_wpa_cli for more info.";
 
 pub(crate) fn initialize_wpa_cli(options: &Options) -> Result<(), RuwiError> {
+    let todo = "make this module use run_commands";
     //        /etc/wpa_supplicant/wpa_supplicant.conf
     //    ctrl_interface=/run/wpa_supplicant
     //    ctrl_interface_group=wheel

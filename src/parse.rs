@@ -240,19 +240,19 @@ fn parse_wpa_line_into_network(line: String) -> Result<WirelessNetwork, Individu
 mod tests {
     use super::*;
 
-    pub static IW_ONE_NETWORK: &'static str = include_str!("samples/iw_one_network.txt");
-    pub static IW_TWO_DIFFERENT_NETWORKS: &'static str =
+    pub static IW_ONE_NETWORK: &str = include_str!("samples/iw_one_network.txt");
+    pub static IW_TWO_DIFFERENT_NETWORKS: &str =
         include_str!("samples/iw_two_different_networks.txt");
-    pub static WPA_CLI_NO_NETWORKS: &'static str = include_str!("samples/wpa_cli_no_networks.txt");
-    pub static WPA_CLI_TWO_DIFFERENT_NETWORKS: &'static str =
+    pub static WPA_CLI_NO_NETWORKS: &str = include_str!("samples/wpa_cli_no_networks.txt");
+    pub static WPA_CLI_TWO_DIFFERENT_NETWORKS: &str =
         include_str!("samples/wpa_cli_two_different_networks.txt");
-    pub static WPA_CLI_SEVEN_NETWORKS_TWO_DUPLICATE_TWO_EMPTY: &'static str =
+    pub static WPA_CLI_SEVEN_NETWORKS_TWO_DUPLICATE_TWO_EMPTY: &str =
         include_str!("samples/wpa_cli_seven_networks_two_duplicates_two_empty.txt");
-    pub static WPA_CLI_TWO_LINES_MISSING_INFO: &'static str =
+    pub static WPA_CLI_TWO_LINES_MISSING_INFO: &str =
         include_str!("samples/wpa_cli_two_lines_missing_info.txt");
-    pub static WPA_CLI_TWO_NETWORKS_ONE_WITH_SIGNAL_LEVEL_PARSE_ERROR: &'static str =
+    pub static WPA_CLI_TWO_NETWORKS_ONE_WITH_SIGNAL_LEVEL_PARSE_ERROR: &str =
         include_str!("samples/wpa_cli_two_networks_one_with_signal_level_parse_error.txt");
-    pub static BROKEN_INPUT_TWO_WORDS: &'static str =
+    pub static BROKEN_INPUT_TWO_WORDS: &str =
         include_str!("samples/broken_input_two_words.txt");
 
     fn get_iw_basic_options() -> Options {
@@ -473,7 +473,7 @@ mod tests {
             (_, _) => {
                 println!("Full parse result: {:?}", full_parse_result);
                 println!("Expt parse result: {:?}", full_expected_result);
-                assert![false];
+                panic!();
             }
         }
     }

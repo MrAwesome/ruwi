@@ -34,7 +34,6 @@ static IW_SCAN_SYNC_ERR_MSG: &str = concat!(
 static DEVICE_OR_RESOURCE_BUSY_EXIT_CODE: i32 = 240;
 
 pub(crate) fn wifi_scan(options: Options) -> Result<ScanResult, RuwiError> {
-    // TODO: match scan method first
     let sm = options.scan_method.clone();
     let st = options.scan_type.clone();
     let res = match sm {
