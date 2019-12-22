@@ -45,7 +45,7 @@ fn configure_network(
         ConnectionType::NetworkManager | ConnectionType::None | ConnectionType::Print => {
             Ok(ConfigResult {
                 connection_type: cv.clone(),
-                config_data: Default::default(),
+                config_data: ConfigData::default(),
             })
         }
     }

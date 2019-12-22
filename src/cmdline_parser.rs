@@ -117,10 +117,10 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
 
 pub(crate) fn get_options() -> Result<Options, RuwiError> {
     let m = get_arg_app().get_matches();
-    get_options_impl(m)
+    get_options_impl(&m)
 }
 
-fn get_options_impl(m: ArgMatches) -> Result<Options, RuwiError> {
+fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
     let debug = m.is_present("debug");
 
     let force_synchronous_scan = m.is_present("force_synchronous_scan");
@@ -169,7 +169,7 @@ fn get_options_impl(m: ArgMatches) -> Result<Options, RuwiError> {
         force_synchronous_scan,
         force_ask_password,
         dry_run,
-        ..Default::default()
+        ..Options::default()
     };
 
     if opts.debug {
@@ -218,11 +218,11 @@ mod tests {
     }
 
     fn getopts(args: &[&str]) -> Options {
-        get_options_impl(get_matches(args)).unwrap()
+        get_options_impl(&get_matches(args)).unwrap()
     }
 
     fn getopts_safe(args: &[&str]) -> Result<Options, RuwiError> {
-        get_options_impl(get_matches_safe(args).map_err(|e| {
+        get_options_impl(&get_matches_safe(args).map_err(|e| {
             rerr!(
                 RuwiErrorKind::TestCmdLineOptParserSafeFailed,
                 e.description()
