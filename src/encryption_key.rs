@@ -47,12 +47,12 @@ where
 fn prompt_for_encryption_key(options: &Options, network_name: &str) -> Result<String, RuwiError> {
     match &options.selection_method {
         SelectionMethod::Dmenu => {
-            run_dmenu(options, &format!("Password for {}: ", network_name), &vec![])
+            run_dmenu(options, &format!("Password for {}: ", network_name), &[])
         }
         SelectionMethod::Fzf => run_stdin_prompt_single_line(
             options,
             &format!("Password for {}: ", network_name),
-            &vec![],
+            &[],
         ),
     }
 }
