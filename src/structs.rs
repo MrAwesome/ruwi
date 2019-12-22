@@ -175,6 +175,7 @@ pub struct Options {
     pub force_synchronous_scan: bool,
     pub force_ask_password: bool,
     pub synchronous_retry: Option<SynchronousRetryType>,
+    pub dry_run: bool,
 }
 
 impl Default for Options {
@@ -193,6 +194,7 @@ impl Default for Options {
             force_synchronous_scan: false,
             force_ask_password: false,
             synchronous_retry: None,
+            dry_run: false,
         }
     }
 }

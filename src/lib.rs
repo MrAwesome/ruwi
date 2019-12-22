@@ -76,6 +76,11 @@ pub fn run_ruwi() -> Result<(), RuwiError> {
     let options = &get_options()?;
     // let command = options.command;
     // match command {
+    //      RuwiCommand::Connect => {}
+    //      RuwiCommand::Select => {}
+    //      RuwiCommand::List => {}
+    //      RuwiCommand::DumpJSON => {}
+    //      RuwiCommand::Disconnect => {}
     // }
     // This is the primary run type / command. What are others?
     {
@@ -101,11 +106,6 @@ fn get_network_from_given_essid(
     options: &Options,
     essid: &str,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-    // TODO: make sure known: true is the right option here, or if more control flow is needed
-    //       known: true might create issues with creating netctl configs - walk through it on
-    //       paper to find out
-    //  TODO: decide if this functionality is worth supporting.
-    //
     let is_known = find_known_network_names(options.clone())?.contains(essid);
     let is_encrypted = options.given_encryption_key.is_some();
     Ok(AnnotatedWirelessNetwork::from_essid(

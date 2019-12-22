@@ -15,6 +15,11 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .long("debug")
         .help("Print out debug information on what ruwi sees.");
 
+    let dry_run = Arg::with_name("dry_run")
+        .short("D")
+        .long("dry-run")
+        .help("Don't write to or read from any files, interfaces, or networks. Mostly just useful for integration tests.");
+
     let input_file = Arg::with_name("input_file")
         .short("F")
         .long("input-file")
@@ -98,6 +103,7 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .arg(auto_mode)
         .arg(connect_via)
         .arg(debug)
+        .arg(dry_run)
         .arg(essid)
         .arg(force_synchronous)
         .arg(force_ask_password)
@@ -119,6 +125,7 @@ fn get_options_impl(m: ArgMatches) -> Result<Options, RuwiError> {
 
     let force_synchronous_scan = m.is_present("force_synchronous_scan");
     let force_ask_password = m.is_present("force_ask_password");
+    let dry_run = m.is_present("dry_run");
 
     let given_essid = m.value_of("essid").map(String::from);
     let given_encryption_key = m.value_of("password").map(String::from);
@@ -158,6 +165,7 @@ fn get_options_impl(m: ArgMatches) -> Result<Options, RuwiError> {
         auto_mode,
         force_synchronous_scan,
         force_ask_password,
+        dry_run,
         ..Default::default()
     };
 
@@ -221,6 +229,10 @@ mod tests {
 
     #[test]
     fn test_debug() {
+        let opts = getopts(&[]);
+        assert![!opts.debug];
+        let opts = getopts(&["-d"]);
+        assert![opts.debug];
         let opts = getopts(&["--debug"]);
         assert![opts.debug];
     }
@@ -326,6 +338,16 @@ mod tests {
 
         let opts = getopts(&["--auto-mode", AutoMode::KnownOrAsk.to_string().as_ref()]);
         assert_eq![opts.auto_mode, AutoMode::KnownOrAsk];
+    }
+
+    #[test]
+    fn test_dry_run_in_tests() {
+        let opts = getopts(&[]);
+        assert![!opts.dry_run];
+        let opts = getopts(&["-D"]);
+        assert![opts.dry_run];
+        let opts = getopts(&["--dry-run"]);
+        assert![opts.dry_run];
     }
 
     #[test]

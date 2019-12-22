@@ -20,7 +20,7 @@ use unescape::unescape;
 
 #[cfg(test)]
 pub(crate) fn find_known_network_names(_options: Options) -> Result<KnownNetworkNames, RuwiError> {
-    return Ok(KnownNetworkNames::default());
+    Ok(KnownNetworkNames::default())
 }
 
 #[cfg(not(test))]
