@@ -79,7 +79,7 @@ pub(crate) fn run_prompt_cmd(
     debug: bool,
     cmd_name: &str,
     args: &[&str],
-    elements: Vec<String>,
+    elements: &[String],
 ) -> Result<String, RuwiError> {
     if debug {
         dbg!(&cmd_name, &args, &elements);
@@ -111,7 +111,7 @@ fn run_prompt_cmd_system_impl(
     debug: bool,
     cmd_name: &str,
     args: &[&str],
-    elements: Vec<String>,
+    elements: &[String],
 ) -> io::Result<Output> {
     if debug {
         dbg!(&cmd_name, &args, &elements);

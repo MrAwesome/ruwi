@@ -19,12 +19,12 @@ use std::path::Path;
 use unescape::unescape;
 
 #[cfg(test)]
-pub(crate) fn find_known_network_names(_options: Options) -> Result<KnownNetworkNames, RuwiError> {
+pub(crate) fn find_known_network_names(_options: &Options) -> Result<KnownNetworkNames, RuwiError> {
     Ok(KnownNetworkNames::default())
 }
 
 #[cfg(not(test))]
-pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworkNames, RuwiError> {
+pub(crate) fn find_known_network_names(options: &Options) -> Result<KnownNetworkNames, RuwiError> {
     if options.dry_run {
         return Ok(KnownNetworkNames::default());
     }

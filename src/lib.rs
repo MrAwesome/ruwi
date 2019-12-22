@@ -107,7 +107,7 @@ fn get_network_from_given_essid(
     options: &Options,
     essid: &str,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-    let is_known = find_known_network_names(options.clone())?.contains(essid);
+    let is_known = find_known_network_names(options)?.contains(essid);
     let is_encrypted = options.given_encryption_key.is_some();
     Ok(AnnotatedWirelessNetwork::from_essid(
         essid.into(),
@@ -173,8 +173,8 @@ fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetwor
 
 fn gather_data(options: &Options) -> Result<(KnownNetworkNames, ScanResult), RuwiError> {
     let (opt1, opt2) = (options.clone(), options.clone());
-    let get_nw_names = thread::spawn(|| find_known_network_names(opt1));
-    let get_scan_results = thread::spawn(|| wifi_scan(opt2));
+    let get_nw_names = thread::spawn(move || find_known_network_names(&opt1));
+    let get_scan_results = thread::spawn(move || wifi_scan(&opt2));
 
     let known_network_names = await_thread(get_nw_names)??;
     let scan_result = await_thread(get_scan_results)??;

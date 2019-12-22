@@ -10,7 +10,7 @@ use std::io::Write;
 pub(crate) fn run_dmenu(
     options: &Options,
     prompt: &str,
-    elements: Vec<String>,
+    elements: &[String],
 ) -> Result<String, RuwiError> {
     run_prompt_cmd(options.debug, "dmenu", &["-i", "-p", prompt], elements)
 }
@@ -19,7 +19,7 @@ pub(crate) fn run_dmenu(
 pub(crate) fn run_fzf(
     options: &Options,
     prompt: &str,
-    elements: Vec<String>,
+    elements: &[String],
 ) -> Result<String, RuwiError> {
     run_prompt_cmd(
         options.debug,

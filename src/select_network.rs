@@ -70,12 +70,12 @@ fn run_manual_selector(
         SelectionMethod::Dmenu => run_dmenu(
             &options,
             &"Select a network: ".to_string(),
-            selection_tokens,
+            &selection_tokens,
         ),
         SelectionMethod::Fzf => run_fzf(
             &options,
             &"Select a network (ctrl-r or \"refresh\" to refresh results): ".to_string(),
-            selection_tokens,
+            &selection_tokens,
         ),
     }
     // TODO: unit test that this trim happens, it is very important.

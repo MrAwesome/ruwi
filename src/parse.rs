@@ -67,19 +67,16 @@ fn break_iw_output_into_chunks_per_network(
     }
 
     loop {
-        match lines.next() {
-            Some(line) => {
-                if bss_re.is_match(&line) {
-                    iw_network_line_groups.push(network);
-                    network = vec![];
-                }
-
-                network.push(line);
-            }
-            None => {
+        if let Some(line) = lines.next() {
+            if bss_re.is_match(&line) {
                 iw_network_line_groups.push(network);
-                break;
+                network = vec![];
             }
+
+            network.push(line);
+        } else {
+            iw_network_line_groups.push(network);
+            break;
         }
     }
     Ok(iw_network_line_groups)
@@ -89,9 +86,7 @@ fn parse_iw_chunk_into_network(chunk: &[String]) -> Result<WirelessNetwork, Indi
     let essid = unescape(
         chunk
             .iter()
-            .filter(|line| line.starts_with("SSID: "))
-            .map(|line| line.trim_start_matches("SSID: "))
-            .next()
+            .find_map(|line| if line.starts_with("SSID: ") { Some(line.trim_start_matches("SSID: ")) } else { None })
             .ok_or(IndividualParseError::MissingIWSSIDField)?,
     )
     .ok_or(IndividualParseError::FailedToUnescapeSSIDField)?;
@@ -114,7 +109,7 @@ fn parse_iw_chunk_into_network(chunk: &[String]) -> Result<WirelessNetwork, Indi
     let signal_strength = chunk
         .iter()
         .filter(|line| line.starts_with("signal: "))
-        .filter_map(|line| {
+        .find_map(|line| {
             line.trim_start_matches("signal: ")
                 .trim_end_matches(" dBm")
                 .split('.')
@@ -122,7 +117,6 @@ fn parse_iw_chunk_into_network(chunk: &[String]) -> Result<WirelessNetwork, Indi
                 .parse::<i32>()
                 .ok()
         })
-        .next()
         .map(|x| x + 90);
 
     Ok(WirelessNetwork {
@@ -130,7 +124,7 @@ fn parse_iw_chunk_into_network(chunk: &[String]) -> Result<WirelessNetwork, Indi
         is_encrypted,
         bssid,
         signal_strength,
-        ..Default::default()
+        ..WirelessNetwork::default()
     })
 }
 
@@ -162,7 +156,7 @@ fn parse_wpa_cli_scan(
     output: &str,
     scan_type: ScanType,
 ) -> Result<ParseResult, RuwiError> {
-    let mut lines = output.trim().lines().map(|x| x.to_string());
+    let mut lines = output.trim().lines().map(ToString::to_string);
     let mut networks = vec![];
     let mut line_parse_errors = vec![];
 
@@ -170,7 +164,7 @@ fn parse_wpa_cli_scan(
     let _header2 = lines.next().ok_or_else(missing_wpa_cli_header)?;
 
     for line in lines {
-        let res = parse_wpa_line_into_network(line.to_string());
+        let res = parse_wpa_line_into_network(&line);
         match res {
             Ok(nw) => networks.push(nw),
             Err(err) => line_parse_errors.push((line, err)),
@@ -203,7 +197,7 @@ fn missing_wpa_cli_header() -> RuwiError {
     )
 }
 
-fn parse_wpa_line_into_network(line: String) -> Result<WirelessNetwork, IndividualParseError> {
+fn parse_wpa_line_into_network(line: &str) -> Result<WirelessNetwork, IndividualParseError> {
     let mut fields = line.split_ascii_whitespace();
 
     let fieldmiss = IndividualParseError::MissingWpaCliResultField;
@@ -214,7 +208,7 @@ fn parse_wpa_line_into_network(line: String) -> Result<WirelessNetwork, Individu
 
     // NOTE: Broken for SSIDs with multiple sequential spaces, or trailing whitespace
     let essid = fields
-        .map(|f| f.to_string())
+        .map(ToString::to_string)
         .collect::<Vec<String>>()
         .join(" ");
 
@@ -229,7 +223,7 @@ fn parse_wpa_line_into_network(line: String) -> Result<WirelessNetwork, Individu
         is_encrypted,
         bssid: Some(bssid.to_string()),
         signal_strength: Some(signal_strength),
-        ..Default::default()
+        ..WirelessNetwork::default()
     })
 }
 
