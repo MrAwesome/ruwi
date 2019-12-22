@@ -62,14 +62,19 @@ fn find_known_netctl_networks() -> io::Result<KnownNetworkNames> {
         // TODO: Use tokio/etc to asynchronously read from these files
         let known_essids = read_dir(netctl_path)?
             .filter_map(|entry| get_essid_from_netctl_config_file(entry).ok())
-            .filter_map(|x| x)
+            .filter_map(|essid_entry| {
+                if let Some(essid) = essid_entry {
+                    Some(unescape(&essid).unwrap_or(essid))
+                } else {
+                    None
+                }
+            })
             // TODO: unit test that unescape happens
-            .map(|x| unescape(&x).unwrap_or(x))
             .collect::<HashSet<String>>();
 
         Ok(KnownNetworkNames(known_essids))
     } else {
-        Ok(Default::default())
+        Ok(KnownNetworkNames::default())
     }
 }
 
@@ -81,24 +86,27 @@ fn get_essid_from_netctl_config_file(entry: io::Result<DirEntry>) -> io::Result<
         let mut contents = String::new();
         let mut f = File::open(&path)?;
         f.read_to_string(&mut contents)?;
-        Ok(get_essid_from_netctl_config_text(contents))
+        Ok(get_essid_from_netctl_config_text(&contents))
     } else {
         Ok(None)
     }
 }
 
-fn get_essid_from_netctl_config_text(contents: String) -> Option<String> {
-    contents
-        .lines()
-        .find(|line| line.starts_with("ESSID="))
-        .map(|line| {
-            line.trim_start_matches("ESSID=")
-                .trim_start_matches('\'')
-                .trim_start_matches('"')
-                .trim_end_matches('\'')
-                .trim_end_matches('"')
-                .into()
-        })
+fn get_essid_from_netctl_config_text(contents: &str) -> Option<String> {
+    contents.lines().find_map(|line| {
+        if line.starts_with("ESSID=") {
+            Some(
+                line.trim_start_matches("ESSID=")
+                    .trim_start_matches('\'')
+                    .trim_start_matches('"')
+                    .trim_end_matches('\'')
+                    .trim_end_matches('"')
+                    .into(),
+            )
+        } else {
+            None
+        }
+    })
 }
 
 #[cfg(test)]
@@ -156,7 +164,8 @@ ESSID=\"{}\"",
 DOES
 NOT=MATTER
 # la la la la la
-".into();
+"
+        .into();
         let res = get_essid_from_netctl_config_text(contents);
         assert![res.is_none()];
     }

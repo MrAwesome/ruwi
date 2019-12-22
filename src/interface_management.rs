@@ -12,7 +12,7 @@ enum InterfaceState {
 
 fn bring_interface(
     options: &Options,
-    interface_state: InterfaceState,
+    interface_state: &InterfaceState,
     err_kind: RuwiErrorKind,
 ) -> Result<(), RuwiError> {
     let if_name = &options.interface;
@@ -42,7 +42,7 @@ fn bring_interface(
 pub(crate) fn bring_interface_up(options: &Options) -> Result<(), RuwiError> {
     bring_interface(
         options,
-        InterfaceState::UP,
+        &InterfaceState::UP,
         RuwiErrorKind::FailedToBringInterfaceUp,
     )
 }
@@ -50,7 +50,7 @@ pub(crate) fn bring_interface_up(options: &Options) -> Result<(), RuwiError> {
 pub(crate) fn bring_interface_down(options: &Options) -> Result<(), RuwiError> {
     bring_interface(
         options,
-        InterfaceState::DOWN,
+        &InterfaceState::DOWN,
         RuwiErrorKind::FailedToBringInterfaceUp,
     )
 }
