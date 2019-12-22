@@ -1,5 +1,5 @@
+use crate::run_commands::*;
 use crate::structs::*;
-use std::process::{Command, Stdio};
 use std::thread;
 use std::time::Duration;
 
@@ -12,7 +12,6 @@ update_config=1
 See https://wiki.archlinux.org/index.php/WPA_supplicant#Connecting_with_wpa_cli for more info.";
 
 pub(crate) fn initialize_wpa_cli(options: &Options) -> Result<(), RuwiError> {
-    let todo = "make this module use run_commands";
     //        /etc/wpa_supplicant/wpa_supplicant.conf
     //    ctrl_interface=/run/wpa_supplicant
     //    ctrl_interface_group=wheel
@@ -26,28 +25,28 @@ pub(crate) fn initialize_wpa_cli(options: &Options) -> Result<(), RuwiError> {
         eprintln!(
             "[NOTE]: wpa_cli was not functioning correctly. Attempting to start it manually."
         );
-        let supplicant_status = Command::new("wpa_supplicant")
-            .arg("-B")
-            .arg("-i")
-            .arg("wlp3s0")
-            .arg("-c")
-            .arg("/etc/wpa_supplicant/wpa_supplicant.conf")
-            .stdout(Stdio::null())
-            .status();
+        let supplicant_status = run_command_output(
+            options.debug,
+            "wpa_supplicant",
+            &[
+                "-B",
+                "-i",
+                "wlp3s0",
+                "-c",
+                "/etc/wpa_supplicant/wpa_supplicant.conf",
+            ],
+        );
 
         if options.debug {
             dbg!(&supplicant_status);
         }
 
         if let Ok(stat) = supplicant_status {
-            if stat.success() {
-                let scan_status = Command::new("wpa_cli")
-                    .arg("scan")
-                    .stdout(Stdio::null())
-                    .status();
+            if stat.status.success() {
+                let scan_output = run_command_output(options.debug, "wpa_cli", &["scan"]);
 
                 if options.debug {
-                    dbg![&scan_status];
+                    dbg![&scan_output];
                 }
 
                 eprintln!("[NOTE]: Sleeping to wait for results from wpa_cli. This should only happen when you first start wpa_supplicant. If you aren't seeing results, or you see stale results, try `sudo killall wpa_supplicant` or using a different scanning method with -s.");
@@ -67,18 +66,11 @@ pub(crate) fn initialize_wpa_cli(options: &Options) -> Result<(), RuwiError> {
 }
 
 fn wpa_ping_success(options: &Options) -> bool {
-    let ping_status = Command::new("wpa_cli")
-        .arg("ping")
-        .stdout(Stdio::null())
-        .status();
+    let ping_status = run_command_status_dumb(options.debug, "wpa_cli", &["ping"]);
 
     if options.debug {
         dbg![&ping_status];
     }
 
-    if let Ok(s) = ping_status {
-        s.success()
-    } else {
-        false
-    }
+    ping_status
 }

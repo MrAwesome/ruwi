@@ -45,6 +45,25 @@ pub(crate) fn run_command_output(
         .map_err(|e| rerr!(RuwiErrorKind::FailedToRunCommand, e.description()))
 }
 
+pub(crate) fn run_command_status_dumb(
+    debug: bool,
+    cmd_name: &str,
+    args: &[&str],
+) -> bool {
+    if debug {
+        dbg!(&cmd_name, &args);
+    }
+
+    let res = run_command_impl(debug, cmd_name, args);
+
+    if let Ok(output) = res {
+        output.status.success()
+    } else {
+        false
+    }
+
+}
+
 fn run_command_impl(debug: bool, cmd_name: &str, args: &[&str]) -> io::Result<Output> {
     let mut cmd = Command::new(cmd_name);
     cmd.args(args).stdout(Stdio::piped()).stderr(Stdio::piped());
