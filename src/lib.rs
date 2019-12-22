@@ -4,7 +4,8 @@
 
 // #![deny(warnings)]
 // #![deny(clippy::all)]
-#![warn(clippy::all)]
+#![warn(clippy::pedantic)]
+#![allow(clippy::similar_names)]
 
 extern crate clap;
 extern crate regex;

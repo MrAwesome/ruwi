@@ -52,7 +52,7 @@ fn prompt_for_encryption_key(options: &Options, network_name: &str) -> Result<St
         SelectionMethod::Fzf => run_stdin_prompt_single_line(
             options,
             &format!("Password for {}: ", network_name),
-            vec![],
+            &vec![],
         ),
     }
 }
@@ -67,7 +67,7 @@ mod tests {
 
     #[test]
     fn test_no_ask_on_open_network() -> Result<(), RuwiError> {
-        let options = Default::default();
+        let options = Options::default();
         let nw = AnnotatedWirelessNetwork::default();
         let output = possibly_get_encryption_key_impl(&options, &nw, should_not_run)?;
         if let Some(_pw) = output {
@@ -78,11 +78,11 @@ mod tests {
 
     #[test]
     fn test_no_ask_on_known_closed_network() -> Result<(), RuwiError> {
-        let options = Default::default();
+        let options = Options::default();
         let nw = AnnotatedWirelessNetwork {
             is_encrypted: true,
             known: true,
-            ..Default::default()
+            ..AnnotatedWirelessNetwork::default()
         };
         let output = possibly_get_encryption_key_impl(&options, &nw, should_not_run)?;
         if let Some(_pw) = output {
@@ -93,10 +93,10 @@ mod tests {
 
     #[test]
     fn test_ask_on_unknown_closed_network() -> Result<(), RuwiError> {
-        let options = Default::default();
+        let options = Options::default();
         let nw = AnnotatedWirelessNetwork {
             is_encrypted: true,
-            ..Default::default()
+            ..AnnotatedWirelessNetwork::default()
         };
         let fake_essid = "FAKE_CLOSURE_VALUE".to_string();
         let output =
@@ -110,7 +110,7 @@ mod tests {
         let given_essid = "YEETU";
         let options = Options {
             given_encryption_key: Some("YEETU".into()),
-            ..Default::default()
+            ..Options::default()
         };
         let nw = AnnotatedWirelessNetwork::default();
         let output = possibly_get_encryption_key_impl(&options, &nw, should_not_run)?;
@@ -122,7 +122,7 @@ mod tests {
     fn test_force_ask_password() -> Result<(), RuwiError> {
         let options = Options {
             force_ask_password: true,
-            ..Default::default()
+            ..Options::default()
         };
 
         let nw = AnnotatedWirelessNetwork::default();
@@ -137,7 +137,7 @@ mod tests {
     fn test_do_not_ask_for_pw_on_print() -> Result<(), RuwiError> {
         let options = Options {
             connect_via: ConnectionType::Print,
-            ..Default::default()
+            ..Options::default()
         };
 
         let nw = AnnotatedWirelessNetwork::default();

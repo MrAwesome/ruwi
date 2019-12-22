@@ -111,7 +111,7 @@ fn select_first_known(
                 "No known networks found!"
             )
         })
-        .map(|x| x.clone())
+        .map(Clone::clone)
 }
 
 fn select_first(
@@ -128,7 +128,7 @@ fn select_first(
                 "No networks found!"
             )
         })
-        .map(|x| x.clone())
+        .map(Clone::clone)
 }
 
 fn select_network_impl<'a, 'b, F>(
@@ -174,7 +174,7 @@ mod tests {
             .iter()
             .map(|name| AnnotatedWirelessNetwork {
                 essid: (*name).to_string(),
-                ..Default::default()
+                ..AnnotatedWirelessNetwork::default()
             })
             .collect();
         SortedUniqueNetworks { networks }
@@ -210,7 +210,7 @@ mod tests {
                     "No networks found!"
                 )
             })
-            .map(|x| x.clone())
+            .map(Clone::clone)
     }
 
     fn select_refresh(

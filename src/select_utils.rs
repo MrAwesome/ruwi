@@ -38,7 +38,7 @@ pub(crate) fn run_fzf(
 pub(crate) fn run_stdin_prompt_single_line(
     options: &Options,
     prompt: &str,
-    elements: Vec<String>,
+    elements: &[String],
 ) -> Result<String, RuwiError> {
     run_stdin_prompt_single_line_impl(options, prompt, elements)
         .map_err(|e| rerr!(RuwiErrorKind::SingleLinePromptFailed, e.description()))
@@ -47,7 +47,7 @@ pub(crate) fn run_stdin_prompt_single_line(
 fn run_stdin_prompt_single_line_impl(
     _options: &Options,
     prompt: &str,
-    _elements: Vec<String>,
+    _elements: &[String],
 ) -> io::Result<String> {
     print!("{}", prompt);
     io::stdout().flush()?;

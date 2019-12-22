@@ -181,16 +181,16 @@ pub struct Options {
 impl Default for Options {
     fn default() -> Self {
         Self {
-            scan_type: Default::default(),
-            scan_method: Default::default(),
+            scan_type: ScanType::default(),
+            scan_method: ScanMethod::default(),
             // TODO: prevent this from ever being seen? How?
             interface: "some_fake_name".to_string(),
-            selection_method: Default::default(),
-            connect_via: Default::default(),
+            selection_method: SelectionMethod::default(),
+            connect_via: ConnectionType::default(),
             debug: false,
             given_essid: None,
             given_encryption_key: None,
-            auto_mode: Default::default(),
+            auto_mode: AutoMode::default(),
             force_synchronous_scan: false,
             force_ask_password: false,
             synchronous_retry: None,
@@ -201,7 +201,7 @@ impl Default for Options {
 
 impl Options {
     pub fn with_synchronous_retry(&self, t: SynchronousRetryType) -> Self {
-        Options {
+        Self {
             synchronous_retry: Some(t),
             ..self.clone()
         }
@@ -269,7 +269,7 @@ impl AnnotatedWirelessNetwork {
         let bssid = nw.bssid;
         let signal_strength = nw.signal_strength;
         let channel_utilisation = nw.channel_utilisation;
-        AnnotatedWirelessNetwork {
+        Self {
             essid,
             is_encrypted,
             bssid,
@@ -280,11 +280,11 @@ impl AnnotatedWirelessNetwork {
     }
 
     pub fn from_essid(essid: String, is_known: bool, is_encrypted: bool) -> Self {
-        AnnotatedWirelessNetwork {
+        Self {
             essid,
             is_encrypted,
             known: is_known,
-            ..Default::default()
+            ..Self::default()
         }
     }
 }
@@ -292,7 +292,7 @@ impl AnnotatedWirelessNetwork {
 impl Default for AnnotatedWirelessNetwork {
     fn default() -> Self {
         let nw = WirelessNetwork::default();
-        AnnotatedWirelessNetwork::from_nw(nw, false)
+        Self::from_nw(nw, false)
     }
 }
 
@@ -301,7 +301,7 @@ pub struct KnownNetworkNames(pub HashSet<String>);
 
 impl Default for KnownNetworkNames {
     fn default() -> Self {
-        KnownNetworkNames(HashSet::new())
+        Self(HashSet::new())
     }
 }
 
@@ -330,7 +330,7 @@ pub struct SortedUniqueNetworks {
 
 impl From<AnnotatedNetworks> for SortedUniqueNetworks {
     fn from(nws: AnnotatedNetworks) -> Self {
-        SortedUniqueNetworks {
+        Self {
             networks: nws.networks,
         }
     }
