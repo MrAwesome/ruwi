@@ -202,7 +202,7 @@ impl Default for Options {
 impl Options {
     pub fn with_synchronous_retry(&self, t: SynchronousRetryType) -> Self {
         Options {
-            synchronous_retry: Some(t.clone()),
+            synchronous_retry: Some(t),
             ..self.clone()
         }
     }

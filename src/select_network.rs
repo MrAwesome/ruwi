@@ -173,7 +173,7 @@ mod tests {
         let networks = vec![FIRST_NW_NAME, SECND_NW_NAME, THIRD_NW_NAME]
             .iter()
             .map(|name| AnnotatedWirelessNetwork {
-                essid: name.to_string(),
+                essid: (*name).to_string(),
                 ..Default::default()
             })
             .collect();

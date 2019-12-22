@@ -25,6 +25,10 @@ pub(crate) fn find_known_network_names(_options: Options) -> Result<KnownNetwork
 
 #[cfg(not(test))]
 pub(crate) fn find_known_network_names(options: Options) -> Result<KnownNetworkNames, RuwiError> {
+    if options.dry_run {
+        return Ok(KnownNetworkNames::default());
+    }
+
     let known_network_names = match options.connect_via {
         ConnectionType::Netctl => find_known_netctl_networks()
             .map_err(|e| rerr!(RuwiErrorKind::KnownNetworksFetchError, e.description())),
@@ -148,13 +152,11 @@ ESSID=\"{}\"",
 
     #[test]
     fn test_get_no_essid_from_netctl_config_text() {
-        let contents = format!(
-            "
+        let contents = "
 DOES
 NOT=MATTER
 # la la la la la
-"
-        );
+".into();
         let res = get_essid_from_netctl_config_text(contents);
         assert![res.is_none()];
     }

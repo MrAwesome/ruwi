@@ -22,7 +22,7 @@ pub(crate) fn sort_and_filter_networks(
     options: &Options,
     annotated_networks: AnnotatedNetworks,
 ) -> SortedUniqueNetworks {
-    let mut sorted_networks = annotated_networks.networks.clone();
+    let mut sorted_networks = annotated_networks.networks;
     put_best_networks_first(&mut sorted_networks);
 
     // TODO: Once partition_dedup_by is stable:
