@@ -1,15 +1,12 @@
-#[cfg(not(test))]
 use crate::rerr;
 #[cfg(not(test))]
 use crate::run_commands::*;
 use crate::structs::*;
 #[cfg(not(test))]
 use std::collections::HashSet;
-#[cfg(not(test))]
 use std::error::Error;
 #[cfg(not(test))]
 use std::fs::{read_dir, DirEntry, File};
-#[cfg(not(test))]
 use std::io;
 #[cfg(not(test))]
 use std::io::prelude::*;
@@ -18,12 +15,6 @@ use std::path::Path;
 #[cfg(not(test))]
 use unescape::unescape;
 
-#[cfg(test)]
-pub(crate) fn find_known_network_names(_options: &Options) -> Result<KnownNetworkNames, RuwiError> {
-    Ok(KnownNetworkNames::default())
-}
-
-#[cfg(not(test))]
 pub(crate) fn find_known_network_names(options: &Options) -> Result<KnownNetworkNames, RuwiError> {
     if options.dry_run {
         return Ok(KnownNetworkNames::default());
@@ -43,16 +34,31 @@ pub(crate) fn find_known_network_names(options: &Options) -> Result<KnownNetwork
     known_network_names
 }
 
+#[cfg(test)]
+fn find_known_networkmanager_networks(_options: &Options) -> Result<KnownNetworkNames, RuwiError> {
+    Ok(KnownNetworkNames::default())
+}
+
 #[cfg(not(test))]
 fn find_known_networkmanager_networks(options: &Options) -> Result<KnownNetworkNames, RuwiError> {
-    Ok(KnownNetworkNames(run_command_pass_stdout(
+    let cmd_output = run_command_pass_stdout(
         options.debug,
         "nmcli",
         &["-g", "NAME", "connection", "show"],
         RuwiErrorKind::FailedToListKnownNetworksWithNetworkManager,
         "Failed to list known networks with NetworkManager. Try running `nmcli -g NAME connection show`.",
-    )?
-    .lines().map(|x| x.into()).collect::<HashSet<String>>()))
+    )?;
+    let known_names = cmd_output
+        .lines()
+        .map(|x| x.into())
+        .collect::<HashSet<String>>();
+    Ok(KnownNetworkNames(known_names))
+}
+
+
+#[cfg(test)]
+fn find_known_netctl_networks() -> io::Result<KnownNetworkNames> {
+    Ok(KnownNetworkNames::default())
 }
 
 #[cfg(not(test))]
