@@ -124,7 +124,7 @@ NOT=MATTER
 ESSID={}",
             essid
         );
-        let res = get_essid_from_netctl_config_text(contents).unwrap();
+        let res = get_essid_from_netctl_config_text(&contents).unwrap();
         assert_eq![essid, res];
     }
 
@@ -139,7 +139,7 @@ NOT=MATTER
 ESSID='{}'",
             essid
         );
-        let res = get_essid_from_netctl_config_text(contents).unwrap();
+        let res = get_essid_from_netctl_config_text(&contents).unwrap();
         assert_eq![essid, res];
     }
 
@@ -154,7 +154,7 @@ NOT=MATTER
 ESSID=\"{}\"",
             essid
         );
-        let res = get_essid_from_netctl_config_text(contents).unwrap();
+        let res = get_essid_from_netctl_config_text(&contents).unwrap();
         assert_eq![essid, res];
     }
 
@@ -164,9 +164,10 @@ ESSID=\"{}\"",
 DOES
 NOT=MATTER
 # la la la la la
-"
-        .into();
-        let res = get_essid_from_netctl_config_text(contents);
+JKLFDJSKLFJDSLKJFD
+SA T N ANNNANBLAH
+";
+        let res = get_essid_from_netctl_config_text(&contents);
         assert![res.is_none()];
     }
 }

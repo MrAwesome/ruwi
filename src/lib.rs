@@ -49,9 +49,7 @@ use std::thread;
 use structs::*;
 use synchronous_retry_logic::*;
 
-// TODO(high): mock out known-network finding in integration tests, ensure it isn't happening in unit tests. --dry-run flag? behave differently when not run as root? something.
 // TODO(high): stop/start the relevant services (in particular, stop networkmanager if it's running before trying to do netctl things) - - pkill wpa_supplicant, systemctl stop NetworkManager, etc etc etc
-// TODO(high): figure out how to unit test / mock command calls
 // TODO(high): if networkmanager is used, start it up before going - same with netctl. possibly also stop
 // TODO(mid): add colors to output / use a real logging library
 // TODO(mid): figure out what to do about existing netctl configs

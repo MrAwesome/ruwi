@@ -69,12 +69,12 @@ fn run_manual_selector(
     match &options.selection_method {
         SelectionMethod::Dmenu => run_dmenu(
             &options,
-            &"Select a network: ".to_string(),
+            "Select a network: ",
             &selection_tokens,
         ),
         SelectionMethod::Fzf => run_fzf(
             &options,
-            &"Select a network (ctrl-r or \"refresh\" to refresh results): ".to_string(),
+            "Select a network (ctrl-r or \"refresh\" to refresh results): ",
             &selection_tokens,
         ),
     }

@@ -231,7 +231,7 @@ mod tests {
             true,
             "echo",
             &["loooool"],
-            vec!["lawl".into()],
+            &["lawl".to_string()],
         )
         .unwrap();
     }
