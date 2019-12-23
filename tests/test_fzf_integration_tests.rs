@@ -5,7 +5,7 @@ use rexpect::spawn;
 fn test_iw_fourth_of_many_networks_with_fzf() -> Result<()> {
     let mut p = spawn(
         "./target/debug/ruwi -D -m fzf -F src/samples/iw_many_networks.txt -c print -s iw",
-        Some(2000),
+        Some(300),
     )?;
     p.exp_regex("Select a network")?;
     p.send_control('n')?;
@@ -21,7 +21,7 @@ fn test_iw_fourth_of_many_networks_with_fzf() -> Result<()> {
 fn test_fzf_ctrl_c_exits() -> Result<()> {
     let mut p = spawn(
         "./target/debug/ruwi -D -m fzf -F src/samples/iw_many_networks.txt -c print -s iw",
-        Some(2000),
+        Some(300),
     )?;
     p.exp_regex("Select a network")?;
     p.send_control('c')?;
@@ -41,7 +41,7 @@ fn test_fzf_ctrl_c_exits() -> Result<()> {
 fn test_fzf_respects_ctrl_r_refresh() -> Result<()> {
     let mut p = spawn(
         "./target/debug/ruwi -D -m fzf -F src/samples/iw_many_networks.txt -c print -s iw",
-        Some(2000),
+        Some(300),
     )?;
     p.exp_regex("Select a network")?;
     p.send_control('r')?;
@@ -57,7 +57,7 @@ fn test_fzf_respects_ctrl_r_refresh() -> Result<()> {
 fn test_fzf_respects_refresh_string_refresh() -> Result<()> {
     let mut p = spawn(
         "./target/debug/ruwi -D -m fzf -F src/samples/iw_many_networks.txt -c print -s iw",
-        Some(2000),
+        Some(300),
     )?;
     p.exp_regex("Select a network")?;
 
