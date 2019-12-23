@@ -1,21 +1,6 @@
 use crate::netctl_config_writer::*;
 use crate::structs::*;
 
-// For multiple outputs:
-//pub(crate) fn send_outputs(
-//    options: &Options,
-//    network: &AnnotatedWirelessNetwork,
-//    encryption_key: &Option<String>,
-//) -> Vec<Result<OutputResult, RuwiError>> {
-//    options
-//        .output_types
-//        .iter()
-//        .map(|opt| send_output(options, opt, network, encryption_key))
-//        .collect()
-//}
-
-// TODO: Still do output for types which aren't config-based (like "print selected network")?
-//       Or should they be a separate command?
 pub(crate) fn possibly_configure_network(
     options: &Options,
     network: &AnnotatedWirelessNetwork,

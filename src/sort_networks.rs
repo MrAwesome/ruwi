@@ -25,7 +25,7 @@ pub(crate) fn sort_and_filter_networks(
     let mut sorted_networks = annotated_networks.networks;
     put_best_networks_first(&mut sorted_networks);
 
-    // TODO: Once partition_dedup_by is stable:
+    // Once partition_dedup_by is stable:
     //let (sorted_unique_networks, _dups) = sorted_networks.partition_dedup_by(|a, b| a.essid == b.essid);
     let mut sorted_unique_networks = vec![];
     let mut seen_network_names = HashSet::new();
@@ -73,13 +73,13 @@ mod tests {
         let higher_signal = AnnotatedWirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
             signal_strength: Some(-66),
-            ..Default::default()
+            ..AnnotatedWirelessNetwork::default()
         };
 
         let lower_signal = AnnotatedWirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
             signal_strength: Some(-69),
-            ..Default::default()
+            ..AnnotatedWirelessNetwork::default()
         };
 
         compare_order(lower_signal, higher_signal);
@@ -90,13 +90,13 @@ mod tests {
         let known = AnnotatedWirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
             known: true,
-            ..Default::default()
+            ..AnnotatedWirelessNetwork::default()
         };
 
         let not_known = AnnotatedWirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
             known: false,
-            ..Default::default()
+            ..AnnotatedWirelessNetwork::default()
         };
 
         compare_order(not_known, known);
@@ -108,14 +108,14 @@ mod tests {
             essid: "Valparaiso_Guest_House 1".to_string(),
             known: true,
             signal_strength: Some(-80),
-            ..Default::default()
+            ..AnnotatedWirelessNetwork::default()
         };
 
         let not_known = AnnotatedWirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
             known: false,
             signal_strength: Some(-20),
-            ..Default::default()
+            ..AnnotatedWirelessNetwork::default()
         };
 
         compare_order(not_known, known);
@@ -127,22 +127,22 @@ mod tests {
             AnnotatedWirelessNetwork {
                 essid: "DOOK".to_string(),
                 signal_strength: Some(-5),
-                ..Default::default()
+                ..AnnotatedWirelessNetwork::default()
             },
             AnnotatedWirelessNetwork {
                 essid: "BOYS".to_string(),
                 signal_strength: Some(-47),
-                ..Default::default()
+                ..AnnotatedWirelessNetwork::default()
             },
             AnnotatedWirelessNetwork {
                 essid: "DOOK".to_string(),
                 signal_strength: Some(-49),
-                ..Default::default()
+                ..AnnotatedWirelessNetwork::default()
             },
             AnnotatedWirelessNetwork {
                 essid: "YES".to_string(),
                 signal_strength: Some(-89),
-                ..Default::default()
+                ..AnnotatedWirelessNetwork::default()
             },
         ];
 
