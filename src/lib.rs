@@ -52,11 +52,9 @@ use synchronous_retry_logic::*;
 // TODO(high): stop/start the relevant services (in particular, stop networkmanager if it's running before trying to do netctl things) - - pkill wpa_supplicant, systemctl stop NetworkManager, etc etc etc
 // TODO(high): if networkmanager is used, start it up before going - same with netctl. possibly also stop
 // TODO(mid): add colors to output / use a real logging library
-// TODO(mid): figure out what to do about existing netctl configs
 // TODO(mid): add a "list seen networks" mode?
-// TODO(mid): list all inputs, and create appropriate command line flags - Options should not be created with filenames, but with the appropriate structs already populated during the cmdline parsing stage (knownnetwork names, password, etc read from a file)? or are filenames fine? i don't think it matters, just affects how you test
+// TODO(mid): have known netctl networks return essid, for matching/annotation with config name
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
-// TODO(low): integration test with -e and -p
 // TODO(low): move majority of code from here into another file
 // TODO(low): flag to disable looking for known networks
 // TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
@@ -148,7 +146,6 @@ fn scan_parse_and_annotate_networks_with_retry(
     let annotated_networks_res = scan_parse_and_annotate_networks(options);
 
     if let Ok(annotated_networks) = &annotated_networks_res {
-        // TODO: possibly just rerun everything in synchronous mode if any problems are encountered?
         if should_retry_with_synchronous_scan(options, &annotated_networks) {
             eprintln!("[NOTE]: No known networks seen in auto mode using cached scan results. Manually scanning now. ");
             return Err(rerr!(

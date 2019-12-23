@@ -7,7 +7,7 @@ use strum::AsStaticRef;
 
 // TODO: respect force_ask_password
 // TODO: fail if not run as root
-// TODO: use subcommands for configurations of options, but still go through all functions always?
+// TODO: use subcommands for conuigurations of options, but still go through all functions always?
 //       or just run certain functions for certain subcommands?
 fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
     let debug = Arg::with_name("debug")
@@ -47,6 +47,10 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .short("f")
         .long("force-sync")
         .help("Do not look at cached results, always scan for networks when run.");
+
+    let ignore_known = Arg::with_name("ignore_known")
+        .long("ignore-known")
+        .help("Do not try to determine if networks are already known. Passwords will be requested always in this mode.");
 
     let interface = Arg::with_name("interface")
         .short("i")
@@ -108,6 +112,7 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .arg(force_synchronous)
         .arg(force_ask_password)
         .arg(interface)
+        .arg(ignore_known)
         .arg(input_file)
         .arg(input_stdin)
         .arg(password)
@@ -125,9 +130,11 @@ fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
 
     let force_synchronous_scan = m.is_present("force_synchronous_scan");
     let force_ask_password = m.is_present("force_ask_password");
+    let ignore_known = m.is_present("ignore_known");
+
     let dry_run = m.is_present("dry_run");
     if dry_run {
-        eprintln!("[NOTE] Running in dryrun mode! Will not run any external commands, write/read from disk, and will only use cached scan results.");
+        eprintln!("[NOTE] Running in dryrun mode! Will not run any external commands or write/read from disk, and will only use cached scan results.");
     }
 
     let given_essid = m.value_of("essid").map(String::from);
@@ -161,6 +168,7 @@ fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
         scan_method,
         selection_method,
         interface,
+        ignore_known,
         connect_via,
         debug,
         given_essid,
@@ -242,9 +250,20 @@ mod tests {
 
     #[test]
     fn test_interface() {
-        let opts = getopts(&["--interface", "BLEEBLOOFAKEIFACE"]);
-        assert_eq![opts.interface, "BLEEBLOOFAKEIFACE"];
+        let opts = getopts(&["-i", "BFUGG"]);
+        assert_eq![opts.interface, "BFUGG"];
+        let opts = getopts(&["--interface", "BLEEBLOO"]);
+        assert_eq![opts.interface, "BLEEBLOO"];
     }
+
+    #[test]
+    fn test_ignore_known() {
+        let opts = getopts(&[]);
+        assert![!opts.ignore_known];
+        let opts = getopts(&["--ignore-known"]);
+        assert![opts.ignore_known];
+    }
+
 
     #[test]
     fn test_scan_type() {
@@ -305,9 +324,9 @@ mod tests {
         let opts = getopts(&["-p", pw]);
         assert_eq![opts.given_encryption_key.unwrap(), pw];
 
-        let pw = "FAKEP_SSS_A_W_W_W_W";
-        let opts = getopts(&["--password", pw]);
-        assert_eq![opts.given_encryption_key.unwrap(), pw];
+        let pw2 = "FAKEP_SSS_A_W_W_W_W";
+        let opts = getopts(&["--password", pw2]);
+        assert_eq![opts.given_encryption_key.unwrap(), pw2];
     }
 
     #[test]

@@ -167,6 +167,7 @@ pub struct Options {
     pub scan_method: ScanMethod,
     pub selection_method: SelectionMethod,
     pub interface: String,
+    pub ignore_known: bool,
     pub connect_via: ConnectionType,
     pub debug: bool,
     pub given_essid: Option<String>,
@@ -185,6 +186,7 @@ impl Default for Options {
             scan_method: ScanMethod::default(),
             // TODO: prevent this from ever being seen? How?
             interface: "some_fake_name".to_string(),
+            ignore_known: false,
             selection_method: SelectionMethod::default(),
             connect_via: ConnectionType::default(),
             debug: false,
