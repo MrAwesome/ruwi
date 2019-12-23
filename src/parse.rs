@@ -8,9 +8,8 @@ pub(crate) fn parse_result(
     options: &Options,
     scan_result: &ScanResult,
 ) -> Result<ParseResult, RuwiError> {
-    // TODO: if scan type isn't specified, and parsing or scanning fails, try another scan type
-
     let st = scan_result.scan_type.clone();
+    // TODO: add nmcli scan!
     let res = match &st {
         ScanType::WpaCli => parse_wpa_cli_scan(options, &scan_result.scan_output, st),
         ScanType::IW => parse_iw_scan(options, &scan_result.scan_output, st),
@@ -132,7 +131,6 @@ fn get_iw_bss_regex() -> Regex {
     Regex::new(r"^BSS ((\w\w:){5}\w\w)").expect("Failure creating regex for iw parsing...")
 }
 
-// TODO: put the actual command run here
 fn err_iw_malformed_output(options: &Options) -> RuwiError {
     rerr!(
         RuwiErrorKind::MalformedIWOutput,

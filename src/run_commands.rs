@@ -7,10 +7,6 @@ use std::io::Write;
 use std::process::Output;
 use std::process::{Command, Stdio};
 
-// TODO: create unit tests which test the non-spawning parts of these functions
-// TODO: assert args are actually being passed to commands
-
-
 pub(crate) fn run_command_pass_stdout(
     debug: bool,
     cmd_name: &str,

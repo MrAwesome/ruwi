@@ -3,16 +3,17 @@ use rexpect::spawn_bash;
 
 #[test]
 #[ignore]
-fn test_full_integration_with_vm() -> Result<()> {
-    let mut p = spawn_bash(Some(32000))?;
+fn test_full_integration_with_archlinux_vm() -> Result<()> {
+    let mut download_iso_shell = spawn_bash(Some(900000))?;
 
-    // Other targets too?
-    p.execute(
+    // TODO: Other targets as well
+    download_iso_shell.execute(
         "mkdir -p /tmp/archlinux/shared && cp -r ./target/debug/ruwi ./ci/configs/*.conf /tmp/archlinux/shared && echo COPIEDDD",
         "COPIEDDD",
     )?;
-    p.wait_for_prompt()?;
+    download_iso_shell.wait_for_prompt()?;
 
+    let mut p = spawn_bash(Some(32000))?;
     let command = concat!(
         "cd /tmp/archlinux/ && ",
         "curl http://mirror.rackspace.com/archlinux/iso/2019.12.01/md5sums.txt | grep archlinux-2019.12.01-x86_64.iso | md5sum -c || ",
