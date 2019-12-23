@@ -15,8 +15,9 @@ use std::path::Path;
 #[cfg(not(test))]
 use unescape::unescape;
 
+// TODO: unit test the logic in this function
 pub(crate) fn find_known_network_names(options: &Options) -> Result<KnownNetworkNames, RuwiError> {
-    if options.dry_run {
+    if options.dry_run || options.ignore_known {
         return Ok(KnownNetworkNames::default());
     }
 
