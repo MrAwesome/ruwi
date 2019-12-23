@@ -225,6 +225,17 @@ mod tests {
     }
 
     #[test]
+    #[should_panic = "Prevented command usage in test!"]
+    fn test_cmd_output_use_in_test_panics() {
+        run_command_output(
+            true,
+            "echo",
+            &["lawl"],
+        )
+        .unwrap();
+    }
+
+    #[test]
     #[should_panic = "Prevented prompt command usage in test!"]
     fn test_prompt_cmd_use_in_test_panics() {
         run_prompt_cmd(
