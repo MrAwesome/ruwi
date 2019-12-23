@@ -19,6 +19,7 @@ static ALLOWED_SYNCHRONOUS_RETRIES: u64 = 15;
 static SYNCHRONOUS_RETRY_DELAY_SECS: f64 = 0.3;
 
 // TODO: make function, include exact command being run
+// TODO: fix this failure showing up in dryruns
 static IW_SCAN_DUMP_ERR_MSG: &str = concat!(
     "Failed to load cached list of seen networks with `iw`. Is it installed? ",
     "You can also select a different scanning method with -s (try 'wpa_cli' or 'iwlist'), ",

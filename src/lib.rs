@@ -78,13 +78,10 @@ pub fn run_ruwi() -> Result<(), RuwiError> {
     //      RuwiCommand::Disconnect => {}
     // }
     // This is the primary run type / command. What are others?
-    {
-        let selected_network = use_given_or_scan_and_select_network(options)?;
-        let encryption_key = possibly_get_encryption_key(options, &selected_network)?;
-        let _output_result =
-            possibly_configure_network(options, &selected_network, &encryption_key)?;
-        let _connection_result = connect_to_network(options, &selected_network, &encryption_key)?;
-    }
+    let selected_network = use_given_or_scan_and_select_network(options)?;
+    let encryption_key = possibly_get_encryption_key(options, &selected_network)?;
+    let _output_result = possibly_configure_network(options, &selected_network, &encryption_key)?;
+    let _connection_result = connect_to_network(options, &selected_network, &encryption_key)?;
     Ok(())
 }
 
