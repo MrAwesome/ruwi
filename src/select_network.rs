@@ -65,21 +65,33 @@ fn run_manual_selector(
     options: &Options,
     networks: &SortedUniqueNetworks,
 ) -> Result<String, RuwiError> {
+    run_manual_selector_impl(options, networks, pass_tokens_to_selection_program)
+}
+
+fn run_manual_selector_impl<F>(
+    options: &Options,
+    networks: &SortedUniqueNetworks,
+    selector: F,
+) -> Result<String, RuwiError>
+where
+    F: FnOnce(&Options, &[String]) -> Result<String, RuwiError>,
+{
     let selection_tokens = networks.get_tokens_for_selection();
+    selector(options, &selection_tokens).map(|x| x.trim().into())
+}
+
+fn pass_tokens_to_selection_program(
+    options: &Options,
+    selection_tokens: &[String],
+) -> Result<String, RuwiError> {
     match &options.selection_method {
-        SelectionMethod::Dmenu => run_dmenu(
-            &options,
-            "Select a network: ",
-            &selection_tokens,
-        ),
+        SelectionMethod::Dmenu => run_dmenu(&options, "Select a network: ", &selection_tokens),
         SelectionMethod::Fzf => run_fzf(
             &options,
             "Select a network (ctrl-r or \"refresh\" to refresh results): ",
             &selection_tokens,
         ),
     }
-    // TODO: unit test that this trim happens, it is very important.
-    .map(|x| x.trim().into())
 }
 
 fn get_index_of_selected_item(line: &str) -> Result<usize, RuwiError> {
@@ -139,7 +151,7 @@ fn select_network_impl<'a, 'b, F>(
 where
     F: FnOnce(&'a Options, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, RuwiError>,
 {
-    let selected_network_res = match &options.auto_mode {
+    let selected_network_res = match options.auto_mode {
         AutoMode::Ask => manual_selector(options, networks),
         AutoMode::KnownOrAsk => {
             select_first_known(options, networks).or_else(|_| manual_selector(options, networks))
@@ -148,10 +160,15 @@ where
         AutoMode::First => select_first(options, networks),
     };
 
-    // TODO: sensible error messages for when auto no ask fails
-
-    if let Ok(nw) = &selected_network_res {
-        eprintln!("[NOTE]: Selected network: \"{}\"", nw.essid);
+    match &selected_network_res {
+        Ok(nw) => eprintln!("[NOTE]: Selected network: \"{}\"", nw.essid),
+        Err(_) => {
+            if options.auto_mode == AutoMode::KnownOrFail {
+                eprintln!(
+                    "[ERR]: Failed to find a known network in `known_or_fail` mode. Will exit now."
+                );
+            }
+        }
     }
 
     if options.debug {
@@ -172,10 +189,7 @@ mod tests {
     fn get_3_networks() -> SortedUniqueNetworks {
         let networks = vec![FIRST_NW_NAME, SECND_NW_NAME, THIRD_NW_NAME]
             .iter()
-            .map(|name| AnnotatedWirelessNetwork {
-                essid: (*name).to_string(),
-                ..AnnotatedWirelessNetwork::default()
-            })
+            .map(|name| AnnotatedWirelessNetwork::from_essid((*name).to_string(), false, false))
             .collect();
         SortedUniqueNetworks { networks }
     }
@@ -313,6 +327,28 @@ mod tests {
             .contains(&SelectionOption::Refresh.as_static().into())];
         let res = select_network_impl(&options, &networks, select_refresh);
         assert_eq![RuwiErrorKind::RefreshRequested, res.err().unwrap().kind];
+    }
+
+    #[test]
+    fn test_manual_selector_output() {
+        let opts = Options::default();
+        let networks = get_3_unknown_networks();
+
+        let run_without_whitespace = run_manual_selector_impl(&opts, &networks, |_opts, names| {
+            Ok(format!("{}", &names.first().unwrap()))
+        })
+        .unwrap();
+
+        let run_with_whitespace = run_manual_selector_impl(&opts, &networks, |_opts, names| {
+            Ok(format!(
+                " \n\n  \n {}   \n\n   \t   \n",
+                &names.first().unwrap()
+            ))
+        })
+        .unwrap();
+
+        dbg!(&run_without_whitespace, &run_with_whitespace);
+        assert_eq!(run_without_whitespace, run_with_whitespace);
     }
 
     #[test]
