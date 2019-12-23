@@ -302,7 +302,7 @@ mod tests {
                     is_encrypted: true,
                     bssid: Some("32:ac:a3:7b:ab:0b".to_string()),
                     signal_strength: Some(52),
-                    ..Default::default()
+                    ..WirelessNetwork::default()
                 }],
                 line_parse_errors: vec![],
             }),
@@ -314,14 +314,14 @@ mod tests {
                         is_encrypted: true,
                         bssid: Some("f4:28:53:fe:a5:d0".to_string()),
                         signal_strength: Some(25),
-                        ..Default::default()
+                        ..WirelessNetwork::default()
                     },
                     WirelessNetwork {
                         essid: "Valparaiso_Guest_House 2".to_string(),
                         is_encrypted: true,
                         bssid: Some("68:72:51:68:73:da".to_string()),
                         signal_strength: Some(44),
-                        ..Default::default()
+                        ..WirelessNetwork::default()
                     },
                 ],
                 line_parse_errors: vec![],
@@ -334,14 +334,14 @@ mod tests {
                         is_encrypted: true,
                         bssid: Some("f4:28:53:fe:a5:d0".to_string()),
                         signal_strength: Some(24),
-                        ..Default::default()
+                        ..WirelessNetwork::default()
                     },
                     WirelessNetwork {
                         essid: "Valparaiso_Guest_House 2".to_string(),
                         is_encrypted: true,
                         bssid: Some("68:72:51:68:73:da".to_string()),
                         signal_strength: Some(43),
-                        ..Default::default()
+                        ..WirelessNetwork::default()
                     },
                 ],
                 line_parse_errors: vec![],
@@ -356,49 +356,49 @@ mod tests {
                         is_encrypted: true,
                         bssid: Some("78:8a:20:e3:9d:62".to_string()),
                         signal_strength: Some(49),
-                        ..Default::default()
+                        ..WirelessNetwork::default()
                     },
                     WirelessNetwork {
                         essid: "DIRECT-AF-HP DeskJet 3830 series".to_string(),
                         is_encrypted: true,
                         bssid: Some("fc:3f:db:a1:5e:b0".to_string()),
                         signal_strength: Some(22),
-                        ..Default::default()
+                        ..WirelessNetwork::default()
                     },
                     WirelessNetwork {
                         essid: "Nima Lodge".to_string(),
                         is_encrypted: true,
                         bssid: Some("fc:ec:da:69:e0:3e".to_string()),
                         signal_strength: Some(5),
-                        ..Default::default()
+                        ..WirelessNetwork::default()
                     },
                     WirelessNetwork {
                         essid: "".to_string(),
                         is_encrypted: true,
                         bssid: Some("fe:ec:da:69:e0:3e".to_string()),
                         signal_strength: Some(5),
-                        ..Default::default()
+                        ..WirelessNetwork::default()
                     },
                     WirelessNetwork {
                         essid: "WISPerNET-George-Sentraal1".to_string(),
                         is_encrypted: false,
                         bssid: Some("ba:69:f4:1f:2d:15".to_string()),
                         signal_strength: Some(1),
-                        ..Default::default()
+                        ..WirelessNetwork::default()
                     },
                     WirelessNetwork {
                         essid: "WISPerNET-Bosplaas-SW-802.11".to_string(),
                         is_encrypted: false,
                         bssid: Some("b8:69:f4:1f:2d:15".to_string()),
                         signal_strength: Some(1),
-                        ..Default::default()
+                        ..WirelessNetwork::default()
                     },
                     WirelessNetwork {
                         essid: "".to_string(),
                         is_encrypted: true,
                         bssid: Some("7a:8a:20:e3:9d:62".to_string()),
                         signal_strength: Some(51),
-                        ..Default::default()
+                        ..WirelessNetwork::default()
                     },
                 ],
                 line_parse_errors: vec![],
@@ -410,7 +410,7 @@ mod tests {
                     is_encrypted: true,
                     bssid: Some("f4:28:53:fe:a5:d0".to_string()),
                     signal_strength: Some(24),
-                    ..Default::default()
+                    ..WirelessNetwork::default()
                 }],
                 line_parse_errors: vec![
                     (
@@ -430,7 +430,7 @@ mod tests {
                     is_encrypted: true,
                     bssid: Some("f4:28:53:fe:a5:d0".to_string()),
                     signal_strength: Some(24),
-                    ..Default::default()
+                    ..WirelessNetwork::default()
                 }],
                 line_parse_errors: vec![(
                     "68:72:51:68:73:da\t2457\t-xx\t[WPA2-PSK-CCMP][ESS]\tValparaiso_Guest_House 2"
@@ -442,7 +442,7 @@ mod tests {
         }
     }
 
-    fn compare_parsed_result_to_expected_result(text_type: NetworkTextType, options: Options) {
+    fn compare_parsed_result_to_expected_result(text_type: NetworkTextType, options: &Options) {
         let contents = get_text(text_type);
         let full_expected_result = get_expected_result(text_type);
 
@@ -474,56 +474,56 @@ mod tests {
     fn test_iw_one_network() {
         let text_type = NetworkTextType::IWOneNetwork;
         let options = get_iw_basic_options();
-        compare_parsed_result_to_expected_result(text_type, options);
+        compare_parsed_result_to_expected_result(text_type, &options);
     }
 
     #[test]
     fn test_iw_two_different_networks() {
         let text_type = NetworkTextType::IWTwoDifferentNetworks;
         let options = get_iw_basic_options();
-        compare_parsed_result_to_expected_result(text_type, options);
+        compare_parsed_result_to_expected_result(text_type, &options);
     }
 
     #[test]
     fn test_wpa_cli_no_networks() {
         let text_type = NetworkTextType::WpaCliNoNetworks;
         let options = get_wpa_cli_basic_options();
-        compare_parsed_result_to_expected_result(text_type, options);
+        compare_parsed_result_to_expected_result(text_type, &options);
     }
 
     #[test]
     fn test_wpa_cli_two_different_networks() {
         let text_type = NetworkTextType::WpaCliTwoDifferentNetworks;
         let options = get_wpa_cli_basic_options();
-        compare_parsed_result_to_expected_result(text_type, options);
+        compare_parsed_result_to_expected_result(text_type, &options);
     }
 
     #[test]
     fn test_wpa_cli_seven_networks_two_duplicates_two_empty() {
         let text_type = NetworkTextType::WpaCliSevenNetworksTwoDuplicateTwoEmpty;
         let options = get_wpa_cli_basic_options();
-        compare_parsed_result_to_expected_result(text_type, options);
+        compare_parsed_result_to_expected_result(text_type, &options);
     }
 
     #[test]
     fn test_wpa_cli_two_lines_missing_info() {
         let text_type = NetworkTextType::WpaCliTwoLinesMissingInfo;
         let options = get_wpa_cli_basic_options();
-        compare_parsed_result_to_expected_result(text_type, options);
+        compare_parsed_result_to_expected_result(text_type, &options);
     }
 
     #[test]
     fn test_wpa_cli_two_networks_one_with_signal_level_parse_error() {
         let text_type = NetworkTextType::WpaCliTwoNetworksOneWithSignalLevelParseError;
         let options = get_wpa_cli_basic_options();
-        compare_parsed_result_to_expected_result(text_type, options);
+        compare_parsed_result_to_expected_result(text_type, &options);
     }
 
     #[test]
     fn test_broken_input_two_words() {
         let text_type = NetworkTextType::BrokenInputTwoWords;
         let options = get_wpa_cli_basic_options();
-        compare_parsed_result_to_expected_result(text_type, options);
+        compare_parsed_result_to_expected_result(text_type, &options);
     }
 
     // TODO: parsing failure
