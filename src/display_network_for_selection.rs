@@ -45,7 +45,7 @@ mod tests {
             known: is_known,
             is_encrypted: !is_open,
             signal_strength,
-            ..Default::default()
+            ..AnnotatedWirelessNetwork::default()
         };
         let token = nw.get_display_string();
         let tags_string = nw.get_tags_string();
