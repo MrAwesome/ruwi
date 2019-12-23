@@ -44,11 +44,11 @@ fn parse_iw_scan(
     })
 }
 
-fn break_iw_output_into_chunks_per_network(
+fn break_iw_output_into_chunks_per_network<'a>(
     options: &Options,
-    output: &str,
-) -> Result<Vec<Vec<String>>, RuwiError> {
-    let mut lines = output.trim().lines().map(|line| line.trim().to_string());
+    output: &'a str,
+) -> Result<Vec<Vec<&'a str>>, RuwiError> {
+    let mut lines = output.trim().lines().map(str::trim);
     let mut iw_network_line_groups = vec![];
 
     let bss_re = get_iw_bss_regex();
@@ -81,7 +81,7 @@ fn break_iw_output_into_chunks_per_network(
     Ok(iw_network_line_groups)
 }
 
-fn parse_iw_chunk_into_network(chunk: &[String]) -> Result<WirelessNetwork, IndividualParseError> {
+fn parse_iw_chunk_into_network(chunk: &[&str]) -> Result<WirelessNetwork, IndividualParseError> {
     let essid = unescape(
         chunk
             .iter()
