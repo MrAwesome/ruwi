@@ -1,7 +1,9 @@
-// #![deny(warnings)]
+#[cfg(target_os = "linux")]
 use ruwi::run_ruwi;
+#[cfg(target_os = "linux")]
 use std::process::exit;
 
+#[cfg(target_os = "linux")]
 fn main() {
     let x = run_ruwi();
     match x {
@@ -12,4 +14,9 @@ fn main() {
             exit(1);
         }
     };
+}
+
+#[cfg(not(target_os = "linux"))]
+fn main() {
+    eprintln!("[ERR] Ruwi is currently only supported on Linux. PRs to support other operating systems are happily accepted!");
 }
