@@ -3,7 +3,10 @@ use crate::rerr;
 use crate::run_commands::*;
 use crate::structs::*;
 
-pub(crate) fn get_default_interface(debug: bool) -> Result<String, RuwiError> {
+pub(crate) fn get_default_interface(debug: bool, dry_run: bool) -> Result<String, RuwiError> {
+    if dry_run {
+        return Ok("FAKE_INTERFACE".to_string());
+    }
     // NOTE: Other methods of determining the interface can be added here
     let interface = get_interface_with_iw(debug);
 

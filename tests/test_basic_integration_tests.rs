@@ -3,7 +3,7 @@ use rexpect::spawn;
 
 #[test]
 fn test_cli_help() -> Result<()> {
-    let mut p = spawn("./target/debug/ruwi --help", Some(1000))?;
+    let mut p = spawn("./target/debug/ruwi --help", Some(20))?;
     p.exp_string("USAGE:")?;
     p.exp_string("FLAGS:")?;
     p.exp_string("OPTIONS:")?;
@@ -27,7 +27,7 @@ fn test_iw_first_network_from_file() -> Result<()> {
     // build times so we'll just use rexpect for now. The stdlib Command module would work as well.
     let mut p = spawn(
         "./target/debug/ruwi -D -F src/samples/iw_two_different_networks.txt -c print -s iw -A first",
-        Some(2000),
+        Some(200),
     )?;
     p.exp_string("[NOTE]: Selected network: \"Valparaiso_Guest_House 2\"")?;
     p.exp_string("Valparaiso_Guest_House 2")?;

@@ -141,7 +141,7 @@ fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
     let given_encryption_key = m.value_of("password").map(String::from);
     let interface = match m.value_of("interface") {
         Some(val) => String::from(val),
-        None => get_default_interface(debug)?,
+        None => get_default_interface(debug, dry_run)?,
     };
 
     let scan_type = get_val_as_enum::<ScanType>(&m, "scan_type");
