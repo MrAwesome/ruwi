@@ -85,7 +85,7 @@ fn get_scan_contents_from_file(
     let file_read_err = |e: io::Error| {
         rerr!(
             RuwiErrorKind::FailedToReadScanResultsFromFile,
-            e.description()
+            format!("Failed to read scan contents from `{}`. Does that file exist?", filename)
         )
     };
     let mut file_contents = "".into();

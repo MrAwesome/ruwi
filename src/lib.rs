@@ -49,6 +49,8 @@ use synchronous_retry_logic::*;
 
 // TODO(high): stop/start the relevant services (in particular, stop networkmanager if it's running before trying to do netctl things) - - pkill wpa_supplicant, systemctl stop NetworkManager, etc etc etc
 // TODO(high): if networkmanager is used, start it up before going - same with netctl. possibly also stop
+// TODO(high): fix error messages. -F kfdjsalkf will give "ERR: entity not found"
+// TODO(high): write benchmark tests: https://doc.rust-lang.org/1.2.0/book/benchmark-tests.html
 // TODO(mid): add colors to output / use a real logging library
 // TODO(mid): add a "list seen networks" mode?
 // TODO(mid): have known netctl networks return essid, for matching/annotation with config name
