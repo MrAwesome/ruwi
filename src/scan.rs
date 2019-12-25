@@ -4,7 +4,6 @@ use crate::run_commands::*;
 use crate::structs::*;
 use crate::wpa_cli_initialize::initialize_wpa_cli;
 
-use std::error::Error;
 use std::fs::File;
 use std::io;
 use std::io::Read;
@@ -62,10 +61,10 @@ fn get_scan_contents_from_stdin(
     scan_type: ScanType,
 ) -> Result<ScanResult, RuwiError> {
     let mut stdin_contents = "".into();
-    io::stdin().read_to_end(&mut stdin_contents).map_err(|e| {
+    io::stdin().read_to_end(&mut stdin_contents).map_err(|_e| {
         rerr!(
             RuwiErrorKind::FailedToReadScanResultsFromStdin,
-            e.description()
+            "Failed to get scan results from stdin!"
         )
     })?;
 
@@ -82,7 +81,7 @@ fn get_scan_contents_from_file(
     scan_type: ScanType,
     filename: &str,
 ) -> Result<ScanResult, RuwiError> {
-    let file_read_err = |e: io::Error| {
+    let file_read_err = |_e: io::Error| {
         rerr!(
             RuwiErrorKind::FailedToReadScanResultsFromFile,
             format!("Failed to read scan contents from `{}`. Does that file exist?", filename)

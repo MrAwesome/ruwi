@@ -37,6 +37,7 @@ pub(crate) fn run_command_output(
         dbg!(&cmd_name, &args);
     }
 
+    // TODO: instead of e.description, use stderr?
     run_command_impl(debug, cmd_name, args)
         .map_err(|e| rerr!(RuwiErrorKind::FailedToRunCommand, e.description()))
 }
