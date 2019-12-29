@@ -22,6 +22,7 @@ pub(crate) mod interface_management;
 pub(crate) mod netctl_config_writer;
 pub(crate) mod parse;
 pub(crate) mod run_commands;
+pub(crate) mod runner;
 pub(crate) mod scan;
 pub(crate) mod select_network;
 pub(crate) mod select_utils;
@@ -40,6 +41,7 @@ use connect::*;
 use encryption_key::*;
 use find_known_network_names::*;
 use parse::*;
+use runner::RuwiStep;
 use scan::*;
 use select_network::*;
 use sort_networks::*;
@@ -69,8 +71,20 @@ use synchronous_retry_logic::*;
 // TODO(think): add a -w/--wait or --verify or something to attempt to connect to google/etc?
 // TODO(think): make -a the default?
 
+pub fn run_ruwi_using_state_machine() -> Result<(), RuwiError> {
+    let next = RuwiStep::Init;
+    while next != RuwiStep::Done {
+        let next = next.run()?;
+    }
+    return Ok(());
+}
+
 pub fn run_ruwi() -> Result<(), RuwiError> {
     let options = &get_options()?;
+
+    eprintln!("[FIXME] Attempting state machine run first!");
+    run_ruwi_using_state_machine()?;
+
     // let command = options.command;
     // match command {
     //      RuwiCommand::Connect => {}
@@ -79,7 +93,6 @@ pub fn run_ruwi() -> Result<(), RuwiError> {
     //      RuwiCommand::DumpJSON => {}
     //      RuwiCommand::Disconnect => {}
     // }
-    // This is the primary run type / command. What are others?
     let selected_network = use_given_or_scan_and_select_network(options)?;
     let encryption_key = possibly_get_encryption_key(options, &selected_network)?;
     let _output_result = possibly_configure_network(options, &selected_network, &encryption_key)?;

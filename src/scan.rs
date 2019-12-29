@@ -14,7 +14,7 @@ use std::thread;
 #[cfg(not(test))]
 use std::time::Duration;
 
-static ALLOWED_SYNCHRONOUS_RETRIES: u64 = 15;
+static ALLOWED_SYNCHRONOUS_RETRIES: u32 = 15;
 static SYNCHRONOUS_RETRY_DELAY_SECS: f64 = 0.3;
 
 // TODO: make function, include exact command being run
@@ -331,7 +331,7 @@ mod tests {
     fn test_enough_time_to_retry() {
         let expected_min_secs_needed_to_abort_scan = 4.0;
         assert![
-            ALLOWED_SYNCHRONOUS_RETRIES as f64 * SYNCHRONOUS_RETRY_DELAY_SECS
+            f64::from(ALLOWED_SYNCHRONOUS_RETRIES) * SYNCHRONOUS_RETRY_DELAY_SECS
                 > expected_min_secs_needed_to_abort_scan
         ];
     }

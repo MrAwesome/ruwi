@@ -210,13 +210,13 @@ impl Options {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ScanResult {
     pub scan_type: ScanType,
     pub scan_output: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ParseResult {
     pub scan_type: ScanType,
     pub seen_networks: Vec<WirelessNetwork>,
