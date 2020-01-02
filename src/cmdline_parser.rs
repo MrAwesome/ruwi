@@ -10,6 +10,11 @@ use strum::AsStaticRef;
 // TODO: use subcommands for conuigurations of options, but still go through all functions always?
 //       or just run certain functions for certain subcommands?
 fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
+    // TODO: remove //////////////////////
+    let use_state_machine = Arg::with_name("use_state_machine")
+        .short("u");
+    //////////////////////////////////////////
+
     let debug = Arg::with_name("debug")
         .short("d")
         .long("debug")
@@ -118,6 +123,7 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .arg(password)
         .arg(scan_type)
         .arg(selection_method)
+        .arg(use_state_machine)
 }
 
 pub(crate) fn get_options() -> Result<Options, RuwiError> {
@@ -126,6 +132,9 @@ pub(crate) fn get_options() -> Result<Options, RuwiError> {
 }
 
 fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
+
+    let use_state_machine = m.is_present("use_state_machine");
+
     let debug = m.is_present("debug");
 
     let force_synchronous_scan = m.is_present("force_synchronous_scan");
@@ -177,6 +186,7 @@ fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
         force_synchronous_scan,
         force_ask_password,
         dry_run,
+        use_state_machine,
         ..Options::default()
     };
 
@@ -263,7 +273,6 @@ mod tests {
         let opts = getopts(&["--ignore-known"]);
         assert![opts.ignore_known];
     }
-
 
     #[test]
     fn test_scan_type() {

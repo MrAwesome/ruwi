@@ -72,39 +72,44 @@ use synchronous_retry_logic::*;
 // TODO(think): add a -w/--wait or --verify or something to attempt to connect to google/etc?
 // TODO(think): make -a the default?
 
-pub fn run_ruwi_using_state_machine() -> Result<(), RuwiError> {
-    let todo = "implement command selection";
-    let command = RuwiCommand::default(); // TODO
-    let options = get_options()?;
-    let next = RuwiStep::Init;
+pub fn run_ruwi() -> Result<(), RuwiError> {
+    let command = RuwiCommand::default();
+    let options = &get_options()?;
+
+    //eprintln!("[FIXME] Attempting state machine run first!");
+    if options.use_state_machine {
+        run_ruwi_using_state_machine(&command, options)
+    } else {
+        let selected_network = use_given_or_scan_and_select_network(options)?;
+        let encryption_key = possibly_get_encryption_key(options, &selected_network)?;
+        let _output_result =
+            possibly_configure_network(options, &selected_network, &encryption_key)?;
+        let _connection_result = connect_to_network(options, &selected_network, &encryption_key)?;
+        Ok(())
+    }
+}
+
+pub fn run_ruwi_using_state_machine(
+    command: &RuwiCommand,
+    options: &Options,
+    ) -> Result<(), RuwiError> {
+    // TODO: implement commands
+        // let command = options.command;
+        // match command {
+        //      RuwiCommand::Connect => {}
+        //      RuwiCommand::Select => {}
+        //      RuwiCommand::List => {}
+        //      RuwiCommand::DumpJSON => {}
+        //      RuwiCommand::Disconnect => {}
+        // }
+    let mut next = RuwiStep::Init;
     loop {
-        let next = next.exec(&command, &options)?;
+        next = next.exec(command, options)?;
         if let RuwiStep::Done = next {
             break;
         }
     }
     return Ok(());
-}
-
-pub fn run_ruwi() -> Result<(), RuwiError> {
-    let options = &get_options()?;
-
-    //eprintln!("[FIXME] Attempting state machine run first!");
-    //run_ruwi_using_state_machine()?;
-
-    // let command = options.command;
-    // match command {
-    //      RuwiCommand::Connect => {}
-    //      RuwiCommand::Select => {}
-    //      RuwiCommand::List => {}
-    //      RuwiCommand::DumpJSON => {}
-    //      RuwiCommand::Disconnect => {}
-    // }
-    let selected_network = use_given_or_scan_and_select_network(options)?;
-    let encryption_key = possibly_get_encryption_key(options, &selected_network)?;
-    let _output_result = possibly_configure_network(options, &selected_network, &encryption_key)?;
-    let _connection_result = connect_to_network(options, &selected_network, &encryption_key)?;
-    Ok(())
 }
 
 fn use_given_or_scan_and_select_network(
@@ -182,7 +187,9 @@ fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetwor
     Ok(annotated_networks)
 }
 
-fn gather_wifi_network_data(options: &Options) -> Result<(KnownNetworkNames, ScanResult), RuwiError> {
+fn gather_wifi_network_data(
+    options: &Options,
+) -> Result<(KnownNetworkNames, ScanResult), RuwiError> {
     let (opt1, opt2) = (options.clone(), options.clone());
     let get_nw_names = thread::spawn(move || find_known_network_names(&opt1));
     let get_scan_results = thread::spawn(move || wifi_scan(&opt2));

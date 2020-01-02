@@ -35,6 +35,7 @@ pub struct Options {
     pub force_ask_password: bool,
     pub synchronous_retry: Option<SynchronousRetryType>,
     pub dry_run: bool,
+    pub use_state_machine: bool,
 }
 
 impl Default for Options {
@@ -55,6 +56,7 @@ impl Default for Options {
             force_ask_password: false,
             synchronous_retry: None,
             dry_run: false,
+            use_state_machine: false,
         }
     }
 }
