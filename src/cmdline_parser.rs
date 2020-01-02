@@ -134,7 +134,7 @@ fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
 
     let dry_run = m.is_present("dry_run");
     if dry_run {
-        eprintln!("[NOTE] Running in dryrun mode! Will not run any external commands or write/read from disk, and will only use cached scan results.");
+        eprintln!("[NOTE] Running in dryrun mode! Will not run any external commands or write/read configs on disk, and will only use cached scan results.");
     }
 
     let given_essid = m.value_of("essid").map(String::from);

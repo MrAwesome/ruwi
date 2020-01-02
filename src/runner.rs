@@ -1,95 +1,69 @@
-use crate::cmdline_parser::get_options;
+use crate::annotate_networks::annotate_networks;
+use crate::gather_wifi_network_data;
+use crate::parse::parse_result;
+use crate::should_retry_with_synchronous_scan;
+use crate::sort_networks::sort_and_filter_networks;
 use crate::structs::*;
-use std::rc::Rc;
 
-//pub trait Runner {
-//    fn run(&self) -> Option<Box<dyn Runner>>;
-//}
-//
-//pub(crate) struct WifiScanner {
-//    options: Rc<Options>,
-//}
-//
-//// TODO: technical sheet out the flow. make unit tests!
-//pub(crate) fn run_state_machine(options: Options) {
-//    let mut next = Some(WifiScanner::new(Rc::new(options)));
-//    while let Some(runner) = next {
-//        next = runner.run();
-//    }
-//}
-//
-//impl WifiScanner {
-//    fn new(options: Rc<Options>) -> Box<dyn Runner> {
-//        Box::new(Self { options })
-//    }
-//}
-//
-//impl Runner for WifiScanner {
-//    fn run(&self) -> Option<Box<dyn Runner>> {
-//        let scan_result = ScanResult::default();
-//        Some(WifiResultsParser::new(self.options.clone(), scan_result))
-//    }
-//}
-//
-//pub(crate) struct WifiResultsParser {
-//    options: Rc<Options>,
-//    scan_result: ScanResult,
-//}
-//
-//impl WifiResultsParser {
-//    fn new(options: Rc<Options>, scan_result: ScanResult) -> Box<dyn Runner> {
-//        Box::new(Self {
-//            options,
-//            scan_result,
-//        })
-//    }
-//}
-//
-//impl Runner for WifiResultsParser {
-//    fn run(&self) -> Option<Box<dyn Runner>> {
-//        dbg![&self.options, &self.scan_result];
-//        None
-//    }
-//}
-
-pub(crate) enum RuwiStep<'a> {
+#[derive(Debug)]
+pub(crate) enum RuwiStep {
     Init,
-    CmdLineParser,
-    WifiInterfaceManager {
-        options: &'a Options,
-    },
-    WifiServiceManager {
-        options: &'a Options,
-    },
-    WifiDataGatherer {
-        options: &'a Options,
-    },
+    WifiDataGatherer,
     WifiNetworkParserAndAnnotator {
-        options: &'a Options,
-        parse_result: ParseResult,
+        scan_result: ScanResult,
         known_network_names: KnownNetworkNames,
     },
     WifiNetworkSorter {
-        options: &'a Options,
-        seen_networks: AnnotatedNetworks,
+        annotated_networks: AnnotatedNetworks,
     },
     WifiNetworkSelector {
-        options: &'a Options,
-        parse_result: ParseResult,
-        known_network_names: KnownNetworkNames,
+        sorted_networks: SortedUniqueNetworks,
     },
-    Test,
-    Done
+    WifiNetworkConfigurator {
+        selected_network: WirelessNetwork,
+    },
+    WifiNetworkConnector {
+        selected_network: WirelessNetwork,
+    },
+    WifiNetworkConnectionTester,
+    #[cfg(test)]
+    BasicTestStep,
+    Done,
 }
 
-impl<'a> RuwiStep<'a> {
-    fn run(&self) -> Result<Self, RuwiError> {
+impl RuwiStep {
+    pub(crate) fn exec(&self, command: &RuwiCommand, options: &Options) -> Result<Self, RuwiError> {
         match self {
-            Self::CmdLineParser => {
-                let options = &get_options()?;
-                Ok(Self::WifiInterfaceManager { options })
+            Self::Init => Ok(Self::WifiDataGatherer),
+            // TODO: decide if there should be an explicit service management step, or if services should be managed as they are used for scan/connect/etc
+            Self::WifiDataGatherer => {
+                let (known_network_names, scan_result) = gather_wifi_network_data(options)?;
+                Ok(Self::WifiNetworkParserAndAnnotator {
+                    known_network_names,
+                    scan_result,
+                })
             }
-            Test => Done,
+            Self::WifiNetworkParserAndAnnotator {
+                scan_result,
+                known_network_names,
+            } => {
+                let parse_results = parse_result(options, scan_result)?;
+                let annotated_networks =
+                    annotate_networks(options, &parse_results.seen_networks, known_network_names);
+                // TODO: implement retry here
+                if should_retry_with_synchronous_scan(options, &annotated_networks) {}
+                Ok(Self::WifiNetworkSorter { annotated_networks })
+            }
+            Self::WifiNetworkSorter { annotated_networks } => {
+                let sorted_networks = sort_and_filter_networks(options, annotated_networks.clone());
+                Ok(Self::WifiNetworkSelector { sorted_networks })
+            }
+//            Self::WifiNetworkSelector { sorted_networks } => {
+//
+//            }
+            #[cfg(test)]
+            Self::BasicTestStep => Ok(Self::Done),
+            _ => panic!("FUCK"),
         }
     }
 }
@@ -100,6 +74,14 @@ mod tests {
 
     #[test]
     fn test_basic_runner_functionality() {
-        // TODO: can there be an enum with all the runner types in it for matching against?
+        let test_step = RuwiStep::BasicTestStep;
+        let command = RuwiCommand::default();
+        let options = Options::default();
+        let next = test_step.exec(&command, &options);
+        if let Ok(RuwiStep::Done) = next {
+        } else {
+            dbg!(next);
+            panic!("Incorrect return value from basic test step.");
+        }
     }
 }

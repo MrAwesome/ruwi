@@ -49,6 +49,7 @@ use std::thread;
 use structs::*;
 use synchronous_retry_logic::*;
 
+// TODO(high): implement speed/connection/dns test
 // TODO(high): stop/start the relevant services (in particular, stop networkmanager if it's running before trying to do netctl things) - - pkill wpa_supplicant, systemctl stop NetworkManager, etc etc etc
 // TODO(high): if networkmanager is used, start it up before going - same with netctl. possibly also stop
 // TODO(high): fix error messages. -F kfdjsalkf will give "ERR: entity not found"
@@ -72,9 +73,15 @@ use synchronous_retry_logic::*;
 // TODO(think): make -a the default?
 
 pub fn run_ruwi_using_state_machine() -> Result<(), RuwiError> {
+    let todo = "implement command selection";
+    let command = RuwiCommand::default(); // TODO
+    let options = get_options()?;
     let next = RuwiStep::Init;
-    while next != RuwiStep::Done {
-        let next = next.run()?;
+    loop {
+        let next = next.exec(&command, &options)?;
+        if let RuwiStep::Done = next {
+            break;
+        }
     }
     return Ok(());
 }
@@ -82,8 +89,8 @@ pub fn run_ruwi_using_state_machine() -> Result<(), RuwiError> {
 pub fn run_ruwi() -> Result<(), RuwiError> {
     let options = &get_options()?;
 
-    eprintln!("[FIXME] Attempting state machine run first!");
-    run_ruwi_using_state_machine()?;
+    //eprintln!("[FIXME] Attempting state machine run first!");
+    //run_ruwi_using_state_machine()?;
 
     // let command = options.command;
     // match command {
@@ -153,22 +160,21 @@ fn scan_and_select_network(options: &Options) -> Result<AnnotatedWirelessNetwork
 fn scan_parse_and_annotate_networks_with_retry(
     options: &Options,
 ) -> Result<AnnotatedNetworks, RuwiError> {
-    let annotated_networks_res = scan_parse_and_annotate_networks(options);
+    let annotated_networks = scan_parse_and_annotate_networks(options)?;
 
-    if let Ok(annotated_networks) = &annotated_networks_res {
-        if should_retry_with_synchronous_scan(options, &annotated_networks) {
-            eprintln!("[NOTE]: No known networks seen in auto mode using cached scan results. Manually scanning now. ");
-            return Err(rerr!(
-                RuwiErrorKind::RetryWithSynchronousScan,
-                "Attempting synchonous retry."
-            ));
-        }
+    if should_retry_with_synchronous_scan(options, &annotated_networks) {
+        eprintln!("[NOTE]: No known networks seen in auto mode using cached scan results. Manually scanning now. ");
+        return Err(rerr!(
+            RuwiErrorKind::RetryWithSynchronousScan,
+            "Attempting synchonous retry."
+        ));
     }
-    Ok(annotated_networks_res?)
+
+    Ok(annotated_networks)
 }
 
 fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetworks, RuwiError> {
-    let (known_network_names, scan_result) = gather_data(options)?;
+    let (known_network_names, scan_result) = gather_wifi_network_data(options)?;
     let parse_results = parse_result(options, &scan_result)?;
     let annotated_networks =
         annotate_networks(options, &parse_results.seen_networks, &known_network_names);
@@ -176,7 +182,7 @@ fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetwor
     Ok(annotated_networks)
 }
 
-fn gather_data(options: &Options) -> Result<(KnownNetworkNames, ScanResult), RuwiError> {
+fn gather_wifi_network_data(options: &Options) -> Result<(KnownNetworkNames, ScanResult), RuwiError> {
     let (opt1, opt2) = (options.clone(), options.clone());
     let get_nw_names = thread::spawn(move || find_known_network_names(&opt1));
     let get_scan_results = thread::spawn(move || wifi_scan(&opt2));

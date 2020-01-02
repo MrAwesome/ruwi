@@ -8,6 +8,66 @@ use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
 pub static PROG_NAME: &str = "ruwi";
 
+#[derive(Debug, Clone)]
+pub enum RuwiCommand {
+    WifiConnect,
+}
+
+impl Default for RuwiCommand {
+    fn default() -> Self {
+        Self::WifiConnect
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Options {
+    pub scan_type: ScanType,
+    pub scan_method: ScanMethod,
+    pub selection_method: SelectionMethod,
+    pub interface: String,
+    pub ignore_known: bool,
+    pub connect_via: ConnectionType,
+    pub debug: bool,
+    pub given_essid: Option<String>,
+    pub given_encryption_key: Option<String>,
+    pub auto_mode: AutoMode,
+    pub force_synchronous_scan: bool,
+    pub force_ask_password: bool,
+    pub synchronous_retry: Option<SynchronousRetryType>,
+    pub dry_run: bool,
+}
+
+impl Default for Options {
+    fn default() -> Self {
+        Self {
+            scan_type: ScanType::default(),
+            scan_method: ScanMethod::default(),
+            // TODO: prevent this from ever being seen? How?
+            interface: "some_fake_name".to_string(),
+            ignore_known: false,
+            selection_method: SelectionMethod::default(),
+            connect_via: ConnectionType::default(),
+            debug: false,
+            given_essid: None,
+            given_encryption_key: None,
+            auto_mode: AutoMode::default(),
+            force_synchronous_scan: false,
+            force_ask_password: false,
+            synchronous_retry: None,
+            dry_run: false,
+        }
+    }
+}
+
+impl Options {
+    pub fn with_synchronous_retry(&self, t: SynchronousRetryType) -> Self {
+        Self {
+            synchronous_retry: Some(t),
+            ..self.clone()
+        }
+    }
+}
+
 // TODO: set to pub(crate) temporarily to find unused values
 #[derive(Debug, PartialEq, Eq)]
 pub enum RuwiErrorKind {
@@ -159,55 +219,6 @@ impl Default for AutoMode {
 pub enum SynchronousRetryType {
     ManuallyRequested,
     Automatic,
-}
-
-#[derive(Debug, Clone)]
-pub struct Options {
-    pub scan_type: ScanType,
-    pub scan_method: ScanMethod,
-    pub selection_method: SelectionMethod,
-    pub interface: String,
-    pub ignore_known: bool,
-    pub connect_via: ConnectionType,
-    pub debug: bool,
-    pub given_essid: Option<String>,
-    pub given_encryption_key: Option<String>,
-    pub auto_mode: AutoMode,
-    pub force_synchronous_scan: bool,
-    pub force_ask_password: bool,
-    pub synchronous_retry: Option<SynchronousRetryType>,
-    pub dry_run: bool,
-}
-
-impl Default for Options {
-    fn default() -> Self {
-        Self {
-            scan_type: ScanType::default(),
-            scan_method: ScanMethod::default(),
-            // TODO: prevent this from ever being seen? How?
-            interface: "some_fake_name".to_string(),
-            ignore_known: false,
-            selection_method: SelectionMethod::default(),
-            connect_via: ConnectionType::default(),
-            debug: false,
-            given_essid: None,
-            given_encryption_key: None,
-            auto_mode: AutoMode::default(),
-            force_synchronous_scan: false,
-            force_ask_password: false,
-            synchronous_retry: None,
-            dry_run: false,
-        }
-    }
-}
-
-impl Options {
-    pub fn with_synchronous_retry(&self, t: SynchronousRetryType) -> Self {
-        Self {
-            synchronous_retry: Some(t),
-            ..self.clone()
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
