@@ -33,7 +33,7 @@ pub struct Options {
     pub auto_mode: AutoMode,
     pub force_synchronous_scan: bool,
     pub force_ask_password: bool,
-    pub synchronous_retry: Option<SynchronousRetryType>,
+    pub synchronous_retry: Option<SynchronousRescanType>,
     pub dry_run: bool,
     pub use_state_machine: bool,
 }
@@ -62,7 +62,7 @@ impl Default for Options {
 }
 
 impl Options {
-    pub fn with_synchronous_retry(&self, t: SynchronousRetryType) -> Self {
+    pub fn with_synchronous_retry(&self, t: SynchronousRescanType) -> Self {
         Self {
             synchronous_retry: Some(t),
             ..self.clone()
@@ -218,7 +218,7 @@ impl Default for AutoMode {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum SynchronousRetryType {
+pub enum SynchronousRescanType {
     ManuallyRequested,
     Automatic,
 }

@@ -1,10 +1,15 @@
-use crate::annotate_networks::annotate_networks;
+// TODO: move these pieces into their own helper library
 use crate::gather_wifi_network_data;
-use crate::parse::parse_result;
+use crate::select_network;
+use crate::connect_to_network;
+use crate::possibly_get_encryption_key;
 use crate::should_retry_with_synchronous_scan;
+use crate::possibly_configure_network;
+
+use crate::annotate_networks::annotate_networks;
+use crate::parse::parse_result;
 use crate::sort_networks::sort_and_filter_networks;
 use crate::structs::*;
-use crate::wifi_scan;
 
 #[derive(Debug)]
 pub(crate) enum RuwiStep {
@@ -15,7 +20,7 @@ pub(crate) enum RuwiStep {
         known_network_names: KnownNetworkNames,
     },
     WifiSynchronousRescan {
-        known_network_names: KnownNetworkNames,
+        rescan_type: SynchronousRescanType,
     },
     WifiNetworkSorter {
         annotated_networks: AnnotatedNetworks,
@@ -24,10 +29,15 @@ pub(crate) enum RuwiStep {
         sorted_networks: SortedUniqueNetworks,
     },
     WifiNetworkConfigurator {
-        selected_network: WirelessNetwork,
+        selected_network: AnnotatedWirelessNetwork,
+        maybe_key: Option<String>,
     },
     WifiNetworkConnector {
-        selected_network: WirelessNetwork,
+        selected_network: AnnotatedWirelessNetwork,
+        maybe_key: Option<String>,
+    },
+    WifiPasswordAsker {
+        selected_network: AnnotatedWirelessNetwork,
     },
     WifiNetworkConnectionTester,
     #[cfg(test)]
@@ -37,9 +47,21 @@ pub(crate) enum RuwiStep {
 
 impl RuwiStep {
     pub(crate) fn exec(self, command: &RuwiCommand, options: &Options) -> Result<Self, RuwiError> {
+        match command {
+            RuwiCommand::WifiConnect => {
+                self.wifi_exec(options)
+            }
+        }
+    }
+
+    // TODO: flow for given essid
+
+    fn wifi_exec(self, options: &Options) -> Result<Self, RuwiError> {
         match self {
             Self::Init => Ok(Self::WifiDataGatherer),
+
             // TODO: decide if there should be an explicit service management step, or if services should be managed as they are used for scan/connect/etc
+
             Self::WifiDataGatherer => {
                 let (known_network_names, scan_result) = gather_wifi_network_data(options)?;
                 Ok(Self::WifiNetworkParserAndAnnotator {
@@ -47,6 +69,7 @@ impl RuwiStep {
                     scan_result,
                 })
             }
+
             Self::WifiNetworkParserAndAnnotator {
                 scan_result,
                 known_network_names,
@@ -57,35 +80,76 @@ impl RuwiStep {
                 // TODO: implement retry here
                 if should_retry_with_synchronous_scan(options, &annotated_networks) {
                     Ok(Self::WifiSynchronousRescan {
-                        known_network_names,
+                        rescan_type: SynchronousRescanType::Automatic,
                     })
                 } else {
                     Ok(Self::WifiNetworkSorter { annotated_networks })
                 }
             }
-            Self::WifiSynchronousRescan {
-                known_network_names,
-            } => {
-                let scan_result =
-                    wifi_scan(&options.with_synchronous_retry(SynchronousRetryType::Automatic))?;
+
+            Self::WifiSynchronousRescan { rescan_type } => {
+                let (known_network_names, scan_result) =
+                    gather_wifi_network_data(&options.with_synchronous_retry(rescan_type))?;
                 Ok(Self::WifiNetworkParserAndAnnotator {
                     scan_result,
                     known_network_names,
                 })
             }
+
             Self::WifiNetworkSorter { annotated_networks } => {
                 let sorted_networks = sort_and_filter_networks(options, annotated_networks.clone());
                 Ok(Self::WifiNetworkSelector { sorted_networks })
             }
-            //            Self::WifiNetworkSelector { sorted_networks } => {
-            //
-            //            }
+
+            Self::WifiNetworkSelector { sorted_networks } => {
+                let selected_network_res = select_network(options, &sorted_networks);
+                match selected_network_res {
+                    Ok(selected_network) => Ok(Self::WifiPasswordAsker { selected_network }),
+                    Err(err) => match &err.kind {
+                        RuwiErrorKind::RefreshRequested => Ok(Self::WifiSynchronousRescan {
+                            rescan_type: SynchronousRescanType::ManuallyRequested,
+                        }),
+                        _ => Err(err),
+                    },
+                }
+            }
+
+            Self::WifiPasswordAsker {
+                selected_network
+            } => {
+                let maybe_key = possibly_get_encryption_key(options, &selected_network)?;
+                Ok(Self::WifiNetworkConfigurator {
+                    selected_network,
+                    maybe_key
+                })
+            }
+
+            Self::WifiNetworkConfigurator {
+                selected_network,
+                maybe_key
+            } => {
+                possibly_configure_network(options, &selected_network, &maybe_key)?;
+                Ok(Self::WifiNetworkConnector { selected_network, maybe_key })
+            }
+
+            Self::WifiNetworkConnector { selected_network, maybe_key } => {
+                connect_to_network(options, &selected_network, &maybe_key)?;
+                Ok(Self::Done)
+            }
+
+            Self::WifiNetworkConnectionTester => {
+                // TODO: implement
+                Ok(Self::Done)
+            }
+
             #[cfg(test)]
             Self::BasicTestStep => Ok(Self::Done),
+
             x => {
                 dbg!(x);
                 panic!("FUCK");
             }
+
         }
     }
 }
@@ -104,6 +168,27 @@ mod tests {
         } else {
             dbg!(&next);
             panic!("Incorrect return value from basic test step.");
+        }
+    }
+
+    #[test]
+    fn test_sorter_into_selector() {
+        let first = AnnotatedWirelessNetwork::from_essid("I AM FIRST".into(), true, false);
+        let second = AnnotatedWirelessNetwork::from_essid("I AM SECOND".into(), false, false);
+        let networks = vec![second, first.clone()];
+        let annotated_networks = AnnotatedNetworks {
+            networks: networks.clone(),
+        };
+        let test_step = RuwiStep::WifiNetworkSorter { annotated_networks };
+        let command = RuwiCommand::default();
+        let options = Options::default();
+        let next = test_step.exec(&command, &options);
+        if let Ok(RuwiStep::WifiNetworkSelector { sorted_networks }) = next {
+            assert_eq![first, sorted_networks.networks.first().unwrap().clone()];
+            assert_eq![networks.len(), sorted_networks.networks.len()];
+        } else {
+            dbg!(&next);
+            panic!("Next step after default sort wasn't selector.");
         }
     }
 }

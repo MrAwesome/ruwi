@@ -140,10 +140,7 @@ fn scan_and_select_network_with_retry(
     match scan_and_select_network(options) {
         Err(err) => match err.kind {
             RuwiErrorKind::RefreshRequested => scan_and_select_network_with_retry(
-                &options.with_synchronous_retry(SynchronousRetryType::ManuallyRequested),
-            ),
-            RuwiErrorKind::RetryWithSynchronousScan => scan_and_select_network(
-                &options.with_synchronous_retry(SynchronousRetryType::Automatic),
+                &options.with_synchronous_retry(SynchronousRescanType::ManuallyRequested),
             ),
             _ => Err(err),
         },
