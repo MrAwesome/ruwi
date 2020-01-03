@@ -1,42 +1,86 @@
 // TODO: move these pieces into their own helper library
-use crate::gather_wifi_network_data;
-use crate::select_network;
 use crate::connect_to_network;
-use crate::possibly_get_encryption_key;
-use crate::should_retry_with_synchronous_scan;
+use crate::gather_wifi_network_data;
 use crate::possibly_configure_network;
+use crate::possibly_get_encryption_key;
+use crate::rerr;
+use crate::select_network;
+use crate::should_retry_with_synchronous_scan;
 
 use crate::annotate_networks::annotate_networks;
 use crate::parse::parse_result;
 use crate::sort_networks::sort_and_filter_networks;
 use crate::structs::*;
 
-pub fn run_ruwi_using_state_machine(
+const SANITY_LOOP_CAP: u32 = 1000;
+
+pub fn run_ruwi_using_state_machine<T>(
     command: &RuwiCommand,
     options: &Options,
-    ) -> Result<(), RuwiError> {
+) -> Result<(), RuwiError> {
+    let sanity_loop_cap = SANITY_LOOP_CAP;
     // TODO: implement commands
-        // let command = options.command;
-        // match command {
+    // let command = options.command;
+    match command {
+        RuwiCommand::WifiConnect => step_runner(
+            command,
+            options,
+            sanity_loop_cap,
+            WifiStep::ConnectionInit,
+            WifiStep::ConnectionSuccessful,
+        ),
         //      RuwiCommand::Connect => {}
         //      RuwiCommand::Select => {}
         //      RuwiCommand::List => {}
         //      RuwiCommand::DumpJSON => {}
         //      RuwiCommand::Disconnect => {}
-        // }
-    let mut next = WifiStep::Init;
-    loop {
+    }
+}
+
+fn step_runner<T>(
+    command: &RuwiCommand,
+    options: &Options,
+    sanity_loop_cap: u32,
+    first_step: T,
+    last_step: T,
+) -> Result<(), RuwiError>
+where
+    T: RuwiStep + PartialEq,
+{
+    let mut iterations = sanity_loop_cap;
+    let mut next = first_step;
+    while next != last_step {
         next = next.exec(command, options)?;
-        if let WifiStep::Done = next {
-            break;
-        }
+        iterations += 1;
+        loop_check(iterations, sanity_loop_cap)?;
     }
     return Ok(());
 }
 
-#[derive(Debug)]
+#[inline]
+fn loop_check(iterations: u32, cap: u32) -> Result<(), RuwiError> {
+    if iterations <= 0 {
+        Err(rerr!(
+            RuwiErrorKind::StepRunnerLoopPreventionCapExceeded,
+            format!(
+                "More than {} step iterations! Failing for infinite loop prevention.",
+                cap
+            )
+        ))
+    } else { 
+        Ok(())
+    }
+}
+
+pub(crate) trait RuwiStep {
+    fn exec(self, command: &RuwiCommand, options: &Options) -> Result<Self, RuwiError>
+    where
+        Self: Sized;
+}
+
+#[derive(Debug, PartialEq)]
 pub(crate) enum WifiStep {
-    Init,
+    ConnectionInit,
     DataGatherer,
     NetworkParserAndAnnotator {
         scan_result: ScanResult,
@@ -65,26 +109,25 @@ pub(crate) enum WifiStep {
     NetworkConnectionTester,
     #[cfg(test)]
     BasicTestStep,
-    Done,
+    ConnectionSuccessful,
 }
 
-impl WifiStep {
-    pub(crate) fn exec(self, command: &RuwiCommand, options: &Options) -> Result<Self, RuwiError> {
-        match command {
-            RuwiCommand::WifiConnect => {
-                wifi_exec(self, options)
-            }
-        }
+impl RuwiStep for WifiStep {
+    fn exec(self, command: &RuwiCommand, options: &Options) -> Result<Self, RuwiError> {
+        wifi_exec(self, command, options)
     }
-    // TODO: flow for given essid
 }
 
-fn wifi_exec(step: WifiStep, options: &Options) -> Result<WifiStep, RuwiError> {
+fn wifi_exec(
+    step: WifiStep,
+    command: &RuwiCommand,
+    options: &Options,
+) -> Result<WifiStep, RuwiError> {
     match step {
-        WifiStep::Init => Ok(WifiStep::DataGatherer),
+        // TODO: Skip ahead when no scan necessary
+        WifiStep::ConnectionInit => Ok(WifiStep::DataGatherer),
 
         // TODO: decide if there should be an explicit service management step, or if services should be managed as they are used for scan/connect/etc
-
         WifiStep::DataGatherer => {
             let (known_network_names, scan_result) = gather_wifi_network_data(options)?;
             Ok(WifiStep::NetworkParserAndAnnotator {
@@ -136,45 +179,47 @@ fn wifi_exec(step: WifiStep, options: &Options) -> Result<WifiStep, RuwiError> {
             }
         }
 
-        WifiStep::PasswordAsker {
-            selected_network
-        } => {
+        WifiStep::PasswordAsker { selected_network } => {
             let maybe_key = possibly_get_encryption_key(options, &selected_network)?;
             Ok(WifiStep::NetworkConfigurator {
                 selected_network,
-                maybe_key
+                maybe_key,
             })
         }
 
         WifiStep::NetworkConfigurator {
             selected_network,
-            maybe_key
+            maybe_key,
         } => {
             possibly_configure_network(options, &selected_network, &maybe_key)?;
-            Ok(WifiStep::NetworkConnector { selected_network, maybe_key })
+            Ok(WifiStep::NetworkConnector {
+                selected_network,
+                maybe_key,
+            })
         }
 
-        WifiStep::NetworkConnector { selected_network, maybe_key } => {
+        WifiStep::NetworkConnector {
+            selected_network,
+            maybe_key,
+        } => {
             connect_to_network(options, &selected_network, &maybe_key)?;
             Ok(WifiStep::NetworkConnectionTester)
         }
 
         WifiStep::NetworkConnectionTester => {
             // TODO: implement
-            Ok(WifiStep::Done)
+            Ok(WifiStep::ConnectionSuccessful)
         }
 
         #[cfg(test)]
-        WifiStep::BasicTestStep => Ok(WifiStep::Done),
+        WifiStep::BasicTestStep => Ok(WifiStep::ConnectionSuccessful),
 
         x => {
             dbg!(x);
             panic!("FUCK");
         }
-
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -183,10 +228,10 @@ mod tests {
     #[test]
     fn test_basic_runner_functionality() {
         let test_step = WifiStep::BasicTestStep;
-        let command = RuwiCommand::default();
+        let command = RuwiCommand::WifiConnect;
         let options = Options::default();
         let next = test_step.exec(&command, &options);
-        if let Ok(WifiStep::Done) = next {
+        if let Ok(WifiStep::ConnectionSuccessful) = next {
         } else {
             dbg!(&next);
             panic!("Incorrect return value from basic test step.");
@@ -202,7 +247,7 @@ mod tests {
             networks: networks.clone(),
         };
         let test_step = WifiStep::NetworkSorter { annotated_networks };
-        let command = RuwiCommand::default();
+        let command = RuwiCommand::WifiConnect;
         let options = Options::default();
         let next = test_step.exec(&command, &options);
         if let Ok(WifiStep::NetworkSelector { sorted_networks }) = next {

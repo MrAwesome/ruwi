@@ -107,6 +107,7 @@ pub enum RuwiErrorKind {
     RefreshRequested,
     RetryWithSynchronousScan,
     SingleLinePromptFailed,
+    StepRunnerLoopPreventionCapExceeded,
     TestCmdLineOptParserSafeFailed,
     TestDeliberatelyFailedToFindNetworks,
     TestNoNetworksFoundWhenLookingForFirst,
@@ -311,7 +312,7 @@ impl Default for AnnotatedWirelessNetwork {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct KnownNetworkNames(pub HashSet<String>);
 
 impl Default for KnownNetworkNames {
@@ -333,12 +334,12 @@ impl DerefMut for KnownNetworkNames {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct AnnotatedNetworks {
     pub networks: Vec<AnnotatedWirelessNetwork>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SortedUniqueNetworks {
     pub networks: Vec<AnnotatedWirelessNetwork>,
 }
