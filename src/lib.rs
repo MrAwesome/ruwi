@@ -41,7 +41,7 @@ use connect::*;
 use encryption_key::*;
 use find_known_network_names::*;
 use parse::*;
-use runner::RuwiStep;
+use runner::run_ruwi_using_state_machine;
 use scan::*;
 use select_network::*;
 use sort_networks::*;
@@ -89,29 +89,6 @@ pub fn run_ruwi() -> Result<(), RuwiError> {
     }
 }
 
-pub fn run_ruwi_using_state_machine(
-    command: &RuwiCommand,
-    options: &Options,
-    ) -> Result<(), RuwiError> {
-    // TODO: implement commands
-        // let command = options.command;
-        // match command {
-        //      RuwiCommand::Connect => {}
-        //      RuwiCommand::Select => {}
-        //      RuwiCommand::List => {}
-        //      RuwiCommand::DumpJSON => {}
-        //      RuwiCommand::Disconnect => {}
-        // }
-    let mut next = RuwiStep::Init;
-    loop {
-        next = next.exec(command, options)?;
-        if let RuwiStep::Done = next {
-            break;
-        }
-    }
-    return Ok(());
-}
-
 fn use_given_or_scan_and_select_network(
     options: &Options,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
@@ -141,6 +118,9 @@ fn scan_and_select_network_with_retry(
         Err(err) => match err.kind {
             RuwiErrorKind::RefreshRequested => scan_and_select_network_with_retry(
                 &options.with_synchronous_retry(SynchronousRescanType::ManuallyRequested),
+            ),
+            RuwiErrorKind::RetryWithSynchronousScan => scan_and_select_network(
+                &options.with_synchronous_retry(SynchronousRescanType::Automatic),
             ),
             _ => Err(err),
         },
