@@ -14,7 +14,13 @@ use crate::structs::*;
 
 const SANITY_LOOP_CAP: u32 = 1000;
 
-pub fn run_ruwi_using_state_machine<T>(
+pub(crate) trait RuwiStep {
+    fn exec(self, command: &RuwiCommand, options: &Options) -> Result<Self, RuwiError>
+    where
+        Self: Sized;
+}
+
+pub fn run_ruwi_using_state_machine(
     command: &RuwiCommand,
     options: &Options,
 ) -> Result<(), RuwiError> {
@@ -70,12 +76,6 @@ fn loop_check(iterations: u32, cap: u32) -> Result<(), RuwiError> {
     } else { 
         Ok(())
     }
-}
-
-pub(crate) trait RuwiStep {
-    fn exec(self, command: &RuwiCommand, options: &Options) -> Result<Self, RuwiError>
-    where
-        Self: Sized;
 }
 
 #[derive(Debug, PartialEq)]
