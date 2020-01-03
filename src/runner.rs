@@ -102,8 +102,7 @@ impl RuwiStep {
             }
 
             Self::WifiNetworkSelector { sorted_networks } => {
-                let selected_network_res = select_network(options, &sorted_networks);
-                match selected_network_res {
+                match select_network(options, &sorted_networks) {
                     Ok(selected_network) => Ok(Self::WifiPasswordAsker { selected_network }),
                     Err(err) => match &err.kind {
                         RuwiErrorKind::RefreshRequested => Ok(Self::WifiSynchronousRescan {
