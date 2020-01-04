@@ -34,20 +34,9 @@ pub(crate) mod macros;
 pub(crate) mod strum_utils;
 pub(crate) mod wpa_cli_initialize;
 
-use annotate_networks::*;
 use cmdline_parser::*;
-use configure_network::*;
-use connect::*;
-use encryption_key::*;
-use find_known_network_names::*;
-use parse::*;
 use runner::run_ruwi_using_state_machine;
-use scan::*;
-use select_network::*;
-use sort_networks::*;
-use std::thread;
 use structs::*;
-use synchronous_retry_logic::*;
 
 // TODO(high): implement speed/connection/dns test
 // TODO(high): stop/start the relevant services (in particular, stop networkmanager if it's running before trying to do netctl things) - - pkill wpa_supplicant, systemctl stop NetworkManager, etc etc etc
@@ -78,104 +67,6 @@ pub fn run_ruwi() -> Result<(), RuwiError> {
 
     //eprintln!("[FIXME] Attempting state machine run first!");
     run_ruwi_using_state_machine(&command, options)
-}
-
-fn use_given_or_scan_and_select_network(
-    options: &Options,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-    match &options.given_essid {
-        Some(essid) => get_network_from_given_essid(options, essid),
-        None => scan_and_select_network_with_retry(options),
-    }
-}
-
-fn get_network_from_given_essid(
-    options: &Options,
-    essid: &str,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-    let is_known = find_known_network_names(options)?.contains(essid);
-    let is_encrypted = options.given_encryption_key.is_some();
-    Ok(AnnotatedWirelessNetwork::from_essid(
-        essid.into(),
-        is_known,
-        is_encrypted,
-    ))
-}
-
-fn scan_and_select_network_with_retry(
-    options: &Options,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-    match scan_and_select_network(options) {
-        Err(err) => match err.kind {
-            RuwiErrorKind::RefreshRequested => scan_and_select_network_with_retry(
-                &options.with_synchronous_retry(SynchronousRescanType::ManuallyRequested),
-            ),
-            RuwiErrorKind::RetryWithSynchronousScan => scan_and_select_network(
-                &options.with_synchronous_retry(SynchronousRescanType::Automatic),
-            ),
-            _ => Err(err),
-        },
-        x => x,
-    }
-}
-
-fn scan_and_select_network(options: &Options) -> Result<AnnotatedWirelessNetwork, RuwiError> {
-    let annotated_networks = scan_parse_and_annotate_networks_with_retry(options)?;
-    let sorted_networks = sort_and_filter_networks(options, annotated_networks);
-    select_network(options, &sorted_networks)
-}
-
-// In automatic mode, we want to make a strong attempt to prioritize known networks.
-// Cached results are often out of date, so if no known networks are seen, trust our
-// user that they should be, and re-run the scan in synchronous mode.
-// This logic lives so high in the stack because known status isn't available
-// until we've found the known network names and used them to annotate the seen networks.
-fn scan_parse_and_annotate_networks_with_retry(
-    options: &Options,
-) -> Result<AnnotatedNetworks, RuwiError> {
-    let annotated_networks = scan_parse_and_annotate_networks(options)?;
-
-    if should_retry_with_synchronous_scan(options, &annotated_networks) {
-        eprintln!("[NOTE]: No known networks seen in auto mode using cached scan results. Manually scanning now. ");
-        return Err(rerr!(
-            RuwiErrorKind::RetryWithSynchronousScan,
-            "Attempting synchonous retry."
-        ));
-    }
-
-    Ok(annotated_networks)
-}
-
-fn scan_parse_and_annotate_networks(options: &Options) -> Result<AnnotatedNetworks, RuwiError> {
-    let (known_network_names, scan_result) = gather_wifi_network_data(options)?;
-    let parse_results = parse_result(options, &scan_result)?;
-    let annotated_networks =
-        annotate_networks(options, &parse_results.seen_networks, &known_network_names);
-
-    Ok(annotated_networks)
-}
-
-fn gather_wifi_network_data(
-    options: &Options,
-) -> Result<(KnownNetworkNames, ScanResult), RuwiError> {
-    let (opt1, opt2) = (options.clone(), options.clone());
-    let get_nw_names = thread::spawn(move || find_known_network_names(&opt1));
-    let get_scan_results = thread::spawn(move || wifi_scan(&opt2));
-
-    let known_network_names = await_thread(get_nw_names)??;
-    let scan_result = await_thread(get_scan_results)??;
-
-    Ok((known_network_names, scan_result))
-}
-
-#[inline]
-fn await_thread<T>(handle: thread::JoinHandle<T>) -> Result<T, RuwiError> {
-    handle.join().or_else(|_| {
-        Err(rerr!(
-            RuwiErrorKind::FailedToSpawnThread,
-            "Failed to spawn thread."
-        ))
-    })
 }
 
 #[cfg(test)]

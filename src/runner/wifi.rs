@@ -1,17 +1,18 @@
+use std::thread;
+
+use crate::find_known_network_names::find_known_network_names;
+use crate::scan::wifi_scan;
+use crate::annotate_networks::annotate_networks;
+use crate::configure_network::possibly_configure_network;
 use crate::connect::connect_to_network;
-use crate::gather_wifi_network_data;
-use crate::get_network_from_given_essid;
-use crate::possibly_configure_network;
-use crate::possibly_get_encryption_key;
+use crate::encryption_key::possibly_get_encryption_key;
+use crate::parse::parse_result;
 use crate::rerr;
 use crate::runner::RuwiStep;
-use crate::select_network;
-use crate::should_retry_with_synchronous_scan;
-
-use crate::annotate_networks::annotate_networks;
-use crate::parse::parse_result;
+use crate::select_network::select_network;
 use crate::sort_networks::sort_and_filter_networks;
 use crate::structs::*;
+use crate::synchronous_retry_logic::should_retry_with_synchronous_scan;
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum WifiStep {
@@ -161,6 +162,42 @@ fn wifi_exec(
         #[cfg(test)]
         WifiStep::BasicTestStep => Ok(WifiStep::ConnectionSuccessful),
     }
+}
+
+fn get_network_from_given_essid(
+    options: &Options,
+    essid: &str,
+) -> Result<AnnotatedWirelessNetwork, RuwiError> {
+    let is_known = find_known_network_names(options)?.contains(essid);
+    let is_encrypted = options.given_encryption_key.is_some();
+    Ok(AnnotatedWirelessNetwork::from_essid(
+        essid.into(),
+        is_known,
+        is_encrypted,
+    ))
+}
+
+fn gather_wifi_network_data(
+    options: &Options,
+) -> Result<(KnownNetworkNames, ScanResult), RuwiError> {
+    let (opt1, opt2) = (options.clone(), options.clone());
+    let get_nw_names = thread::spawn(move || find_known_network_names(&opt1));
+    let get_scan_results = thread::spawn(move || wifi_scan(&opt2));
+
+    let known_network_names = await_thread(get_nw_names)??;
+    let scan_result = await_thread(get_scan_results)??;
+
+    Ok((known_network_names, scan_result))
+}
+
+#[inline]
+fn await_thread<T>(handle: thread::JoinHandle<T>) -> Result<T, RuwiError> {
+    handle.join().or_else(|_| {
+        Err(rerr!(
+            RuwiErrorKind::FailedToSpawnThread,
+            "Failed to spawn thread."
+        ))
+    })
 }
 
 #[cfg(test)]
