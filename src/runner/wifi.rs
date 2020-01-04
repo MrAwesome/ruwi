@@ -1,16 +1,17 @@
-use crate::connect_to_network;
+use crate::connect::connect_to_network;
 use crate::gather_wifi_network_data;
+use crate::get_network_from_given_essid;
 use crate::possibly_configure_network;
 use crate::possibly_get_encryption_key;
+use crate::rerr;
+use crate::runner::RuwiStep;
 use crate::select_network;
 use crate::should_retry_with_synchronous_scan;
-use crate::runner::RuwiStep;
 
 use crate::annotate_networks::annotate_networks;
 use crate::parse::parse_result;
 use crate::sort_networks::sort_and_filter_networks;
 use crate::structs::*;
-
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum WifiStep {
@@ -54,18 +55,26 @@ impl RuwiStep for WifiStep {
 
 fn wifi_exec(
     step: WifiStep,
-    command: &RuwiCommand,
+    _command: &RuwiCommand,
     options: &Options,
 ) -> Result<WifiStep, RuwiError> {
     match step {
         // TODO: Skip ahead when no scan necessary
-        WifiStep::ConnectionInit => Ok(WifiStep::DataGatherer),
+        WifiStep::ConnectionInit => {
+            if let Some(essid) = &options.given_essid {
+                let selected_network = get_network_from_given_essid(options, &essid)?;
+                Ok(WifiStep::PasswordAsker { selected_network })
+            } else {
+                Ok(WifiStep::DataGatherer)
+            }
+        }
 
-        // TODO: decide if there should be an explicit service management step, or if services should be managed as they are used for scan/connect/etc
+        // TODO: decide if there should be an explicit service management step,
+        //       or if services should be managed as they are used for scan/connect/etc
         WifiStep::DataGatherer => {
             let (known_network_names, scan_result) = gather_wifi_network_data(options)?;
             Ok(WifiStep::NetworkParserAndAnnotator {
-                known_network_names: known_network_names,
+                known_network_names,
                 scan_result,
             })
         }
@@ -77,7 +86,6 @@ fn wifi_exec(
             let parse_results = parse_result(options, &scan_result)?;
             let annotated_networks =
                 annotate_networks(options, &parse_results.seen_networks, &known_network_names);
-            // TODO: implement retry here
             if should_retry_with_synchronous_scan(options, &annotated_networks) {
                 Ok(WifiStep::SynchronousRescan {
                     rescan_type: SynchronousRescanType::Automatic,
@@ -145,13 +153,13 @@ fn wifi_exec(
             Ok(WifiStep::ConnectionSuccessful)
         }
 
+        WifiStep::ConnectionSuccessful => Err(rerr!(
+            RuwiErrorKind::UsedTerminalStep,
+            "Used terminal step!"
+        )),
+
         #[cfg(test)]
         WifiStep::BasicTestStep => Ok(WifiStep::ConnectionSuccessful),
-
-        x => {
-            dbg!(x);
-            panic!("FUCK");
-        }
     }
 }
 
@@ -171,6 +179,59 @@ mod tests {
             panic!("Incorrect return value from basic test step.");
         }
     }
+
+    #[test]
+    fn test_connection_init() {
+        let command = RuwiCommand::WifiConnect;
+        let options = Options::default();
+        let step = WifiStep::ConnectionInit;
+        let expected_next_step = WifiStep::DataGatherer;
+        assert_eq!(step.exec(&command, &options).unwrap(), expected_next_step);
+    }
+
+    //        if let WifiStep::NetworkParserAndAnnotator { .. } = &step {
+    //            dbg!(&step);
+    //        }
+    // TODO: test every one of these transitions
+    //    WifiStep::ConnectionInit => Ok(WifiStep::DataGatherer),
+    //    WifiStep::DataGatherer => {
+    //                Ok(WifiStep::NetworkParserAndAnnotator {
+    //                    known_network_names: known_network_names,
+    //                    scan_result,
+    //                })
+    //
+    //    WifiStep::NetworkParserAndAnnotator { scan_result, known_network_names, }
+    //                    Ok(WifiStep::SynchronousRescan {
+    //                        rescan_type: SynchronousRescanType::Automatic,
+    //                    })
+    //                    Ok(WifiStep::NetworkSorter { annotated_networks })
+    //
+    //    WifiStep::SynchronousRescan { rescan_type } => {
+    //                Ok(WifiStep::NetworkParserAndAnnotator {
+    //                    scan_result,
+    //                    known_network_names,
+    //                })
+    //
+    //    WifiStep::NetworkSorter { annotated_networks } => {
+    //                Ok(WifiStep::NetworkSelector { sorted_networks })
+    //
+    //    WifiStep::NetworkSelector { sorted_networks } => {
+    //                    Ok(WifiStep::PasswordAsker { selected_network }),
+    //                    Ok(WifiStep::SynchronousRescan {
+    //                        rescan_type: SynchronousRescanType::ManuallyRequested,
+    //                    }),
+    //    WifiStep::PasswordAsker { selected_network } => {
+    //                Ok(WifiStep::NetworkConfigurator { selected_network, maybe_key, })
+    //
+    //    WifiStep::NetworkConfigurator { selected_network, maybe_key } => {
+    //            Ok(WifiStep::NetworkConnector { selected_network, maybe_key})
+    //
+    //    WifiStep::NetworkConnector {
+    //                Ok(WifiStep::NetworkConnectionTester)
+    //
+    //    WifiStep::NetworkConnectionTester => {
+    //                Ok(WifiStep::ConnectionSuccessful)
+    //    WifiStep::BasicTestStep => Ok(WifiStep::ConnectionSuccessful),
 
     #[test]
     fn test_sorter_into_selector() {

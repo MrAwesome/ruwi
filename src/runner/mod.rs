@@ -58,7 +58,7 @@ where
 
 #[inline]
 fn loop_check(iterations: u32, cap: u32) -> Result<(), RuwiError> {
-    if iterations <= 0 {
+    if iterations == 0 {
         Err(rerr!(
             RuwiErrorKind::StepRunnerLoopPreventionCapExceeded,
             format!(

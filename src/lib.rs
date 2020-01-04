@@ -77,16 +77,7 @@ pub fn run_ruwi() -> Result<(), RuwiError> {
     let options = &get_options()?;
 
     //eprintln!("[FIXME] Attempting state machine run first!");
-    if options.use_state_machine {
-        run_ruwi_using_state_machine(&command, options)
-    } else {
-        let selected_network = use_given_or_scan_and_select_network(options)?;
-        let encryption_key = possibly_get_encryption_key(options, &selected_network)?;
-        let _output_result =
-            possibly_configure_network(options, &selected_network, &encryption_key)?;
-        let _connection_result = connect_to_network(options, &selected_network, &encryption_key)?;
-        Ok(())
-    }
+    run_ruwi_using_state_machine(&command, options)
 }
 
 fn use_given_or_scan_and_select_network(

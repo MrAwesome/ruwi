@@ -117,6 +117,7 @@ pub enum RuwiErrorKind {
     TestUsedAutoNoAskWhenNotExpected,
     TestUsedAutoWhenNotExpected,
     TestUsedManualWhenNotExpected,
+    UsedTerminalStep,
     WPACliHeaderMalformedOrMissing,
 }
 

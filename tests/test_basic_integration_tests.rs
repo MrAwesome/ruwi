@@ -33,3 +33,13 @@ fn test_iw_first_network_from_file() -> Result<()> {
     p.exp_string("Valparaiso_Guest_House 2")?;
     Ok(())
 }
+
+#[test]
+fn test_print_given_essid() -> Result<()> {
+    let mut p = spawn(
+        "./target/debug/ruwi -D -e FUCKAHOL -c print",
+        Some(200),
+    )?;
+    p.exp_string("FUCKAHOL")?;
+    Ok(())
+}
