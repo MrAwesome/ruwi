@@ -1,14 +1,14 @@
 use std::thread;
 
-use crate::find_known_network_names::find_known_network_names;
-use crate::scan::wifi_scan;
 use crate::annotate_networks::annotate_networks;
 use crate::configure_network::possibly_configure_network;
 use crate::connect::connect_to_network;
 use crate::encryption_key::possibly_get_encryption_key;
+use crate::find_known_network_names::find_known_network_names;
 use crate::parse::parse_result;
 use crate::rerr;
 use crate::runner::RuwiStep;
+use crate::scan::wifi_scan;
 use crate::select_network::select_network;
 use crate::sort_networks::sort_and_filter_networks;
 use crate::structs::*;
@@ -154,14 +154,18 @@ fn wifi_exec(
             Ok(WifiStep::ConnectionSuccessful)
         }
 
-        WifiStep::ConnectionSuccessful => Err(rerr!(
-            RuwiErrorKind::UsedTerminalStep,
-            "Used terminal step!"
-        )),
+        WifiStep::ConnectionSuccessful => term_step(),
 
         #[cfg(test)]
         WifiStep::BasicTestStep => Ok(WifiStep::ConnectionSuccessful),
     }
+}
+
+fn term_step() -> Result<WifiStep, RuwiError> {
+    Err(rerr!(
+        RuwiErrorKind::UsedTerminalStep,
+        "Used terminal step!"
+    ))
 }
 
 fn get_network_from_given_essid(
