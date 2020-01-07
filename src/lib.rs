@@ -47,7 +47,6 @@ use structs::*;
 // TODO(mid): add a "list seen networks" mode?
 // TODO(mid): have known netctl networks return essid, for matching/annotation with config name
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
-// TODO(low): move majority of code from here into another file
 // TODO(low): flag to disable looking for known networks
 // TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
 // TODO(wishlist): implement json scan output mode
