@@ -43,8 +43,7 @@ impl Default for Options {
         Self {
             scan_type: ScanType::default(),
             scan_method: ScanMethod::default(),
-            // TODO: prevent this from ever being seen? How?
-            interface: "some_fake_name".to_string(),
+            interface: "wlan0".to_string(),
             ignore_known: false,
             selection_method: SelectionMethod::default(),
             connect_via: ConnectionType::default(),
@@ -55,7 +54,10 @@ impl Default for Options {
             force_synchronous_scan: false,
             force_ask_password: false,
             synchronous_retry: None,
+            #[cfg(not(test))]
             dry_run: false,
+            #[cfg(test)]
+            dry_run: true,
             use_state_machine: false,
         }
     }

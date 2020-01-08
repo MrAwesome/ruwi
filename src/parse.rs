@@ -525,7 +525,4 @@ mod tests {
         let options = get_wpa_cli_basic_options();
         compare_parsed_result_to_expected_result(text_type, &options);
     }
-
-    // TODO: parsing failure
-    // TODO: busy interface is retried
 }

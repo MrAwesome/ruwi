@@ -63,8 +63,6 @@ use structs::*;
 pub fn run_ruwi() -> Result<(), RuwiError> {
     let command = RuwiCommand::default();
     let options = &get_options()?;
-
-    //eprintln!("[FIXME] Attempting state machine run first!");
     run_ruwi_using_state_machine(&command, options)
 }
 
