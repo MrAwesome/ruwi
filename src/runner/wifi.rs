@@ -60,7 +60,6 @@ fn wifi_exec(
     options: &Options,
 ) -> Result<WifiStep, RuwiError> {
     match step {
-        // TODO: Skip ahead when no scan necessary
         WifiStep::ConnectionInit => {
             if let Some(essid) = &options.given_essid {
                 let selected_network = get_network_from_given_essid(options, &essid)?;
@@ -72,6 +71,9 @@ fn wifi_exec(
 
         // TODO: decide if there should be an explicit service management step,
         //       or if services should be managed as they are used for scan/connect/etc
+        //       Should you use the service of connect_via? of scan? 
+        //       It is probably best to have a utility function to start a given service, then
+        //       run that as needed whenever a service might be needed.
         WifiStep::DataGatherer => {
             let (known_network_names, scan_result) = gather_wifi_network_data(options)?;
             Ok(WifiStep::NetworkParserAndAnnotator {
