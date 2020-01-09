@@ -8,6 +8,7 @@ pub(crate) fn get_default_interface(debug: bool, dry_run: bool) -> Result<String
         return Ok("FAKE_INTERFACE".to_string());
     }
     // NOTE: Other methods of determining the interface can be added here
+    // TODO: nmcli device show (look at the first two fields, find wifi (can also use for wired when that day comes)
     let interface = get_interface_with_iw(debug);
 
     if debug {
