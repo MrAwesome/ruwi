@@ -10,8 +10,9 @@ pub(crate) fn parse_result(
 ) -> Result<ParseResult, RuwiError> {
     let st = scan_result.scan_type.clone();
     // TODO: add nmcli scan!
+    let todo = "nmcli parse";
     let res = match &st {
-        ScanType::Nmcli => unimplemented!("nmcli scan is not yet implemented"),
+        ScanType::Nmcli => unimplemented!("nmcli parse is not yet implemented"),
         ScanType::WpaCli => parse_wpa_cli_scan(options, &scan_result.scan_output, st),
         ScanType::IW => parse_iw_scan(options, &scan_result.scan_output, st),
         ScanType::RuwiJSON => Err(nie("JSON support is coming soon!")),

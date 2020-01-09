@@ -2,10 +2,10 @@ use crate::run_commands::run_command_pass;
 use crate::wpa_cli_initialize::initialize_wpa_supplicant;
 use crate::structs::*;
 
+// TODO: implement service killing for when switching between services?
 pub(crate) enum NetworkingService {
     Netctl,
     NetworkManager,
-    // TODO: change the previous kill logic to use this
     WpaSupplicant,
     None,
 }

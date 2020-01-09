@@ -8,7 +8,7 @@ use crate::find_known_network_names::find_known_network_names;
 use crate::parse::parse_result;
 use crate::rerr;
 use crate::runner::RuwiStep;
-use crate::scan::wifi_scan;
+use crate::wifi_scan::wifi_scan;
 use crate::select_network::select_network;
 use crate::sort_networks::sort_and_filter_networks;
 use crate::structs::*;
