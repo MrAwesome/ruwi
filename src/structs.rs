@@ -93,6 +93,8 @@ pub enum RuwiErrorKind {
     FailedToRunIWScanTrigger,
     FailedToScanWithWPACli,
     FailedToSpawnThread,
+    FailedToStartNetctl,
+    FailedToStartNetworkManager,
     FailedToWriteNetctlConfig,
     IWSynchronousScanFailed,
     IWSynchronousScanRanOutOfRetries,
@@ -160,6 +162,7 @@ pub enum ScanType {
     IW,
     WpaCli,
     RuwiJSON,
+    Nmcli,
     //#[strum(serialize = "iwlist")]
     //IWList,
 }

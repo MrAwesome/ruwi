@@ -3,6 +3,7 @@ use crate::netctl_config_writer::get_netctl_file_name;
 use crate::rerr;
 use crate::run_commands::*;
 use crate::structs::*;
+use crate::service_management::GetService;
 
 pub(crate) fn connect_to_network(
     options: &Options,
@@ -10,6 +11,7 @@ pub(crate) fn connect_to_network(
     encryption_key: &Option<String>,
 ) -> Result<ConnectionResult, RuwiError> {
     let cv = &options.connect_via;
+    cv.get_service().start(options)?;
 
     match cv {
         ConnectionType::Print => {}

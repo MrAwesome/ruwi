@@ -2,7 +2,7 @@ use crate::interface_management::bring_interface_up;
 use crate::rerr;
 use crate::run_commands::*;
 use crate::structs::*;
-use crate::wpa_cli_initialize::initialize_wpa_cli;
+use crate::service_management::GetService;
 
 use std::fs::File;
 use std::io;
@@ -36,8 +36,11 @@ static DEVICE_OR_RESOURCE_BUSY_EXIT_CODE: i32 = 240;
 pub(crate) fn wifi_scan(options: &Options) -> Result<ScanResult, RuwiError> {
     let sm = options.scan_method.clone();
     let st = options.scan_type.clone();
+    st.get_service().start(options)?;
+
     let res = match sm {
         ScanMethod::ByRunning => match &st {
+            ScanType::Nmcli => unimplemented!("nmcli scan is not yet implemented"),
             ScanType::WpaCli => run_wpa_cli_scan(&options, st),
             ScanType::IW => run_iw_scan(&options, st),
             ScanType::RuwiJSON => 
@@ -102,8 +105,6 @@ fn get_scan_contents_from_file(
 }
 
 fn run_wpa_cli_scan(options: &Options, scan_type: ScanType) -> Result<ScanResult, RuwiError> {
-    initialize_wpa_cli(options)?;
-
     let err_msg = concat!(
         "Failed to scan with `wpa_cli scan_results`. ",
         "Is wpa_supplicant running? Is it installed? ",

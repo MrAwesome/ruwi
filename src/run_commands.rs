@@ -5,7 +5,28 @@ use std::io;
 #[cfg(not(test))]
 use std::io::Write;
 use std::process::Output;
-use std::process::{Command, Stdio};
+use std::process::{Command, Stdio, ExitStatus};
+
+pub(crate) fn run_command_pass(
+    debug: bool,
+    cmd_name: &str,
+    args: &[&str],
+    err_kind: RuwiErrorKind,
+    err_msg: &str,
+) -> Result<(), RuwiError> {
+    if debug {
+        dbg!(&debug, &cmd_name, &args, &err_kind, &err_msg);
+    }
+
+    // TODO: allow the err_msg to be or contain stderr somehow, esp for netctl switch-to
+    let output_res = run_command_silent_impl(debug, cmd_name, args);
+    if let Ok(output) = &output_res {
+        if output.success() {
+            return Ok(());
+        }
+    }
+    Err(rerr!(err_kind, err_msg))
+}
 
 pub(crate) fn run_command_pass_stdout(
     debug: bool,
@@ -51,10 +72,10 @@ pub(crate) fn run_command_status_dumb(
         dbg!(&cmd_name, &args);
     }
 
-    let res = run_command_impl(debug, cmd_name, args);
+    let res = run_command_silent_impl(debug, cmd_name, args);
 
     if let Ok(output) = res {
-        output.status.success()
+        output.success()
     } else {
         false
     }
@@ -87,6 +108,35 @@ fn run_command_impl(debug: bool, cmd_name: &str, args: &[&str]) -> io::Result<Ou
         }
 
         output_res
+    }
+}
+
+fn run_command_silent_impl(debug: bool, cmd_name: &str, args: &[&str]) -> io::Result<ExitStatus> {
+    let mut cmd = Command::new(cmd_name);
+    cmd.args(args).stdout(Stdio::null()).stderr(Stdio::null());
+
+    if debug {
+        dbg!(&cmd);
+    }
+
+    #[cfg(test)]
+    panic!("Prevented command usage in test!");
+
+    #[cfg(not(test))]
+    {
+        let spawn_res = cmd.spawn();
+
+        if debug {
+            dbg!(&spawn_res);
+        }
+
+        let run_res = spawn_res?.wait();
+
+        if debug {
+            dbg!(&run_res);
+        }
+
+        run_res
     }
 }
 
