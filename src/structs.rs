@@ -64,6 +64,12 @@ impl Default for Options {
 }
 
 impl Options {
+    pub fn from_scan_type(scan_type: &ScanType) -> Self {
+        Self {
+            scan_type: scan_type.clone(),
+            ..Self::default()
+        }
+    }
     pub fn with_synchronous_retry(&self, t: SynchronousRescanType) -> Self {
         Self {
             synchronous_retry: Some(t),

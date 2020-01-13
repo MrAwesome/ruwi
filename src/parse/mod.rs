@@ -234,228 +234,219 @@ fn parse_wpa_line_into_network(line: &str) -> Result<WirelessNetwork, Individual
 mod tests {
     use super::*;
 
-    pub static IW_ONE_NETWORK: &str = include_str!("samples/iw_one_network.txt");
-    pub static IW_TWO_DIFFERENT_NETWORKS: &str =
-        include_str!("samples/iw_two_different_networks.txt");
-    pub static WPA_CLI_NO_NETWORKS: &str = include_str!("samples/wpa_cli_no_networks.txt");
-    pub static WPA_CLI_TWO_DIFFERENT_NETWORKS: &str =
-        include_str!("samples/wpa_cli_two_different_networks.txt");
-    pub static WPA_CLI_SEVEN_NETWORKS_TWO_DUPLICATE_TWO_EMPTY: &str =
-        include_str!("samples/wpa_cli_seven_networks_two_duplicates_two_empty.txt");
-    pub static WPA_CLI_TWO_LINES_MISSING_INFO: &str =
-        include_str!("samples/wpa_cli_two_lines_missing_info.txt");
-    pub static WPA_CLI_TWO_NETWORKS_ONE_WITH_SIGNAL_LEVEL_PARSE_ERROR: &str =
-        include_str!("samples/wpa_cli_two_networks_one_with_signal_level_parse_error.txt");
-    pub static BROKEN_INPUT_TWO_WORDS: &str =
-        include_str!("samples/broken_input_two_words.txt");
-
-    fn get_iw_basic_options() -> Options {
-        let mut opts = Options::default();
-        opts.scan_type = ScanType::IW;
-        opts
+    pub(crate) struct ScanResultsAndExpectedNetworks {
+        scan_result: ScanResult,
+        expected_parse_result: Result<ParseResult, RuwiError>,
     }
 
-    fn get_wpa_cli_basic_options() -> Options {
-        let mut opts = Options::default();
-        opts.scan_type = ScanType::WpaCli;
-        opts
+    fn get_scans_and_expected_results_data_provider() -> Vec<ScanResultsAndExpectedNetworks> {
+        vec![
+            ScanResultsAndExpectedNetworks { 
+                scan_result: ScanResult {
+                    scan_type: ScanType::IW,
+                    scan_output: include_str!("samples/iw_one_network.txt").to_string(),
+                },
+                expected_parse_result: Ok(ParseResult {
+                        scan_type: ScanType::IW,
+                        seen_networks: vec![WirelessNetwork {
+                            essid: "Pee Pee Poo Poo Man".to_string(),
+                            is_encrypted: true,
+                            bssid: Some("32:ac:a3:7b:ab:0b".to_string()),
+                            signal_strength: Some(52),
+                            ..WirelessNetwork::default()
+                        }],
+                        line_parse_errors: vec![],
+                    }),
+            },
+            ScanResultsAndExpectedNetworks { 
+                scan_result: ScanResult {
+                    scan_type: ScanType::IW,
+                    scan_output: include_str!("samples/iw_two_different_networks.txt").to_string(),
+                },
+                expected_parse_result: Ok(ParseResult {
+                        scan_type: ScanType::IW,
+                        seen_networks: vec![
+                            WirelessNetwork {
+                                essid: "Valparaiso_Guest_House 1".to_string(),
+                                is_encrypted: true,
+                                bssid: Some("f4:28:53:fe:a5:d0".to_string()),
+                                signal_strength: Some(25),
+                                ..WirelessNetwork::default()
+                            },
+                            WirelessNetwork {
+                                essid: "Valparaiso_Guest_House 2".to_string(),
+                                is_encrypted: true,
+                                bssid: Some("68:72:51:68:73:da".to_string()),
+                                signal_strength: Some(44),
+                                ..WirelessNetwork::default()
+                            },
+                        ],
+                        line_parse_errors: vec![],
+                    }),
+            },
+            ScanResultsAndExpectedNetworks { 
+                scan_result: ScanResult {
+                    scan_type: ScanType::WpaCli,
+                    scan_output: include_str!("samples/wpa_cli_no_networks.txt").to_string(),
+                },
+                expected_parse_result: Err(err_wpa_cli_no_networks_seen()),
+            },
+            ScanResultsAndExpectedNetworks { 
+                scan_result: ScanResult {
+                    scan_type: ScanType::WpaCli,
+                    scan_output: include_str!("samples/wpa_cli_two_different_networks.txt").to_string(),
+                },
+                expected_parse_result: Ok(ParseResult {
+                        scan_type: ScanType::WpaCli,
+                        seen_networks: vec![
+                            WirelessNetwork {
+                                essid: "Valparaiso_Guest_House 1".to_string(),
+                                is_encrypted: true,
+                                bssid: Some("f4:28:53:fe:a5:d0".to_string()),
+                                signal_strength: Some(24),
+                                ..WirelessNetwork::default()
+                            },
+                            WirelessNetwork {
+                                essid: "Valparaiso_Guest_House 2".to_string(),
+                                is_encrypted: true,
+                                bssid: Some("68:72:51:68:73:da".to_string()),
+                                signal_strength: Some(43),
+                                ..WirelessNetwork::default()
+                            },
+                        ],
+                        line_parse_errors: vec![],
+                    }),
+            },
+            ScanResultsAndExpectedNetworks { 
+                scan_result: ScanResult {
+                    scan_type: ScanType::WpaCli,
+                    //scan_output: include_str!("samples/wpa_cli_seven_networks_two_duplicates_two_empty.txt").to_string(),
+                    scan_output: "FUCK".into(),
+                },
+                expected_parse_result: Ok(ParseResult {
+                        scan_type: ScanType::WpaCli,
+                        seen_networks: vec![
+                            WirelessNetwork {
+                                essid: "Nima Lodge".to_string(),
+                                is_encrypted: true,
+                                bssid: Some("78:8a:20:e3:9d:62".to_string()),
+                                signal_strength: Some(49),
+                                ..WirelessNetwork::default()
+                            },
+                            WirelessNetwork {
+                                essid: "DIRECT-AF-HP DeskJet 3830 series".to_string(),
+                                is_encrypted: true,
+                                bssid: Some("fc:3f:db:a1:5e:b0".to_string()),
+                                signal_strength: Some(22),
+                                ..WirelessNetwork::default()
+                            },
+                            WirelessNetwork {
+                                essid: "Nima Lodge".to_string(),
+                                is_encrypted: true,
+                                bssid: Some("fc:ec:da:69:e0:3e".to_string()),
+                                signal_strength: Some(5),
+                                ..WirelessNetwork::default()
+                            },
+                            WirelessNetwork {
+                                essid: "".to_string(),
+                                is_encrypted: true,
+                                bssid: Some("fe:ec:da:69:e0:3e".to_string()),
+                                signal_strength: Some(5),
+                                ..WirelessNetwork::default()
+                            },
+                            WirelessNetwork {
+                                essid: "WISPerNET-George-Sentraal1".to_string(),
+                                is_encrypted: false,
+                                bssid: Some("ba:69:f4:1f:2d:15".to_string()),
+                                signal_strength: Some(1),
+                                ..WirelessNetwork::default()
+                            },
+                            WirelessNetwork {
+                                essid: "WISPerNET-Bosplaas-SW-802.11".to_string(),
+                                is_encrypted: false,
+                                bssid: Some("b8:69:f4:1f:2d:15".to_string()),
+                                signal_strength: Some(1),
+                                ..WirelessNetwork::default()
+                            },
+                            WirelessNetwork {
+                                essid: "".to_string(),
+                                is_encrypted: true,
+                                bssid: Some("7a:8a:20:e3:9d:62".to_string()),
+                                signal_strength: Some(51),
+                                ..WirelessNetwork::default()
+                            },
+                        ],
+                        line_parse_errors: vec![],
+                    }),
+            },
+            ScanResultsAndExpectedNetworks { 
+                scan_result: ScanResult {
+                    scan_type: ScanType::WpaCli,
+                    scan_output: include_str!("samples/wpa_cli_two_lines_missing_info.txt").to_string(),
+                },
+                expected_parse_result: Ok(ParseResult {
+                        scan_type: ScanType::WpaCli,
+                        seen_networks: vec![WirelessNetwork {
+                            essid: "Valparaiso_Guest_House 1".to_string(),
+                            is_encrypted: true,
+                            bssid: Some("f4:28:53:fe:a5:d0".to_string()),
+                            signal_strength: Some(24),
+                            ..WirelessNetwork::default()
+                        }],
+                        line_parse_errors: vec![
+                            (
+                                "f4:28:53:fe:a5:d0\t2437\t-66".to_string(),
+                                IndividualParseError::MissingWpaCliResultField,
+                            ),
+                            (
+                                "68:72:51:68:73:da\t2457".to_string(),
+                                IndividualParseError::MissingWpaCliResultField,
+                            ),
+                        ],
+                    }),
+            },
+            ScanResultsAndExpectedNetworks { 
+                scan_result: ScanResult {
+                    scan_type: ScanType::WpaCli,
+                    scan_output: include_str!("samples/wpa_cli_two_networks_one_with_signal_level_parse_error.txt").to_string(),
+                },
+                expected_parse_result: Ok(ParseResult {
+                        scan_type: ScanType::WpaCli,
+                        seen_networks: vec![WirelessNetwork {
+                            essid: "Valparaiso_Guest_House 1".to_string(),
+                            is_encrypted: true,
+                            bssid: Some("f4:28:53:fe:a5:d0".to_string()),
+                            signal_strength: Some(24),
+                            ..WirelessNetwork::default()
+                        }],
+                        line_parse_errors: vec![(
+                            "68:72:51:68:73:da\t2457\t-xx\t[WPA2-PSK-CCMP][ESS]\tValparaiso_Guest_House 2"
+                                .to_string(),
+                            IndividualParseError::FailedToParseSignalLevel,
+                        )],
+                    }),
+            },
+            ScanResultsAndExpectedNetworks { 
+                scan_result: ScanResult {
+                    scan_type: ScanType::WpaCli,
+                    scan_output: include_str!("samples/broken_input_two_words.txt").to_string(),
+                },
+                expected_parse_result: Err(missing_wpa_cli_header()),
+            },
+        ]
     }
 
-    #[derive(Debug, Copy, Clone, Eq, PartialEq)]
-    enum NetworkTextType {
-        IWOneNetwork,
-        IWTwoDifferentNetworks,
-        WpaCliNoNetworks,
-        WpaCliTwoDifferentNetworks,
-        WpaCliSevenNetworksTwoDuplicateTwoEmpty,
-        WpaCliTwoLinesMissingInfo,
-        WpaCliTwoNetworksOneWithSignalLevelParseError,
-        BrokenInputTwoWords,
-    }
+    // The only problem with this "dataprovider" approach as it exists is that
+    // only one error will be seen at a time. This seems worth it for the consiseness, but
+    // the above function can be split into many tests which all call this function
+    // if that becomes a problem in the future.
+    fn compare_parsed_result_to_expected_result(options: &Options, sraen: &ScanResultsAndExpectedNetworks) {
+        let expected_parse_result = &sraen.expected_parse_result;
+        let scan_result = &sraen.scan_result;
 
-    fn get_text(text_type: NetworkTextType) -> String {
-        match text_type {
-            NetworkTextType::IWOneNetwork => self::IW_ONE_NETWORK.to_string(),
-            NetworkTextType::IWTwoDifferentNetworks => self::IW_TWO_DIFFERENT_NETWORKS.to_string(),
+        let actual_parse_result = parse_result(&options, &scan_result);
 
-            NetworkTextType::WpaCliTwoDifferentNetworks => {
-                self::WPA_CLI_TWO_DIFFERENT_NETWORKS.to_string()
-            }
-            NetworkTextType::WpaCliNoNetworks => self::WPA_CLI_NO_NETWORKS.to_string(),
-            NetworkTextType::WpaCliSevenNetworksTwoDuplicateTwoEmpty => {
-                self::WPA_CLI_SEVEN_NETWORKS_TWO_DUPLICATE_TWO_EMPTY.to_string()
-            }
-            NetworkTextType::WpaCliTwoLinesMissingInfo => {
-                self::WPA_CLI_TWO_LINES_MISSING_INFO.to_string()
-            }
-            NetworkTextType::WpaCliTwoNetworksOneWithSignalLevelParseError => {
-                self::WPA_CLI_TWO_NETWORKS_ONE_WITH_SIGNAL_LEVEL_PARSE_ERROR.to_string()
-            }
-            NetworkTextType::BrokenInputTwoWords => self::BROKEN_INPUT_TWO_WORDS.to_string(),
-        }
-    }
-
-    fn get_expected_result(text_type: NetworkTextType) -> Result<ParseResult, RuwiError> {
-        match text_type {
-            NetworkTextType::IWOneNetwork => Ok(ParseResult {
-                scan_type: ScanType::IW,
-                seen_networks: vec![WirelessNetwork {
-                    essid: "Pee Pee Poo Poo Man".to_string(),
-                    is_encrypted: true,
-                    bssid: Some("32:ac:a3:7b:ab:0b".to_string()),
-                    signal_strength: Some(52),
-                    ..WirelessNetwork::default()
-                }],
-                line_parse_errors: vec![],
-            }),
-            NetworkTextType::IWTwoDifferentNetworks => Ok(ParseResult {
-                scan_type: ScanType::IW,
-                seen_networks: vec![
-                    WirelessNetwork {
-                        essid: "Valparaiso_Guest_House 1".to_string(),
-                        is_encrypted: true,
-                        bssid: Some("f4:28:53:fe:a5:d0".to_string()),
-                        signal_strength: Some(25),
-                        ..WirelessNetwork::default()
-                    },
-                    WirelessNetwork {
-                        essid: "Valparaiso_Guest_House 2".to_string(),
-                        is_encrypted: true,
-                        bssid: Some("68:72:51:68:73:da".to_string()),
-                        signal_strength: Some(44),
-                        ..WirelessNetwork::default()
-                    },
-                ],
-                line_parse_errors: vec![],
-            }),
-            NetworkTextType::WpaCliTwoDifferentNetworks => Ok(ParseResult {
-                scan_type: ScanType::WpaCli,
-                seen_networks: vec![
-                    WirelessNetwork {
-                        essid: "Valparaiso_Guest_House 1".to_string(),
-                        is_encrypted: true,
-                        bssid: Some("f4:28:53:fe:a5:d0".to_string()),
-                        signal_strength: Some(24),
-                        ..WirelessNetwork::default()
-                    },
-                    WirelessNetwork {
-                        essid: "Valparaiso_Guest_House 2".to_string(),
-                        is_encrypted: true,
-                        bssid: Some("68:72:51:68:73:da".to_string()),
-                        signal_strength: Some(43),
-                        ..WirelessNetwork::default()
-                    },
-                ],
-                line_parse_errors: vec![],
-            }),
-            NetworkTextType::WpaCliNoNetworks => Err(err_wpa_cli_no_networks_seen()),
-
-            NetworkTextType::WpaCliSevenNetworksTwoDuplicateTwoEmpty => Ok(ParseResult {
-                scan_type: ScanType::WpaCli,
-                seen_networks: vec![
-                    WirelessNetwork {
-                        essid: "Nima Lodge".to_string(),
-                        is_encrypted: true,
-                        bssid: Some("78:8a:20:e3:9d:62".to_string()),
-                        signal_strength: Some(49),
-                        ..WirelessNetwork::default()
-                    },
-                    WirelessNetwork {
-                        essid: "DIRECT-AF-HP DeskJet 3830 series".to_string(),
-                        is_encrypted: true,
-                        bssid: Some("fc:3f:db:a1:5e:b0".to_string()),
-                        signal_strength: Some(22),
-                        ..WirelessNetwork::default()
-                    },
-                    WirelessNetwork {
-                        essid: "Nima Lodge".to_string(),
-                        is_encrypted: true,
-                        bssid: Some("fc:ec:da:69:e0:3e".to_string()),
-                        signal_strength: Some(5),
-                        ..WirelessNetwork::default()
-                    },
-                    WirelessNetwork {
-                        essid: "".to_string(),
-                        is_encrypted: true,
-                        bssid: Some("fe:ec:da:69:e0:3e".to_string()),
-                        signal_strength: Some(5),
-                        ..WirelessNetwork::default()
-                    },
-                    WirelessNetwork {
-                        essid: "WISPerNET-George-Sentraal1".to_string(),
-                        is_encrypted: false,
-                        bssid: Some("ba:69:f4:1f:2d:15".to_string()),
-                        signal_strength: Some(1),
-                        ..WirelessNetwork::default()
-                    },
-                    WirelessNetwork {
-                        essid: "WISPerNET-Bosplaas-SW-802.11".to_string(),
-                        is_encrypted: false,
-                        bssid: Some("b8:69:f4:1f:2d:15".to_string()),
-                        signal_strength: Some(1),
-                        ..WirelessNetwork::default()
-                    },
-                    WirelessNetwork {
-                        essid: "".to_string(),
-                        is_encrypted: true,
-                        bssid: Some("7a:8a:20:e3:9d:62".to_string()),
-                        signal_strength: Some(51),
-                        ..WirelessNetwork::default()
-                    },
-                ],
-                line_parse_errors: vec![],
-            }),
-            NetworkTextType::WpaCliTwoLinesMissingInfo => Ok(ParseResult {
-                scan_type: ScanType::WpaCli,
-                seen_networks: vec![WirelessNetwork {
-                    essid: "Valparaiso_Guest_House 1".to_string(),
-                    is_encrypted: true,
-                    bssid: Some("f4:28:53:fe:a5:d0".to_string()),
-                    signal_strength: Some(24),
-                    ..WirelessNetwork::default()
-                }],
-                line_parse_errors: vec![
-                    (
-                        "f4:28:53:fe:a5:d0\t2437\t-66".to_string(),
-                        IndividualParseError::MissingWpaCliResultField,
-                    ),
-                    (
-                        "68:72:51:68:73:da\t2457".to_string(),
-                        IndividualParseError::MissingWpaCliResultField,
-                    ),
-                ],
-            }),
-            NetworkTextType::WpaCliTwoNetworksOneWithSignalLevelParseError => Ok(ParseResult {
-                scan_type: ScanType::WpaCli,
-                seen_networks: vec![WirelessNetwork {
-                    essid: "Valparaiso_Guest_House 1".to_string(),
-                    is_encrypted: true,
-                    bssid: Some("f4:28:53:fe:a5:d0".to_string()),
-                    signal_strength: Some(24),
-                    ..WirelessNetwork::default()
-                }],
-                line_parse_errors: vec![(
-                    "68:72:51:68:73:da\t2457\t-xx\t[WPA2-PSK-CCMP][ESS]\tValparaiso_Guest_House 2"
-                        .to_string(),
-                    IndividualParseError::FailedToParseSignalLevel,
-                )],
-            }),
-            NetworkTextType::BrokenInputTwoWords => Err(missing_wpa_cli_header()),
-        }
-    }
-
-    fn compare_parsed_result_to_expected_result(text_type: NetworkTextType, options: &Options) {
-        let contents = get_text(text_type);
-        let full_expected_result = get_expected_result(text_type);
-
-        let scan_result = ScanResult {
-            scan_type: options.scan_type.clone(),
-            scan_output: contents,
-        };
-
-        let full_parse_result = parse_result(&options, &scan_result);
-
-        match (&full_parse_result, &full_expected_result) {
+        match (&actual_parse_result, &expected_parse_result) {
             (Ok(parse_result), Ok(expected_result)) => {
                 assert_eq![parse_result, expected_result];
             }
@@ -465,66 +456,18 @@ mod tests {
                 assert_eq![parse_desc, expct_desc];
             }
             (_, _) => {
-                println!("Full parse result: {:?}", full_parse_result);
-                println!("Expt parse result: {:?}", full_expected_result);
+                println!("Expected parse result: {:?}", expected_parse_result);
+                println!("Actual parse result: {:?}", actual_parse_result);
                 panic!();
             }
         }
     }
 
     #[test]
-    fn test_iw_one_network() {
-        let text_type = NetworkTextType::IWOneNetwork;
-        let options = get_iw_basic_options();
-        compare_parsed_result_to_expected_result(text_type, &options);
-    }
-
-    #[test]
-    fn test_iw_two_different_networks() {
-        let text_type = NetworkTextType::IWTwoDifferentNetworks;
-        let options = get_iw_basic_options();
-        compare_parsed_result_to_expected_result(text_type, &options);
-    }
-
-    #[test]
-    fn test_wpa_cli_no_networks() {
-        let text_type = NetworkTextType::WpaCliNoNetworks;
-        let options = get_wpa_cli_basic_options();
-        compare_parsed_result_to_expected_result(text_type, &options);
-    }
-
-    #[test]
-    fn test_wpa_cli_two_different_networks() {
-        let text_type = NetworkTextType::WpaCliTwoDifferentNetworks;
-        let options = get_wpa_cli_basic_options();
-        compare_parsed_result_to_expected_result(text_type, &options);
-    }
-
-    #[test]
-    fn test_wpa_cli_seven_networks_two_duplicates_two_empty() {
-        let text_type = NetworkTextType::WpaCliSevenNetworksTwoDuplicateTwoEmpty;
-        let options = get_wpa_cli_basic_options();
-        compare_parsed_result_to_expected_result(text_type, &options);
-    }
-
-    #[test]
-    fn test_wpa_cli_two_lines_missing_info() {
-        let text_type = NetworkTextType::WpaCliTwoLinesMissingInfo;
-        let options = get_wpa_cli_basic_options();
-        compare_parsed_result_to_expected_result(text_type, &options);
-    }
-
-    #[test]
-    fn test_wpa_cli_two_networks_one_with_signal_level_parse_error() {
-        let text_type = NetworkTextType::WpaCliTwoNetworksOneWithSignalLevelParseError;
-        let options = get_wpa_cli_basic_options();
-        compare_parsed_result_to_expected_result(text_type, &options);
-    }
-
-    #[test]
-    fn test_broken_input_two_words() {
-        let text_type = NetworkTextType::BrokenInputTwoWords;
-        let options = get_wpa_cli_basic_options();
-        compare_parsed_result_to_expected_result(text_type, &options);
+    fn test_scan_result_and_options_give_expected_parse_result() {
+        for sraen in &get_scans_and_expected_results_data_provider() {
+            let options = Options::from_scan_type(&sraen.scan_result.scan_type);
+            compare_parsed_result_to_expected_result(&options, sraen);
+        }
     }
 }
