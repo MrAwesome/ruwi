@@ -1,6 +1,9 @@
 mod iw_scan;
-
 use iw_scan::run_iw_scan;
+
+mod nmcli_scan;
+use nmcli_scan::run_nmcli_scan;
+
 
 use crate::rerr;
 use crate::run_commands::*;
@@ -21,10 +24,9 @@ pub(crate) fn wifi_scan(options: &Options) -> Result<ScanResult, RuwiError> {
     let st = options.scan_type.clone();
     st.get_service().start(options)?;
 
-    let todo = "nmcli scan";
     let res = match sm {
         ScanMethod::ByRunning => match &st {
-            ScanType::Nmcli => unimplemented!("nmcli scan is not yet implemented"),
+            ScanType::Nmcli => run_nmcli_scan(&options, st),
             ScanType::WpaCli => run_wpa_cli_scan(&options, st),
             ScanType::IW => run_iw_scan(&options, st),
             ScanType::RuwiJSON => 

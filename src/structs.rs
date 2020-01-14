@@ -112,6 +112,8 @@ pub enum RuwiErrorKind {
     FailedToRunIWScanAbort,
     FailedToRunIWScanDump,
     FailedToRunIWScanTrigger,
+    FailedToRunNmcliScan,
+    FailedToRunNmcliScanSynchronous,
     FailedToScanWithWPACli,
     FailedToSpawnThread,
     FailedToStartNetctl,
