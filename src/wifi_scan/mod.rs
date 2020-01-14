@@ -1,4 +1,3 @@
-pub(crate) mod scan;
 mod iw_scan;
 
 use iw_scan::run_iw_scan;
