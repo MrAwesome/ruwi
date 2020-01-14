@@ -39,7 +39,7 @@ fn run_nmcli_scan(options: &Options) -> Result<String, RuwiError> {
     run_command_pass_stdout(
         options.debug,
         "nmcli",
-        &["nmcli", "d", "wifi", "list", "ifname", &options.interface]
+        &["--escape", "no", "--color", "no", "-g", "SECURITY,SIGNAL,SSID", "device", "wifi", "list"]
         RuwiErrorKind::FailedToRunNmcliScan,
         NM_ERR_MSG,
     )
@@ -48,8 +48,8 @@ fn run_nmcli_scan(options: &Options) -> Result<String, RuwiError> {
 fn run_nmcli_scan_synchronous(options: &Options) -> Result<String, RuwiError> {
     run_command_pass_stdout(
         options.debug,
-        "iw",
-        &["nmcli", "d", "wifi", "list", "ifname", &options.interface, "--rescan", "yes"]
+        "nmcli",
+        &["--escape", "no", "--color", "no", "-g", "SECURITY,SIGNAL,SSID", "device", "wifi", "list", "--rescan", "yes"]
         RuwiErrorKind::FailedToRunIWScanDump,
         IW_SCAN_DUMP_ERR_MSG,
     )

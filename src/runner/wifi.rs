@@ -59,7 +59,7 @@ fn wifi_exec(
     _command: &RuwiCommand,
     options: &Options,
 ) -> Result<WifiStep, RuwiError> {
-    match step {
+        match step {
         WifiStep::ConnectionInit => {
             if let Some(essid) = &options.given_essid {
                 let selected_network = get_network_from_given_essid(options, &essid)?;
@@ -213,7 +213,7 @@ mod tests {
     #[test]
     fn test_basic_runner_functionality() {
         let test_step = WifiStep::BasicTestStep;
-        let command = RuwiCommand::WifiConnect;
+        let command = RuwiCommand::Wifi(RuwiWifiCommand::Connect);
         let options = Options::default();
         let next = test_step.exec(&command, &options);
         if let Ok(WifiStep::ConnectionSuccessful) = next {
@@ -225,7 +225,7 @@ mod tests {
 
     #[test]
     fn test_connection_init() {
-        let command = RuwiCommand::WifiConnect;
+        let command = RuwiCommand::Wifi(RuwiWifiCommand::Connect);
         let options = Options::default();
         let step = WifiStep::ConnectionInit;
         let expected_next_step = WifiStep::DataGatherer;
@@ -285,7 +285,7 @@ mod tests {
             networks: networks.clone(),
         };
         let test_step = WifiStep::NetworkSorter { annotated_networks };
-        let command = RuwiCommand::WifiConnect;
+        let command = RuwiCommand::Wifi(RuwiWifiCommand::Connect);
         let options = Options::default();
         let next = test_step.exec(&command, &options);
         if let Ok(WifiStep::NetworkSelector { sorted_networks }) = next {

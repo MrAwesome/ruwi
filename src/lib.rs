@@ -39,7 +39,7 @@ use cmdline_parser::*;
 use runner::run_ruwi_using_state_machine;
 use structs::*;
 
-// TODO(high): implement speed/connection/dns test
+// TODO(high): implement speed/connection/dns test - `nmcli networking connectivity` for networkmanager mode
 // TODO(high): stop/start the relevant services (in particular, stop networkmanager if it's running before trying to do netctl things) - - pkill wpa_supplicant, systemctl stop NetworkManager, etc etc etc
 // TODO(high): if networkmanager is used, start it up before going - same with netctl. possibly also stop
 // TODO(high): fix error messages. -F kfdjsalkf will give "ERR: entity not found"

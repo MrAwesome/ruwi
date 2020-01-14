@@ -8,16 +8,31 @@ use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
 pub static PROG_NAME: &str = "ruwi";
 
+// TODO: Strum
 #[derive(Debug, Clone)]
 pub enum RuwiCommand {
-    WifiConnect,
+    Wifi(RuwiWifiCommand),
 }
 
 impl Default for RuwiCommand {
     fn default() -> Self {
-        Self::WifiConnect
+        Self::Wifi(RuwiWifiCommand::default())
     }
 }
+
+#[derive(Debug, Clone)]
+pub enum RuwiWifiCommand {
+    Connect
+    // Select
+    // JSON
+}
+
+impl Default for RuwiWifiCommand {
+    fn default() -> Self {
+        Self::Connect
+    }
+}
+
 
 #[derive(Debug, Clone)]
 pub struct Options {

@@ -1,0 +1,61 @@
+WPA2:Patrician Pad
+WPA2:casa
+WPA1 WPA2:alltheinternets
+WPA2:Patrician Pad
+WPA2:DIRECT-56-HP ENVY 4520 series
+WPA1 WPA2 802.1X:
+WPA2:[range] Samsung
+WPA2:casa
+WPA2:ATT446n8G7
+WPA1 WPA2:
+WPA2:HTMF Network
+WPA2:Frank
+:xfinitywifi
+WPA2:ATT3kzR3CV
+WPA2:
+:xfinitywifi
+WPA2:ATT3kzR3CV
+WPA1 WPA2:alltheinternets
+WPA1 WPA2:
+WPA2:puppycat2
+WPA2 802.1X:XFINITY
+:xfinitywifi
+WPA2:HP-Print-65-ENVY 5530 series
+WPA2:DIRECT-a2-HP M281 LaserJet
+WPA2:Patrician Pad
+WPA2:ATT59VW9xg
+WPA2:Okonomiyaki
+:
+WPA1 WPA2:PBCRM88
+:
+WPA2:HomeBRZ35
+WPA2:
+WPA2:MeshResearch
+WPA2:puppycat
+WPA1 WPA2:PBCRMGuest
+WPA2:HTMF Network
+WPA1 WPA2:J Network 2
+WPA2:Mels Net 
+WPA2:Frank
+WPA2 802.1X:XFINITY
+:xfinitywifi
+WPA2:
+WPA2:NETGEAR61
+WPA2:'Fi Me A River
+WPA1 WPA2 802.1X:
+WPA1 WPA2 802.1X:
+WPA2:ATT59VW9xg5ghz
+WPA2:W9012
+WPA1 WPA2:Unicorns n Rainbows
+WPA2 802.1X:XFINITY
+WPA1 WPA2:Your Dripping Cunt
+WPA2:
+WPA2:GandN
+WPA2:
+WPA1 WPA2 802.1X:
+WPA2:Okonomiyaki
+:xfinitywifi
+WPA2:TEST NETWORK PLEASE IGNORE
+WPA2:Linksys16371
+WPA1 WPA2:La casa 2.4
+WPA2:NETGEAR64-5G

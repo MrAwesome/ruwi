@@ -7,12 +7,6 @@ use wifi::WifiStep;
 
 const SANITY_LOOP_CAP: u32 = 1000;
 
-pub(crate) trait RuwiStep {
-    fn exec(self, command: &RuwiCommand, options: &Options) -> Result<Self, RuwiError>
-    where
-        Self: Sized;
-}
-
 pub fn run_ruwi_using_state_machine(
     command: &RuwiCommand,
     options: &Options,
@@ -20,22 +14,30 @@ pub fn run_ruwi_using_state_machine(
     let sanity_loop_cap = SANITY_LOOP_CAP;
     // TODO: implement commands
     // let command = options.command;
+
     match command {
-        RuwiCommand::WifiConnect => step_runner(
+        RuwiCommand::Wifi(RuwiWifiCommand::Connect) => step_runner(
             command,
             options,
             sanity_loop_cap,
             WifiStep::ConnectionInit,
             WifiStep::ConnectionSuccessful,
         ),
-        //      RuwiCommand::Connect => {}
-        //      RuwiCommand::Select => {}
-        //      RuwiCommand::List => {}
-        //      RuwiCommand::DumpJSON => {}
-        //      RuwiCommand::Disconnect => {}
     }
+    //      RuwiCommand::BluetoothPair => {}
+    //      RuwiCommand::WifiSelect => {}
+    //      RuwiCommand::List => {}
+    //      RuwiCommand::DumpJSON => {}
+    //      RuwiCommand::Disconnect => {}
 }
 
+pub(crate) trait RuwiStep {
+    fn exec(self, command: &RuwiCommand, options: &Options) -> Result<Self, RuwiError>
+    where
+        Self: Sized;
+}
+
+#[allow(clippy::needless_pass_by_value)]
 fn step_runner<T>(
     command: &RuwiCommand,
     options: &Options,
@@ -66,7 +68,7 @@ fn loop_check(iterations: u32, cap: u32) -> Result<(), RuwiError> {
                 cap
             )
         ))
-    } else { 
+    } else {
         Ok(())
     }
 }
