@@ -1,3 +1,6 @@
+mod nmcli;
+use nmcli::parse_nmcli_scan;
+
 use crate::rerr;
 use crate::structs::*;
 
@@ -9,10 +12,8 @@ pub(crate) fn parse_result(
     scan_result: &ScanResult,
 ) -> Result<ParseResult, RuwiError> {
     let st = scan_result.scan_type.clone();
-    // TODO: add nmcli scan!
-    let todo = "nmcli parse";
     let res = match &st {
-        ScanType::Nmcli => unimplemented!("nmcli parse is not yet implemented"),
+        ScanType::Nmcli => parse_nmcli_scan(options, &scan_result.scan_output, st),
         ScanType::WpaCli => parse_wpa_cli_scan(options, &scan_result.scan_output, st),
         ScanType::IW => parse_iw_scan(options, &scan_result.scan_output, st),
         ScanType::RuwiJSON => Err(nie("JSON support is coming soon!")),
@@ -229,6 +230,7 @@ fn parse_wpa_line_into_network(line: &str) -> Result<WirelessNetwork, Individual
 
 // TODO: for networkmanager: shorten to nm in options
 // TODO: check behavior of SSIDs with colons in them for scan/parse
+// TODO: check behavior on nothing returned from scan
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -477,6 +479,94 @@ mod tests {
             scan_output: include_str!("samples/broken_input_two_words.txt").to_string(),
         };
         let expected_parse_result = Err(missing_wpa_cli_header());
+        compare_parsed_result_to_expected_result(&options, &scan_result, &expected_parse_result);
+    }
+
+    #[test]
+    fn test_nmcli_many_networks() {
+        let options = Options::default();
+        let scan_result = ScanResult {
+            scan_type: ScanType::Nmcli,
+            scan_output: include_str!("samples/nmcli_many_networks.txt").to_string(),
+        };
+        let expected_parse_result = Ok(ParseResult {
+            scan_type: ScanType::Nmcli,
+            seen_networks: vec![
+                WirelessNetwork {
+                    essid: "alltheinternets".to_string(),
+                    is_encrypted: true,
+                    signal_strength: Some(95),
+                    ..WirelessNetwork::default()
+                },
+                WirelessNetwork {
+                    essid: "Patrician Pad".to_string(),
+                    is_encrypted: true,
+                    signal_strength: Some(95),
+                    ..WirelessNetwork::default()
+                },
+                WirelessNetwork {
+                    essid: "casa".to_string(),
+                    is_encrypted: true,
+                    signal_strength: Some(94),
+                    ..WirelessNetwork::default()
+                },
+                WirelessNetwork {
+                    essid: "Patrician Pad".to_string(),
+                    is_encrypted: true,
+                    signal_strength: Some(94),
+                    ..WirelessNetwork::default()
+                },
+                WirelessNetwork {
+                    essid: "xfinitywifi".to_string(),
+                    is_encrypted: false,
+                    signal_strength: Some(90),
+                    ..WirelessNetwork::default()
+                },
+                WirelessNetwork {
+                    essid: "MeshResearch".to_string(),
+                    is_encrypted: true,
+                    signal_strength: Some(52),
+                    ..WirelessNetwork::default()
+                },
+                WirelessNetwork {
+                    essid: "".to_string(),
+                    is_encrypted: true,
+                    signal_strength: Some(35),
+                    ..WirelessNetwork::default()
+                },
+                WirelessNetwork {
+                    essid: "".to_string(),
+                    is_encrypted: true,
+                    signal_strength: Some(32),
+                    ..WirelessNetwork::default()
+                },
+                WirelessNetwork {
+                    essid: "xfinitywifi".to_string(),
+                    is_encrypted: false,
+                    signal_strength: Some(32),
+                    ..WirelessNetwork::default()
+                },
+                WirelessNetwork {
+                    essid: "Okonomiyaki".to_string(),
+                    is_encrypted: true,
+                    signal_strength: Some(30),
+                    ..WirelessNetwork::default()
+                },
+                WirelessNetwork {
+                    essid: "XFINITY".to_string(),
+                    is_encrypted: true,
+                    signal_strength: Some(17),
+                    ..WirelessNetwork::default()
+                },
+                WirelessNetwork {
+                    essid: "".to_string(),
+                    is_encrypted: true,
+                    signal_strength: Some(15),
+                    ..WirelessNetwork::default()
+                },
+            ],
+            line_parse_errors: vec![],
+        });
         compare_parsed_result_to_expected_result(&options, &scan_result, &expected_parse_result);
     }
 }

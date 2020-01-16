@@ -1,22 +1,12 @@
-WPA2:Pee Pee Poo Poo Man
-:United_Wi-Fi
-WPA2 802.1X:
-WPA2:Keyla WiFi
-:United_Wi-Fi
-WPA2 802.1X:
-:United_Wi-Fi
-WPA2 802.1X:
-:United_Wi-Fi
-WPA2 802.1X:
-WPA2 802.1X:
-:United_Wi-Fi
-WPA2 802.1X:
-WPA2 802.1X:
-:United_Wi-Fi
-WPA2 802.1X:
-WEP:
-:United_Wi-Fi
-:United_Wi-Fi
-:United_Wi-Fi
-:United_Wi-Fi
-WPA2 802.1X:
+WPA1 WPA2:95:alltheinternets
+WPA2:95:Patrician Pad
+WPA2:94:casa
+WPA2:94:Patrician Pad
+:90:xfinitywifi
+WPA2:52:MeshResearch
+WPA2:35:
+WPA1 WPA2:32:
+:32:xfinitywifi
+WPA2:30:Okonomiyaki
+WPA2 802.1X:17:XFINITY
+WPA1 WPA2 802.1X:15:

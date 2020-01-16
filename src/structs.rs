@@ -220,6 +220,7 @@ pub enum SelectionOption {
 pub enum ConnectionType {
     None,
     Netctl,
+    // TODO: should actually be nmcli
     #[strum(serialize = "networkmanager")]
     NetworkManager,
     Print,
@@ -272,6 +273,7 @@ pub enum IndividualParseError {
     FailedToUnescapeSSIDField,
     MissingIWCapabilityField,
     MissingIWSSIDField,
+    MissingNmcliSeparator,
     MissingWpaCliResultField,
     ZeroLengthIWChunk,
 }
