@@ -25,7 +25,7 @@ pub(crate) fn initialize_wpa_supplicant(options: &Options) -> Result<(), RuwiErr
         eprintln!(
             "[NOTE]: wpa_cli was not functioning correctly. Attempting to start it manually."
         );
-        let supplicant_status = run_command_output(
+        let supplicant_status = run_command_status_dumb(
             options.debug,
             "wpa_supplicant",
             &[
@@ -37,24 +37,14 @@ pub(crate) fn initialize_wpa_supplicant(options: &Options) -> Result<(), RuwiErr
             ],
         );
 
-        if options.debug {
-            dbg!(&supplicant_status);
-        }
+        if supplicant_status {
+            run_command_status_dumb(options.debug, "wpa_cli", &["scan"]);
 
-        if let Ok(stat) = supplicant_status {
-            if stat.status.success() {
-                let scan_output = run_command_output(options.debug, "wpa_cli", &["scan"]);
+            eprintln!("[NOTE]: Sleeping to wait for results from wpa_cli. This should only happen when you first start wpa_supplicant. If you aren't seeing results, or you see stale results, try `sudo killall wpa_supplicant` or using a different scanning method with -s.");
+            thread::sleep(Duration::from_secs(5));
 
-                if options.debug {
-                    dbg![&scan_output];
-                }
-
-                eprintln!("[NOTE]: Sleeping to wait for results from wpa_cli. This should only happen when you first start wpa_supplicant. If you aren't seeing results, or you see stale results, try `sudo killall wpa_supplicant` or using a different scanning method with -s.");
-                thread::sleep(Duration::from_secs(5));
-
-                if wpa_ping_success(options) {
-                    return Ok(());
-                }
+            if wpa_ping_success(options) {
+                return Ok(());
             }
         }
     }
