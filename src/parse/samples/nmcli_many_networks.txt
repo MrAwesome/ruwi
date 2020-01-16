@@ -5,6 +5,7 @@ WPA2:94:Patrician Pad
 :90:xfinitywifi
 WPA2:52:MeshResearch
 WPA2:35:
+:34:Lots:of:colons:lol:
 WPA1 WPA2:32:
 :32:xfinitywifi
 WPA2:30:Okonomiyaki

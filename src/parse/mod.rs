@@ -242,19 +242,20 @@ mod tests {
 
         let actual_parse_result = parse_result(&options, &scan_result);
 
-        match (&actual_parse_result, &expected_parse_result) {
-            (Ok(parse_result), Ok(expected_result)) => {
-                assert_eq![parse_result, expected_result];
+        dbg!(&expected_parse_result);
+        dbg!(&actual_parse_result);
+
+        match (&expected_parse_result, &actual_parse_result) {
+            (Ok(expected_result), Ok(parse_result)) => {
+                assert_eq![expected_result, parse_result];
             }
-            (Err(parse_error), Err(expected_error)) => {
-                let parse_desc = parse_error.to_string();
+            (Err(expected_error), Err(parse_error)) => {
                 let expct_desc = expected_error.to_string();
-                assert_eq![parse_desc, expct_desc];
+                let parse_desc = parse_error.to_string();
+                assert_eq![expct_desc, parse_desc];
             }
             (_, _) => {
-                println!("Expected parse result: {:?}", expected_parse_result);
-                println!("Actual parse result: {:?}", actual_parse_result);
-                panic!();
+                panic!("Actual and expected parse results differed!");
             }
         }
     }
@@ -532,6 +533,12 @@ mod tests {
                     essid: "".to_string(),
                     is_encrypted: true,
                     signal_strength: Some(35),
+                    ..WirelessNetwork::default()
+                },
+                WirelessNetwork {
+                    essid: "Lots:of:colons:lol:".to_string(),
+                    is_encrypted: false,
+                    signal_strength: Some(34),
                     ..WirelessNetwork::default()
                 },
                 WirelessNetwork {
