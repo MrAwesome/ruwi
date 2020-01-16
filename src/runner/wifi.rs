@@ -108,7 +108,7 @@ fn wifi_exec(
         }
 
         WifiStep::NetworkSorter { annotated_networks } => {
-            let sorted_networks = sort_and_filter_networks(options, annotated_networks.clone());
+            let sorted_networks = sort_and_filter_networks(options, annotated_networks);
             Ok(WifiStep::NetworkSelector { sorted_networks })
         }
 

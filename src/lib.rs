@@ -2,8 +2,6 @@
 #![warn(clippy::pedantic)]
 // But this one is a bit too pedantic:
 #![allow(clippy::similar_names)]
-// And this catches some long test functions which are fine.
-#![allow(clippy::too_many_lines)]
 
 extern crate clap;
 extern crate regex;

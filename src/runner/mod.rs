@@ -55,7 +55,7 @@ where
         iterations += 1;
         loop_check(iterations, sanity_loop_cap)?;
     }
-    return Ok(());
+    Ok(())
 }
 
 #[inline]
