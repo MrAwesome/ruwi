@@ -1,6 +1,11 @@
 use rexpect::errors::*;
 use rexpect::spawn_bash;
 
+// An absolutely end-to-end test of ruwi:
+// * Downloads and starts a Linux VM
+// * Creates virtual wifi radios
+// * Starts access points 
+// * Connects to them using ruwi.
 #[test]
 #[ignore]
 fn test_full_integration_with_archlinux_vm() -> Result<()> {
@@ -80,6 +85,8 @@ fn test_full_integration_with_archlinux_vm() -> Result<()> {
     p.exp_string("[NOTE]: Successfully connected to: \"cowardice\"")?;
     p.exp_string("@archiso")?;
     eprintln!("[TEST]: Successfully connected to cowardice with `-e` and `-p`!");
+
+    // fzf doesn't recognize non-control inputs sent with rexpect
     //    p.send_line("/tmp/host_shared/ruwi -i wlan2")?;
     //    p.exp_string("Select a network")?;
     //    eprintln!("[TEST]: Started ruwi in fzf mode!");
