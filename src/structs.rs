@@ -12,6 +12,8 @@ pub static PROG_NAME: &str = "ruwi";
 #[derive(Debug, Clone)]
 pub enum RuwiCommand {
     Wifi(RuwiWifiCommand),
+    Wired(RuwiWiredCommand),
+    Bluetooth(RuwiBluetoothCommand),
 }
 
 impl Default for RuwiCommand {
@@ -33,6 +35,28 @@ impl Default for RuwiWifiCommand {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum RuwiWiredCommand {
+    Connect
+}
+
+impl Default for RuwiWiredCommand {
+    fn default() -> Self {
+        Self::Connect
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum RuwiBluetoothCommand {
+    Pair
+}
+
+impl Default for RuwiBluetoothCommand {
+    fn default() -> Self {
+        Self::Pair
+    }
+}
+
 
 #[derive(Debug, Clone)]
 pub struct Options {
@@ -50,7 +74,6 @@ pub struct Options {
     pub force_ask_password: bool,
     pub synchronous_retry: Option<SynchronousRescanType>,
     pub dry_run: bool,
-    pub use_state_machine: bool,
 }
 
 impl Default for Options {
@@ -73,18 +96,19 @@ impl Default for Options {
             dry_run: false,
             #[cfg(test)]
             dry_run: true,
-            use_state_machine: false,
         }
     }
 }
 
 impl Options {
-    pub fn from_scan_type(scan_type: &ScanType) -> Self {
+    #[cfg(test)]
+    pub fn from_scan_type(scan_type: ScanType) -> Self {
         Self {
-            scan_type: scan_type.clone(),
+            scan_type,
             ..Self::default()
         }
     }
+
     pub fn with_synchronous_retry(&self, t: SynchronousRescanType) -> Self {
         Self {
             synchronous_retry: Some(t),

@@ -23,6 +23,8 @@ pub fn run_ruwi_using_state_machine(
             WifiStep::ConnectionInit,
             WifiStep::ConnectionSuccessful,
         ),
+        RuwiCommand::Wired(RuwiWiredCommand::Connect) => unimplemented!(),
+        RuwiCommand::Bluetooth(RuwiBluetoothCommand::Pair) => unimplemented!(),
     }
     //      RuwiCommand::BluetoothPair => {}
     //      RuwiCommand::WifiSelect => {}

@@ -4,7 +4,6 @@ use iw_scan::run_iw_scan;
 mod nmcli_scan;
 use nmcli_scan::run_nmcli_scan;
 
-
 use crate::rerr;
 use crate::run_commands::*;
 use crate::structs::*;

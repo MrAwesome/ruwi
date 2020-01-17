@@ -10,7 +10,8 @@ fn main() {
         Ok(()) => (),
         Err(err) => {
             eprintln!("[ERR]: {}", err);
-            // TODO: different error codes for different errors? Default exit code, with the ability to pass in custom codes?
+            // TODO: Different error codes for different errors? Default exit code, with the ability to pass in custom codes?
+            // TODO: Ability to print stdout/stderr of failing commands?
             exit(1);
         }
     };

@@ -262,13 +262,14 @@ mod tests {
 
     #[test]
     fn test_iw_one_network() {
-        let options = Options::default();
+        let st = ScanType::IW;
+        let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
-            scan_type: ScanType::IW,
+            scan_type: st.clone(),
             scan_output: include_str!("samples/iw_one_network.txt").to_string(),
         };
         let expected_parse_result = Ok(ParseResult {
-            scan_type: ScanType::IW,
+            scan_type: st,
             seen_networks: vec![WirelessNetwork {
                 essid: "Pee Pee Poo Poo Man".to_string(),
                 is_encrypted: true,
@@ -283,13 +284,14 @@ mod tests {
 
     #[test]
     fn test_iw_two_different_networks() {
-        let options = Options::default();
+        let st = ScanType::IW;
+        let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
-            scan_type: ScanType::IW,
+            scan_type: st.clone(),
             scan_output: include_str!("samples/iw_two_different_networks.txt").to_string(),
         };
         let expected_parse_result = Ok(ParseResult {
-            scan_type: ScanType::IW,
+            scan_type: st,
             seen_networks: vec![
                 WirelessNetwork {
                     essid: "Valparaiso_Guest_House 1".to_string(),
@@ -313,9 +315,10 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_no_networks() {
-        let options = Options::default();
+        let st = ScanType::WpaCli;
+        let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
-            scan_type: ScanType::WpaCli,
+            scan_type: st,
             scan_output: include_str!("samples/wpa_cli_no_networks.txt").to_string(),
         };
         let expected_parse_result = Err(err_wpa_cli_no_networks_seen());
@@ -324,13 +327,14 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_two_different_networks() {
-        let options = Options::default();
+        let st = ScanType::WpaCli;
+        let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
-            scan_type: ScanType::WpaCli,
+            scan_type: st.clone(),
             scan_output: include_str!("samples/wpa_cli_two_different_networks.txt").to_string(),
         };
         let expected_parse_result = Ok(ParseResult {
-            scan_type: ScanType::WpaCli,
+            scan_type: st,
             seen_networks: vec![
                 WirelessNetwork {
                     essid: "Valparaiso_Guest_House 1".to_string(),
@@ -354,13 +358,14 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_seven_networks_two_duplicates_two_empty() {
-        let options = Options::default();
+        let st = ScanType::WpaCli;
+        let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
-            scan_type: ScanType::WpaCli,
+            scan_type: st.clone(),
             scan_output: include_str!("samples/wpa_cli_seven_networks_two_duplicates_two_empty.txt").to_string(),
         };
         let expected_parse_result = Ok(ParseResult {
-            scan_type: ScanType::WpaCli,
+            scan_type: st,
             seen_networks: vec![
                 WirelessNetwork {
                     essid: "Nima Lodge".to_string(),
@@ -419,13 +424,14 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_two_lines_missing_info() {
-        let options = Options::default();
+        let st = ScanType::WpaCli;
+        let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
-            scan_type: ScanType::WpaCli,
+            scan_type: st.clone(),
             scan_output: include_str!("samples/wpa_cli_two_lines_missing_info.txt").to_string(),
         };
         let expected_parse_result = Ok(ParseResult {
-            scan_type: ScanType::WpaCli,
+            scan_type: st,
             seen_networks: vec![WirelessNetwork {
                 essid: "Valparaiso_Guest_House 1".to_string(),
                 is_encrypted: true,
@@ -449,13 +455,14 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_two_networks_one_with_signal_level_parse_error() {
-        let options = Options::default();
+        let st = ScanType::WpaCli;
+        let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
-            scan_type: ScanType::WpaCli,
+            scan_type: st.clone(),
             scan_output: include_str!("samples/wpa_cli_two_networks_one_with_signal_level_parse_error.txt").to_string(),
         };
         let expected_parse_result = Ok(ParseResult {
-            scan_type: ScanType::WpaCli,
+            scan_type: st,
             seen_networks: vec![WirelessNetwork {
                 essid: "Valparaiso_Guest_House 1".to_string(),
                 is_encrypted: true,
@@ -474,9 +481,10 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_broken_input_two_words() {
-        let options = Options::default();
+        let st = ScanType::WpaCli;
+        let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
-            scan_type: ScanType::WpaCli,
+            scan_type: st,
             scan_output: include_str!("samples/broken_input_two_words.txt").to_string(),
         };
         let expected_parse_result = Err(missing_wpa_cli_header());
@@ -485,13 +493,14 @@ mod tests {
 
     #[test]
     fn test_nmcli_many_networks() {
+        let st = ScanType::Nmcli;
         let options = Options::default();
         let scan_result = ScanResult {
-            scan_type: ScanType::Nmcli,
+            scan_type: st.clone(),
             scan_output: include_str!("samples/nmcli_many_networks.txt").to_string(),
         };
         let expected_parse_result = Ok(ParseResult {
-            scan_type: ScanType::Nmcli,
+            scan_type: st,
             seen_networks: vec![
                 WirelessNetwork {
                     essid: "alltheinternets".to_string(),
