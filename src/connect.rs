@@ -14,14 +14,14 @@ pub(crate) fn connect_to_network(
     cv.get_service().start(options)?;
 
     match cv {
-        ConnectionType::Print => {}
-        conn_type @ ConnectionType::None => {
+        WifiConnectionType::Print => {}
+        conn_type @ WifiConnectionType::None => {
             eprintln!(
                 "[NOTE]: Running in `{}` connection mode, so will not connect to: \"{}\"",
                 conn_type, &selected_network.essid
             );
         }
-        conn_type @ ConnectionType::Netctl | conn_type @ ConnectionType::NetworkManager => {
+        conn_type @ WifiConnectionType::Netctl | conn_type @ WifiConnectionType::NetworkManager => {
             eprintln!(
                 "[NOTE]: Attempting to use {} to connect to: \"{}\"",
                 conn_type, &selected_network.essid
@@ -30,11 +30,11 @@ pub(crate) fn connect_to_network(
     }
 
     let res = match cv {
-        ConnectionType::Netctl => connect_via_netctl(options, selected_network),
-        ConnectionType::NetworkManager => {
+        WifiConnectionType::Netctl => connect_via_netctl(options, selected_network),
+        WifiConnectionType::NetworkManager => {
             connect_via_networkmanager(options, selected_network, encryption_key)
         }
-        ConnectionType::Print => {
+        WifiConnectionType::Print => {
             let essid = selected_network.essid.clone();
             // TODO: integration tests to ensure this happens
             println!("{}", essid);
@@ -42,8 +42,8 @@ pub(crate) fn connect_to_network(
                 connection_type: cv.clone(),
             })
         }
-        ConnectionType::None => Ok(ConnectionResult {
-            connection_type: ConnectionType::None,
+        WifiConnectionType::None => Ok(ConnectionResult {
+            connection_type: WifiConnectionType::None,
         }),
     };
 
@@ -55,14 +55,14 @@ pub(crate) fn connect_to_network(
 
     if let Ok(connection_result) = &res {
         match &connection_result.connection_type {
-            conn_type @ ConnectionType::None => {
+            conn_type @ WifiConnectionType::None => {
                 eprintln!(
                     "[NOTE]: Running in `{}` connection mode, so did not connect to: \"{}\"",
                     conn_type, &selected_network.essid
                 );
             }
-            ConnectionType::Print => {}
-            ConnectionType::Netctl | ConnectionType::NetworkManager => {
+            WifiConnectionType::Print => {}
+            WifiConnectionType::Netctl | WifiConnectionType::NetworkManager => {
                 eprintln!(
                     "[NOTE]: Successfully connected to: \"{}\"",
                     &selected_network.essid
@@ -80,7 +80,7 @@ fn connect_via_netctl(
 ) -> Result<ConnectionResult, RuwiError> {
     if options.dry_run {
         return Ok(ConnectionResult {
-            connection_type: ConnectionType::Netctl,
+            connection_type: WifiConnectionType::Netctl,
         });
     }
     bring_interface_down(options)?;
@@ -92,7 +92,7 @@ fn connect_via_netctl(
 
     if res.status.success() {
         Ok(ConnectionResult {
-            connection_type: ConnectionType::Netctl,
+            connection_type: WifiConnectionType::Netctl,
         })
     } else {
         Err(rerr!(
@@ -119,7 +119,7 @@ fn connect_via_networkmanager(
 
     if options.dry_run {
         return Ok(ConnectionResult {
-            connection_type: ConnectionType::NetworkManager,
+            connection_type: WifiConnectionType::NetworkManager,
         });
     }
 
@@ -134,7 +134,7 @@ fn connect_via_networkmanager(
 
     if res.status.success() {
         Ok(ConnectionResult {
-            connection_type: ConnectionType::NetworkManager,
+            connection_type: WifiConnectionType::NetworkManager,
         })
     } else {
         Err(rerr!(

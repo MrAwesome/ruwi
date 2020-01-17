@@ -30,7 +30,7 @@ pub(crate) fn netctl_config_write(
 
 
     Ok(ConfigResult {
-        connection_type: ConnectionType::Netctl,
+        connection_type: WifiConnectionType::Netctl,
         config_data: ConfigData {
             config_path: Some(fullpath),
         },

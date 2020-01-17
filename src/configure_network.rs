@@ -26,8 +26,8 @@ fn configure_network(
 ) -> Result<ConfigResult, RuwiError> {
     let cv = &options.connect_via;
     match cv {
-        ConnectionType::Netctl => netctl_config_write(options, network, encryption_key),
-        ConnectionType::NetworkManager | ConnectionType::None | ConnectionType::Print => {
+        WifiConnectionType::Netctl => netctl_config_write(options, network, encryption_key),
+        WifiConnectionType::NetworkManager | WifiConnectionType::None | WifiConnectionType::Print => {
             Ok(ConfigResult {
                 connection_type: cv.clone(),
                 config_data: ConfigData::default(),

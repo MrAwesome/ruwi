@@ -95,8 +95,8 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .short("c")
         .long("connect-via")
         .takes_value(true)
-        .default_value(&ConnectionType::default().as_static())
-        .possible_values(&possible_vals::<ConnectionType, _>())
+        .default_value(&WifiConnectionType::default().as_static())
+        .possible_values(&possible_vals::<WifiConnectionType, _>())
         .help("Which network management suite to use to connect, or whether to just print the selected SSID for use elsewhere.");
 
     App::new("Ruwi")
@@ -161,7 +161,7 @@ fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
     };
 
     let selection_method = get_val_as_enum::<SelectionMethod>(&m, "selection_method");
-    let connect_via = get_val_as_enum::<ConnectionType>(&m, "connect_via");
+    let connect_via = get_val_as_enum::<WifiConnectionType>(&m, "connect_via");
 
     let opts = Options {
         scan_type,

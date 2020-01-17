@@ -24,7 +24,7 @@ where
     let pw = match &options.given_encryption_key {
         Some(pw) => Some(pw.clone()),
         None => match options.connect_via {
-            ConnectionType::Netctl | ConnectionType::NetworkManager => {
+            WifiConnectionType::Netctl | WifiConnectionType::NetworkManager => {
                 if options.force_ask_password
                     || (!selected_network.known && selected_network.is_encrypted)
                 {
@@ -33,7 +33,7 @@ where
                     None
                 }
             }
-            ConnectionType::None | ConnectionType::Print => None,
+            WifiConnectionType::None | WifiConnectionType::Print => None,
         },
     };
 
@@ -136,7 +136,7 @@ mod tests {
     #[test]
     fn test_do_not_ask_for_pw_on_print() -> Result<(), RuwiError> {
         let options = Options {
-            connect_via: ConnectionType::Print,
+            connect_via: WifiConnectionType::Print,
             ..Options::default()
         };
 

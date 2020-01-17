@@ -65,7 +65,7 @@ pub struct Options {
     pub selection_method: SelectionMethod,
     pub interface: String,
     pub ignore_known: bool,
-    pub connect_via: ConnectionType,
+    pub connect_via: WifiConnectionType,
     pub debug: bool,
     pub given_essid: Option<String>,
     pub given_encryption_key: Option<String>,
@@ -84,7 +84,7 @@ impl Default for Options {
             interface: "wlan0".to_string(),
             ignore_known: false,
             selection_method: SelectionMethod::default(),
-            connect_via: ConnectionType::default(),
+            connect_via: WifiConnectionType::default(),
             debug: false,
             given_essid: None,
             given_encryption_key: None,
@@ -241,7 +241,7 @@ pub enum SelectionOption {
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
 #[strum(serialize_all = "snake_case")]
-pub enum ConnectionType {
+pub enum WifiConnectionType {
     None,
     Netctl,
     // TODO: should actually be nmcli
@@ -251,7 +251,7 @@ pub enum ConnectionType {
     // PrintWithPassword
 }
 
-impl Default for ConnectionType {
+impl Default for WifiConnectionType {
     fn default() -> Self {
         Self::Netctl
     }
@@ -409,7 +409,7 @@ impl From<AnnotatedNetworks> for SortedUniqueNetworks {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConfigResult {
-    pub connection_type: ConnectionType,
+    pub connection_type: WifiConnectionType,
     pub config_data: ConfigData,
 }
 
@@ -421,7 +421,7 @@ pub struct ConfigData {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConnectionResult {
-    pub connection_type: ConnectionType,
+    pub connection_type: WifiConnectionType,
     //pub cmd_output: Option<String>,
     //ipv4_addr: Option<String>,
     //ipv6_addr: Option<String>,
