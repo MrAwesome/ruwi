@@ -60,7 +60,7 @@ impl Default for RuwiBluetoothCommand {
 
 #[derive(Debug, Clone)]
 pub struct Options {
-    pub scan_type: ScanType,
+    pub scan_type: WifiScanType,
     pub scan_method: ScanMethod,
     pub selection_method: SelectionMethod,
     pub interface: String,
@@ -79,7 +79,7 @@ pub struct Options {
 impl Default for Options {
     fn default() -> Self {
         Self {
-            scan_type: ScanType::default(),
+            scan_type: WifiScanType::default(),
             scan_method: ScanMethod::default(),
             interface: "wlan0".to_string(),
             ignore_known: false,
@@ -102,7 +102,7 @@ impl Default for Options {
 
 impl Options {
     #[cfg(test)]
-    pub fn from_scan_type(scan_type: ScanType) -> Self {
+    pub fn from_scan_type(scan_type: WifiScanType) -> Self {
         Self {
             scan_type,
             ..Self::default()
@@ -205,7 +205,7 @@ impl Default for ScanMethod {
 
 #[strum(serialize_all = "snake_case")]
 #[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
-pub enum ScanType {
+pub enum WifiScanType {
     IW,
     WpaCli,
     RuwiJSON,
@@ -214,7 +214,7 @@ pub enum ScanType {
     //IWList,
 }
 
-impl Default for ScanType {
+impl Default for WifiScanType {
     fn default() -> Self {
         Self::IW
     }
@@ -280,13 +280,13 @@ pub enum SynchronousRescanType {
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ScanResult {
-    pub scan_type: ScanType,
+    pub scan_type: WifiScanType,
     pub scan_output: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ParseResult {
-    pub scan_type: ScanType,
+    pub scan_type: WifiScanType,
     pub seen_networks: Vec<WirelessNetwork>,
     pub line_parse_errors: Vec<(String, IndividualParseError)>,
 }

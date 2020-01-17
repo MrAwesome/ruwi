@@ -8,7 +8,7 @@ static NMCLI_SCAN_ERR_MSG: &str = concat!(
     "or you can manually specify an essid with -e.",
 );
 
-pub(crate) fn run_nmcli_scan(options: &Options, scan_type: ScanType) -> Result<ScanResult, RuwiError> {
+pub(crate) fn run_nmcli_scan(options: &Options, scan_type: WifiScanType) -> Result<ScanResult, RuwiError> {
     bring_interface_up(options)?;
     let scan_output = if options.force_synchronous_scan || options.synchronous_retry.is_some() {
         run_nmcli_scan_cmd_synchronous(options)?

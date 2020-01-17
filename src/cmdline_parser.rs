@@ -79,8 +79,8 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .short("s")
         .long("scan-type")
         .takes_value(true)
-        .default_value(&ScanType::default().as_static())
-        .possible_values(&possible_vals::<ScanType, _>())
+        .default_value(&WifiScanType::default().as_static())
+        .possible_values(&possible_vals::<WifiScanType, _>())
         .help("The wifi scanning program to use to get results.");
 
     let selection_method = Arg::with_name("selection_method")
@@ -144,7 +144,7 @@ fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
         None => get_default_interface(debug, dry_run)?,
     };
 
-    let scan_type = get_val_as_enum::<ScanType>(&m, "scan_type");
+    let scan_type = get_val_as_enum::<WifiScanType>(&m, "scan_type");
     let scan_method = if let Some(filename) = m.value_of("input_file").map(String::from) {
         ScanMethod::FromFile(filename)
     } else if m.is_present("input_stdin") {
@@ -189,10 +189,10 @@ fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
 // TODO: can this be expressed in the type system somehow?
 fn validate_scan_method_and_type(
     scan_method: &ScanMethod,
-    scan_type: &ScanType,
+    scan_type: &WifiScanType,
 ) -> Result<(), RuwiError> {
     match (scan_method, scan_type) {
-        (ScanMethod::ByRunning, ScanType::RuwiJSON) => Err(rerr!(
+        (ScanMethod::ByRunning, WifiScanType::RuwiJSON) => Err(rerr!(
                 RuwiErrorKind::InvalidScanTypeAndMethod,
                 "There is currently no binary for providing JSON results, you must format them yourself and pass in via stdin or from a file.",
         )),
@@ -266,18 +266,18 @@ mod tests {
 
     #[test]
     fn test_scan_type() {
-        let expected = ScanType::WpaCli;
+        let expected = WifiScanType::WpaCli;
         let opts = getopts(&["-s", expected.to_string().as_ref()]);
         assert_eq![opts.scan_type, expected];
 
-        let expected = ScanType::IW;
+        let expected = WifiScanType::IW;
         let opts = getopts(&["--scan-type", expected.to_string().as_ref()]);
         assert_eq![opts.scan_type, expected];
     }
 
     #[test]
     fn test_scan_method_default() {
-        let scan_type = ScanType::default();
+        let scan_type = WifiScanType::default();
         let scan_method = ScanMethod::default();
         let opts = getopts(&[]);
         assert_eq![opts.scan_method, scan_method];
@@ -286,13 +286,13 @@ mod tests {
 
     #[test]
     fn test_scan_method_stdin() {
-        let scan_type = ScanType::default();
+        let scan_type = WifiScanType::default();
         let scan_method = ScanMethod::FromStdin;
         let opts = getopts(&["-I"]);
         assert_eq![opts.scan_method, scan_method];
         assert_eq![opts.scan_type, scan_type];
 
-        let scan_type = ScanType::WpaCli;
+        let scan_type = WifiScanType::WpaCli;
         let scan_method = ScanMethod::FromStdin;
         let opts = getopts(&["-I", "-s", scan_type.to_string().as_ref()]);
         assert_eq![opts.scan_method, scan_method];
@@ -301,7 +301,7 @@ mod tests {
 
     #[test]
     fn test_invalid_type_and_method() {
-        let st = ScanType::RuwiJSON;
+        let st = WifiScanType::RuwiJSON;
         let opts = getopts_safe(&["-s", st.to_string().as_ref()]);
         assert![opts.is_err()];
     }

@@ -55,7 +55,7 @@ impl GetService for ConnectionType {
     }
 }
 
-impl GetService for ScanType {
+impl GetService for WifiScanType {
     fn get_service(&self) -> NetworkingService {
         match self {
             Self::Nmcli => NetworkingService::NetworkManager,

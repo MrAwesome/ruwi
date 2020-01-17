@@ -25,10 +25,10 @@ pub(crate) fn wifi_scan(options: &Options) -> Result<ScanResult, RuwiError> {
 
     let res = match sm {
         ScanMethod::ByRunning => match &st {
-            ScanType::Nmcli => run_nmcli_scan(&options, st),
-            ScanType::WpaCli => run_wpa_cli_scan(&options, st),
-            ScanType::IW => run_iw_scan(&options, st),
-            ScanType::RuwiJSON => 
+            WifiScanType::Nmcli => run_nmcli_scan(&options, st),
+            WifiScanType::WpaCli => run_wpa_cli_scan(&options, st),
+            WifiScanType::IW => run_iw_scan(&options, st),
+            WifiScanType::RuwiJSON => 
                 Err(rerr!(
                     RuwiErrorKind::InvalidScanTypeAndMethod,
                     "There is currently no binary for providing JSON results, you must format them yourself and pass in via stdin or from a file.",
@@ -46,7 +46,7 @@ pub(crate) fn wifi_scan(options: &Options) -> Result<ScanResult, RuwiError> {
 
 fn get_scan_contents_from_stdin(
     _options: &Options,
-    scan_type: ScanType,
+    scan_type: WifiScanType,
 ) -> Result<ScanResult, RuwiError> {
     let mut stdin_contents = "".into();
     io::stdin().read_to_end(&mut stdin_contents).map_err(|_e| {
@@ -66,7 +66,7 @@ fn get_scan_contents_from_stdin(
 
 fn get_scan_contents_from_file(
     _options: &Options,
-    scan_type: ScanType,
+    scan_type: WifiScanType,
     filename: &str,
 ) -> Result<ScanResult, RuwiError> {
     let file_read_err = |_e: io::Error| {
@@ -89,7 +89,7 @@ fn get_scan_contents_from_file(
     })
 }
 
-fn run_wpa_cli_scan(options: &Options, scan_type: ScanType) -> Result<ScanResult, RuwiError> {
+fn run_wpa_cli_scan(options: &Options, scan_type: WifiScanType) -> Result<ScanResult, RuwiError> {
     let err_msg = concat!(
         "Failed to scan with `wpa_cli scan_results`. ",
         "Is wpa_supplicant running? Is it installed? ",
