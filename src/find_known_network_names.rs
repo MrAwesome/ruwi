@@ -15,8 +15,8 @@ use std::path::Path;
 use unescape::unescape;
 
 // TODO: unit test the logic in this function
-pub(crate) fn find_known_network_names(options: &Options) -> Result<KnownNetworkNames, RuwiError> {
-    if options.dry_run || options.ignore_known {
+pub(crate) fn find_known_network_names(options: &WifiOptions) -> Result<KnownNetworkNames, RuwiError> {
+    if options.is_dry_run() || options.ignore_known {
         return Ok(KnownNetworkNames::default());
     }
 
@@ -27,7 +27,7 @@ pub(crate) fn find_known_network_names(options: &Options) -> Result<KnownNetwork
         WifiConnectionType::None | WifiConnectionType::Print => Ok(KnownNetworkNames::default()),
     };
 
-    if options.debug {
+    if options.d() {
         dbg![&known_network_names];
     }
 
@@ -35,14 +35,14 @@ pub(crate) fn find_known_network_names(options: &Options) -> Result<KnownNetwork
 }
 
 #[cfg(test)]
-fn find_known_networkmanager_networks(_options: &Options) -> Result<KnownNetworkNames, RuwiError> {
+fn find_known_networkmanager_networks(_options: &WifiOptions) -> Result<KnownNetworkNames, RuwiError> {
     Ok(KnownNetworkNames::default())
 }
 
 #[cfg(not(test))]
-fn find_known_networkmanager_networks(options: &Options) -> Result<KnownNetworkNames, RuwiError> {
+fn find_known_networkmanager_networks(options: &WifiOptions) -> Result<KnownNetworkNames, RuwiError> {
     let cmd_output = run_command_pass_stdout(
-        options.debug,
+        options.d(),
         "nmcli",
         &["-g", "NAME", "connection", "show"],
         RuwiErrorKind::FailedToListKnownNetworksWithNetworkManager,

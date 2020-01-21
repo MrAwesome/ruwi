@@ -61,64 +61,64 @@ impl Default for RuwiBluetoothCommand {
 }
 
 
-#[derive(Debug, Clone)]
-pub struct Options {
-    pub debug: bool,
-    pub dry_run: bool,
-    pub selection_method: SelectionMethod,
-    pub scan_type: ScanType,
-    pub scan_method: ScanMethod,
-    pub interface: String, // TODO: make some struct?
-    pub ignore_known: bool,
-    pub connect_via: WifiConnectionType,
-    pub given_essid: Option<String>,
-    pub given_encryption_key: Option<String>,
-    pub auto_mode: AutoMode,
-    pub force_synchronous_scan: bool,
-    pub force_ask_password: bool,
-    pub synchronous_retry: Option<SynchronousRescanType>,
-}
-
-impl Default for Options {
-    fn default() -> Self {
-	Self {
-	    scan_type: ScanType::default(),
-	    scan_method: ScanMethod::default(),
-	    interface: "wlan0".to_string(),
-	    ignore_known: false,
-	    selection_method: SelectionMethod::default(),
-	    connect_via: WifiConnectionType::default(),
-	    debug: false,
-	    given_essid: None,
-	    given_encryption_key: None,
-	    auto_mode: AutoMode::default(),
-	    force_synchronous_scan: false,
-	    force_ask_password: false,
-	    synchronous_retry: None,
-	    #[cfg(not(test))]
-	    dry_run: false,
-	    #[cfg(test)]
-	    dry_run: true,
-	}
-    }
-}
-
-impl Options {
-    #[cfg(test)]
-    pub fn from_scan_type(scan_type: ScanType) -> Self {
-        Self {
-            scan_type,
-            ..Self::default()
-        }
-    }
-
-    pub fn with_synchronous_retry(&self, t: SynchronousRescanType) -> Self {
-        Self {
-            synchronous_retry: Some(t),
-            ..self.clone()
-        }
-    }
-}
+//#[derive(Debug, Clone)]
+//pub struct Options {
+//    pub debug: bool,
+//    pub dry_run: bool,
+//    pub selection_method: SelectionMethod,
+//    pub scan_type: ScanType,
+//    pub scan_method: ScanMethod,
+//    pub interface: String, // TODO: make some struct?
+//    pub ignore_known: bool,
+//    pub connect_via: WifiConnectionType,
+//    pub given_essid: Option<String>,
+//    pub given_encryption_key: Option<String>,
+//    pub auto_mode: AutoMode,
+//    pub force_synchronous_scan: bool,
+//    pub force_ask_password: bool,
+//    pub synchronous_retry: Option<SynchronousRescanType>,
+//}
+//
+//impl Default for Options {
+//    fn default() -> Self {
+//	Self {
+//	    scan_type: ScanType::default(),
+//	    scan_method: ScanMethod::default(),
+//	    interface: "wlan0".to_string(),
+//	    ignore_known: false,
+//	    selection_method: SelectionMethod::default(),
+//	    connect_via: WifiConnectionType::default(),
+//	    debug: false,
+//	    given_essid: None,
+//	    given_encryption_key: None,
+//	    auto_mode: AutoMode::default(),
+//	    force_synchronous_scan: false,
+//	    force_ask_password: false,
+//	    synchronous_retry: None,
+//	    #[cfg(not(test))]
+//	    dry_run: false,
+//	    #[cfg(test)]
+//	    dry_run: true,
+//	}
+//    }
+//}
+//
+//impl Options {
+//    #[cfg(test)]
+//    pub fn from_scan_type(scan_type: ScanType) -> Self {
+//        Self {
+//            scan_type,
+//            ..Self::default()
+//        }
+//    }
+//
+//    pub fn with_synchronous_retry(&self, t: SynchronousRescanType) -> Self {
+//        Self {
+//            synchronous_retry: Some(t),
+//            ..self.clone()
+//        }
+//    }
+//}
 
 #[derive(Debug, Clone)]
 pub struct GlobalOptions {
@@ -141,24 +141,14 @@ impl Default for GlobalOptions {
 }
 
 #[derive(Debug, Clone)]
-pub enum CommandOptions {
-    Wifi(WifiCommandOptions),
-    Bluetooth(BluetoothCommandOptions),
-}
-
-impl Default for CommandOptions {
-    fn default() -> Self {
-        Self::Wifi(WifiCommandOptions::default())
-    }
-}
-
-#[derive(Debug, Clone)]
 pub struct BluetoothCommandOptions {
 }
 
+// TODO: use TypedBuilder for this, make globals and other fields private
 #[derive(Debug, Clone)]
-pub struct WifiCommandOptions {
-    pub scan_type: WifiScanType,
+pub struct WifiOptions {
+    pub globals: GlobalOptions,
+    pub scan_type: ScanType,
     pub scan_method: ScanMethod,
     pub interface: String, // TODO: make some struct?
     pub ignore_known: bool,
@@ -171,10 +161,11 @@ pub struct WifiCommandOptions {
     pub synchronous_retry: Option<SynchronousRescanType>,
 }
 
-impl Default for WifiCommandOptions {
+impl Default for WifiOptions {
     fn default() -> Self {
         Self {
-            scan_type: WifiScanType::default(),
+            globals: GlobalOptions::default(),
+            scan_type: ScanType::default(),
             scan_method: ScanMethod::default(),
             interface: "wlan0".to_string(),
             ignore_known: false,
@@ -189,9 +180,31 @@ impl Default for WifiCommandOptions {
     }
 }
 
-impl WifiCommandOptions {
+// Is this useful at all?
+pub trait RuwiCommandOptions {
+    fn d(&self) -> bool;
+    fn is_dry_run(&self) -> bool;
+    fn get_selection_method(&self) -> &SelectionMethod;
+}
+
+impl RuwiCommandOptions for WifiOptions {
+    // TODO: impl givesdebug or impl ruwioptions etc etc
+    fn d(&self) -> bool {
+        self.globals.debug
+    }
+
+    fn is_dry_run(&self) -> bool {
+        self.globals.debug
+    }
+
+    fn get_selection_method(&self) -> &SelectionMethod {
+        &self.globals.selection_method
+    }
+}
+
+impl WifiOptions {
     #[cfg(test)]
-    pub fn from_scan_type(scan_type: WifiScanType) -> Self {
+    pub fn from_scan_type(scan_type: ScanType) -> Self {
         Self {
             scan_type,
             ..Self::default()

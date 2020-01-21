@@ -133,61 +133,40 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         ))
 }
 
-pub(crate) fn get_options() -> Result<Options, RuwiError> {
+pub(crate) fn get_options() -> Result<WifiOptions, RuwiError> {
     let m = get_arg_app().get_matches();
     get_options_impl(&m)
 }
 
-fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
+fn get_options_impl(m: &ArgMatches) -> Result<WifiOptions, RuwiError> {
     let debug = m.is_present("debug");
-
-    let force_synchronous_scan = m.is_present("force_synchronous_scan");
-    let force_ask_password = m.is_present("force_ask_password");
-    let ignore_known = m.is_present("ignore_known");
+    let selection_method = get_val_as_enum::<SelectionMethod>(&m, "selection_method");
 
     let dry_run = m.is_present("dry_run");
     if dry_run {
         eprintln!("[NOTE] Running in dryrun mode! Will not run any external commands or write/read configs on disk, and will only use cached scan results.");
     }
 
-    let given_essid = m.value_of("essid").map(String::from);
-    let given_encryption_key = m.value_of("password").map(String::from);
-    let interface = match m.value_of("interface") {
-        Some(val) => String::from(val),
-        None => get_default_interface(debug, dry_run)?,
+    let globals = GlobalOptions {
+        debug,
+        dry_run,
+        selection_method,
     };
 
     // TODO: better structure where you grab all the subcommand-related options in one pass
     let TODO = "check for subcommand, and parse wifi-specific things there";
-    let scan_type = match m.subcommand() {
-        (subc_name, Some(sub_m)) if subc_name == RuwiCommand::Wifi(RuwiWifiCommand::default()).to_string() => {
-            ScanType::Wifi(get_val_as_enum::<WifiScanType>(&m, "scan_type"))
-        }
+    let opts = match m.subcommand() {
+        (subc_name, Some(sub_m)) if subc_name == RuwiCommand::Wifi(RuwiWifiCommand::default()).to_string() => 
+            get_wifi_opts(globals, m, sub_m),
+
         // (subc_name, Some(sub_m)) if subc_name == RuwiCommand::Wired(Default::default()).to_string() => {}
         // (subc_name, Some(sub_m)) if subc_name == RuwiCommand::Bluetooth(Default::default()).to_string() => {}
         (_, Some(_)) => todo!("Non-wifi commands are not yet implemented."),
-        (_, None) => ScanType::default(),
-    };
+        (_, None) => todo!("Assume wifi connect default."),
+    }?;
 
-    let scan_method = if let Some(filename) = m.value_of("input_file").map(String::from) {
-        ScanMethod::FromFile(filename)
-    } else if m.is_present("input_stdin") {
-        ScanMethod::FromStdin
-    } else {
-        ScanMethod::ByRunning
-    };
-    validate_scan_method_and_type(&scan_method, &scan_type)?;
-
-    dbg!(m.subcommand());
-
-    let auto_mode = if m.is_present("auto") {
-        AutoMode::KnownOrAsk
-    } else {
-        get_val_as_enum::<AutoMode>(&m, "auto_mode")
-    };
-
-    let selection_method = get_val_as_enum::<SelectionMethod>(&m, "selection_method");
-    let connect_via = get_val_as_enum::<WifiConnectionType>(&m, "connect_via");
+    let TODO = "Should scan type just be associated with the options type?";
+    let TODO = "Remove all references to WifiOptions from this file, return/test something less specific?";
 
 //    let TODO = "Clean up!";
 //    let wifi_scan_type = get_val_as_enum::<WifiScanType>(&m, "scan_type");
@@ -206,10 +185,50 @@ fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
 //    });
 
     let TODO = "should options have the same structure as the cmdline options (WifiOptions, WifiConnectOptions) or similar?";
-    let opts = Options {
-        selection_method,
-        debug,
-        dry_run,
+
+    if opts.d() {
+        dbg![&opts];
+    }
+    Ok(opts)
+}
+
+fn get_wifi_opts(
+        globals: GlobalOptions,
+        m: &ArgMatches,
+        sub_m: &ArgMatches
+    ) -> Result<WifiOptions, RuwiError> {
+
+    let scan_type = ScanType::Wifi(get_val_as_enum::<WifiScanType>(&m, "scan_type"));
+    let force_synchronous_scan = m.is_present("force_synchronous_scan");
+    let force_ask_password = m.is_present("force_ask_password");
+    let ignore_known = m.is_present("ignore_known");
+
+    let given_essid = m.value_of("essid").map(String::from);
+    let given_encryption_key = m.value_of("password").map(String::from);
+    let interface = match m.value_of("interface") {
+        Some(val) => String::from(val),
+        None => get_default_interface(globals.debug, globals.dry_run)?,
+    };
+    let scan_method = if let Some(filename) = m.value_of("input_file").map(String::from) {
+        ScanMethod::FromFile(filename)
+    } else if m.is_present("input_stdin") {
+        ScanMethod::FromStdin
+    } else {
+        ScanMethod::ByRunning
+    };
+    validate_scan_method_and_type(&scan_method, &scan_type)?;
+
+    dbg!(m.subcommand());
+
+    let auto_mode = if m.is_present("auto") {
+        AutoMode::KnownOrAsk
+    } else {
+        get_val_as_enum::<AutoMode>(&m, "auto_mode")
+    };
+
+    let connect_via = get_val_as_enum::<WifiConnectionType>(&m, "connect_via");
+    Ok(WifiOptions {
+        globals,
         scan_type,
         scan_method,
         interface,
@@ -220,13 +239,8 @@ fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
         auto_mode,
         force_synchronous_scan,
         force_ask_password,
-        ..Options::default()
-    };
-
-    if opts.debug {
-        dbg![&opts];
-    }
-    Ok(opts)
+        ..WifiOptions::default()
+    })
 }
 
 // TODO: can this be expressed in the type system somehow?
@@ -268,11 +282,11 @@ mod tests {
         get_arg_app().get_matches_from_safe(construct_args(args))
     }
 
-    fn getopts(args: &[&str]) -> Options {
+    fn getopts(args: &[&str]) -> WifiOptions {
         get_options_impl(&get_matches(args)).unwrap()
     }
 
-    fn getopts_safe(args: &[&str]) -> Result<Options, RuwiError> {
+    fn getopts_safe(args: &[&str]) -> Result<WifiOptions, RuwiError> {
         get_options_impl(&get_matches_safe(args).map_err(|e| {
             rerr!(
                 RuwiErrorKind::TestCmdLineOptParserSafeFailed,
@@ -284,11 +298,11 @@ mod tests {
     #[test]
     fn test_debug() {
         let opts = getopts(&[]);
-        assert![!opts.debug];
+        assert![!opts.d()];
         let opts = getopts(&["-d"]);
-        assert![opts.debug];
+        assert![opts.d()];
         let opts = getopts(&["--debug"]);
-        assert![opts.debug];
+        assert![opts.d()];
     }
 
     #[test]
@@ -362,11 +376,11 @@ mod tests {
     fn test_selection_method() {
         let expected = SelectionMethod::Fzf;
         let opts = getopts(&["-m", expected.to_string().as_ref()]);
-        assert_eq![opts.selection_method, expected];
+        assert_eq![opts.get_selection_method(), &expected];
 
         let expected = SelectionMethod::Dmenu;
         let opts = getopts(&["--selection-method", expected.to_string().as_ref()]);
-        assert_eq![opts.selection_method, expected];
+        assert_eq![opts.get_selection_method(), &expected];
     }
 
     #[test]
@@ -431,11 +445,11 @@ mod tests {
     #[test]
     fn test_dry_run_in_tests() {
         let opts = getopts(&[]);
-        assert![!opts.dry_run];
+        assert![!opts.is_dry_run()];
         let opts = getopts(&["-D"]);
-        assert![opts.dry_run];
+        assert![opts.is_dry_run()];
         let opts = getopts(&["--dry-run"]);
-        assert![opts.dry_run];
+        assert![opts.is_dry_run()];
     }
 
     #[test]

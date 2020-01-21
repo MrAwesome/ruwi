@@ -11,7 +11,7 @@ update_config=1
 
 See https://wiki.archlinux.org/index.php/WPA_supplicant#Connecting_with_wpa_cli for more info.";
 
-pub(crate) fn initialize_wpa_supplicant(options: &Options) -> Result<(), RuwiError> {
+pub(crate) fn initialize_wpa_supplicant(options: &WifiOptions) -> Result<(), RuwiError> {
     //        /etc/wpa_supplicant/wpa_supplicant.conf
     //    ctrl_interface=/run/wpa_supplicant
     //    ctrl_interface_group=wheel
@@ -26,7 +26,7 @@ pub(crate) fn initialize_wpa_supplicant(options: &Options) -> Result<(), RuwiErr
             "[NOTE]: wpa_cli was not functioning correctly. Attempting to start it manually."
         );
         let supplicant_status = run_command_status_dumb(
-            options.debug,
+            options.d(),
             "wpa_supplicant",
             &[
                 "-B",
@@ -38,7 +38,7 @@ pub(crate) fn initialize_wpa_supplicant(options: &Options) -> Result<(), RuwiErr
         );
 
         if supplicant_status {
-            run_command_status_dumb(options.debug, "wpa_cli", &["scan"]);
+            run_command_status_dumb(options.d(), "wpa_cli", &["scan"]);
 
             eprintln!("[NOTE]: Sleeping to wait for results from wpa_cli. This should only happen when you first start wpa_supplicant. If you aren't seeing results, or you see stale results, try `sudo killall wpa_supplicant` or using a different scanning method with -s.");
             thread::sleep(Duration::from_secs(5));
@@ -55,10 +55,10 @@ pub(crate) fn initialize_wpa_supplicant(options: &Options) -> Result<(), RuwiErr
     ))
 }
 
-fn wpa_ping_success(options: &Options) -> bool {
-    let ping_status = run_command_status_dumb(options.debug, "wpa_cli", &["ping"]);
+fn wpa_ping_success(options: &WifiOptions) -> bool {
+    let ping_status = run_command_status_dumb(options.d(), "wpa_cli", &["ping"]);
 
-    if options.debug {
+    if options.d() {
         dbg![&ping_status];
     }
 

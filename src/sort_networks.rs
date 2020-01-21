@@ -19,7 +19,7 @@ impl PartialOrd for AnnotatedWirelessNetwork {
 }
 
 pub(crate) fn sort_and_filter_networks(
-    options: &Options,
+    options: &WifiOptions,
     annotated_networks: AnnotatedNetworks,
 ) -> SortedUniqueNetworks {
     let mut sorted_networks = annotated_networks.networks;
@@ -38,7 +38,7 @@ pub(crate) fn sort_and_filter_networks(
         }
     }
 
-    if options.debug {
+    if options.d() {
         dbg![&sorted_unique_networks];
     }
 
@@ -153,7 +153,7 @@ mod tests {
         ];
 
         let sorted_unique_networks =
-            sort_and_filter_networks(&Options::default(), AnnotatedNetworks { networks });
+            sort_and_filter_networks(&WifiOptions::default(), AnnotatedNetworks { networks });
 
         assert_eq![expected_networks, sorted_unique_networks.networks];
     }

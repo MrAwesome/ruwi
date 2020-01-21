@@ -7,9 +7,11 @@ use wifi::WifiStep;
 
 const SANITY_LOOP_CAP: u32 = 1000;
 
+fn TODO() { "don't take wifioptions at the top level, take something which holds it"; }
+
 pub fn run_ruwi_using_state_machine(
     command: &RuwiCommand,
-    options: &Options,
+    options: &WifiOptions,
 ) -> Result<(), RuwiError> {
     let sanity_loop_cap = SANITY_LOOP_CAP;
     // TODO: implement commands
@@ -34,7 +36,7 @@ pub fn run_ruwi_using_state_machine(
 }
 
 pub(crate) trait RuwiStep {
-    fn exec(self, command: &RuwiCommand, options: &Options) -> Result<Self, RuwiError>
+    fn exec(self, command: &RuwiCommand, options: &WifiOptions) -> Result<Self, RuwiError>
     where
         Self: Sized;
 }
@@ -42,7 +44,7 @@ pub(crate) trait RuwiStep {
 #[allow(clippy::needless_pass_by_value)]
 fn step_runner<T>(
     command: &RuwiCommand,
-    options: &Options,
+    options: &WifiOptions,
     sanity_loop_cap: u32,
     first_step: T,
     last_step: T,

@@ -2,7 +2,7 @@ use crate::netctl_config_writer::*;
 use crate::structs::*;
 
 pub(crate) fn possibly_configure_network(
-    options: &Options,
+    options: &WifiOptions,
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> Result<Option<ConfigResult>, RuwiError> {
@@ -12,7 +12,7 @@ pub(crate) fn possibly_configure_network(
         Ok(None)
     };
 
-    if options.debug {
+    if options.d() {
         dbg![&res];
     }
 
@@ -20,7 +20,7 @@ pub(crate) fn possibly_configure_network(
 }
 
 fn configure_network(
-    options: &Options,
+    options: &WifiOptions,
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> Result<ConfigResult, RuwiError> {

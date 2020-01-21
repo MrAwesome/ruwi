@@ -11,7 +11,7 @@ enum InterfaceState {
 }
 
 fn bring_interface(
-    options: &Options,
+    options: &WifiOptions,
     interface_state: &InterfaceState,
     err_kind: RuwiErrorKind,
 ) -> Result<(), RuwiError> {
@@ -19,9 +19,9 @@ fn bring_interface(
     let if_state = interface_state.to_string();
     let cmd = "ip";
     let cmd_args = &["link", "set", "dev", if_name, &if_state];
-    if !options.dry_run {
+    if !options.is_dry_run() {
         run_command_pass_stdout(
-            options.debug,
+            options.d(),
             cmd,
             cmd_args,
             err_kind,
@@ -39,7 +39,7 @@ fn bring_interface(
     Ok(())
 }
 
-pub(crate) fn bring_interface_up(options: &Options) -> Result<(), RuwiError> {
+pub(crate) fn bring_interface_up(options: &WifiOptions) -> Result<(), RuwiError> {
     bring_interface(
         options,
         &InterfaceState::UP,
@@ -47,7 +47,7 @@ pub(crate) fn bring_interface_up(options: &Options) -> Result<(), RuwiError> {
     )
 }
 
-pub(crate) fn bring_interface_down(options: &Options) -> Result<(), RuwiError> {
+pub(crate) fn bring_interface_down(options: &WifiOptions) -> Result<(), RuwiError> {
     bring_interface(
         options,
         &InterfaceState::DOWN,

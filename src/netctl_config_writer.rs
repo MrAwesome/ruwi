@@ -6,7 +6,7 @@ use std::io;
 use std::io::Write;
 
 pub(crate) fn netctl_config_write(
-    options: &Options,
+    options: &WifiOptions,
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> Result<ConfigResult, RuwiError> {
@@ -17,7 +17,7 @@ pub(crate) fn netctl_config_write(
 
     let fullpath = netctl_location + &netctl_file_name;
 
-    if !options.dry_run {
+    if !options.is_dry_run() {
         write_to_netctl_config(&fullpath, &contents)
             .map_err(|e| rerr!(RuwiErrorKind::FailedToWriteNetctlConfig, e.description()))?;
         eprintln!("[NOTE]: Wrote netctl config: {}", &fullpath);
@@ -46,7 +46,7 @@ pub(crate) fn get_netctl_file_name(essid: &str) -> String {
 }
 
 pub(crate) fn get_netctl_config_contents(
-    options: &Options,
+    options: &WifiOptions,
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> String {

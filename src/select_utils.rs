@@ -8,21 +8,23 @@ use std::io::BufRead;
 use std::io::Write;
 
 pub(crate) fn run_dmenu(
-    options: &Options,
+    options: &WifiOptions,
     prompt: &str,
     elements: &[String],
 ) -> Result<String, RuwiError> {
-    run_prompt_cmd(options.debug, "dmenu", &["-i", "-p", prompt], elements)
+    let todoo = "Take only debug here?";
+    run_prompt_cmd(options.d(), "dmenu", &["-i", "-p", prompt], elements)
 }
 
 #[cfg_attr(test, allow(unused))]
 pub(crate) fn run_fzf(
-    options: &Options,
+    options: &WifiOptions,
     prompt: &str,
     elements: &[String],
 ) -> Result<String, RuwiError> {
+    let todoo = "Take only debug here?";
     run_prompt_cmd(
-        options.debug,
+        options.d(),
         "fzf",
         &[
             "--layout",
@@ -36,7 +38,7 @@ pub(crate) fn run_fzf(
 }
 
 pub(crate) fn run_stdin_prompt_single_line(
-    options: &Options,
+    options: &WifiOptions,
     prompt: &str,
     elements: &[String],
 ) -> Result<String, RuwiError> {
@@ -45,7 +47,7 @@ pub(crate) fn run_stdin_prompt_single_line(
 }
 
 fn run_stdin_prompt_single_line_impl(
-    _options: &Options,
+    _options: &WifiOptions,
     prompt: &str,
     _elements: &[String],
 ) -> io::Result<String> {

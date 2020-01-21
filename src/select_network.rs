@@ -1,3 +1,4 @@
+// TODO: abstract away this functionality to not be wifi-specific
 use crate::rerr;
 use crate::select_utils::*;
 use crate::structs::*;
@@ -30,14 +31,14 @@ impl SortedUniqueNetworks {
 }
 
 pub(crate) fn select_network(
-    options: &Options,
+    options: &WifiOptions,
     networks: &SortedUniqueNetworks,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     select_network_impl(options, networks, prompt_user_for_selection)
 }
 
 fn prompt_user_for_selection(
-    options: &Options,
+    options: &WifiOptions,
     networks: &SortedUniqueNetworks,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     let selector_output = run_manual_selector(options, networks)?;
@@ -62,29 +63,29 @@ fn prompt_user_for_selection(
 }
 
 fn run_manual_selector(
-    options: &Options,
+    options: &WifiOptions,
     networks: &SortedUniqueNetworks,
 ) -> Result<String, RuwiError> {
     run_manual_selector_impl(options, networks, pass_tokens_to_selection_program)
 }
 
 fn run_manual_selector_impl<F>(
-    options: &Options,
+    options: &WifiOptions,
     networks: &SortedUniqueNetworks,
     selector: F,
 ) -> Result<String, RuwiError>
 where
-    F: FnOnce(&Options, &[String]) -> Result<String, RuwiError>,
+    F: FnOnce(&WifiOptions, &[String]) -> Result<String, RuwiError>,
 {
     let selection_tokens = networks.get_tokens_for_selection();
     selector(options, &selection_tokens).map(|x| x.trim().into())
 }
 
 fn pass_tokens_to_selection_program(
-    options: &Options,
+    options: &WifiOptions,
     selection_tokens: &[String],
 ) -> Result<String, RuwiError> {
-    match &options.selection_method {
+    match options.get_selection_method() {
         SelectionMethod::Dmenu => run_dmenu(&options, "Select a network: ", &selection_tokens),
         SelectionMethod::Fzf => run_fzf(
             &options,
@@ -110,7 +111,7 @@ fn get_line_parse_err(line: &str) -> RuwiError {
 }
 
 fn select_first_known(
-    _options: &Options,
+    _options: &WifiOptions,
     networks: &SortedUniqueNetworks,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     networks
@@ -127,7 +128,7 @@ fn select_first_known(
 }
 
 fn select_first(
-    _options: &Options,
+    _options: &WifiOptions,
     networks: &SortedUniqueNetworks,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     networks
@@ -144,12 +145,12 @@ fn select_first(
 }
 
 fn select_network_impl<'a, 'b, F>(
-    options: &'a Options,
+    options: &'a WifiOptions,
     networks: &'b SortedUniqueNetworks,
     manual_selector: F,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError>
 where
-    F: FnOnce(&'a Options, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, RuwiError>,
+    F: FnOnce(&'a WifiOptions, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, RuwiError>,
 {
     let selected_network_res = match options.auto_mode {
         AutoMode::Ask => manual_selector(options, networks),
@@ -171,7 +172,7 @@ where
         }
     }
 
-    if options.debug {
+    if options.d() {
         dbg![&selected_network_res];
     }
     selected_network_res
@@ -211,7 +212,7 @@ mod tests {
     }
 
     fn select_last(
-        _options: &Options,
+        _options: &WifiOptions,
         networks: &SortedUniqueNetworks,
     ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
         networks
@@ -228,14 +229,14 @@ mod tests {
     }
 
     fn select_refresh(
-        _options: &Options,
+        _options: &WifiOptions,
         _networks: &SortedUniqueNetworks,
     ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
         Err(rerr!(RuwiErrorKind::RefreshRequested, "Refresh requested."))
     }
 
     fn err_should_not_have_used_manual(
-        _opt: &Options,
+        _opt: &WifiOptions,
         _nw: &SortedUniqueNetworks,
     ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
         Err(rerr!(
@@ -246,7 +247,7 @@ mod tests {
 
     #[test]
     fn test_manually_select_first_network() -> Result<(), RuwiError> {
-        let options = Options::default();
+        let options = WifiOptions::default();
         assert_eq![options.auto_mode, AutoMode::Ask];
         let networks = get_3_unknown_networks();
         let nw = select_network_impl(&options, &networks, select_first)?;
@@ -256,7 +257,7 @@ mod tests {
 
     #[test]
     fn test_manually_select_last_network() -> Result<(), RuwiError> {
-        let options = Options::default();
+        let options = WifiOptions::default();
         assert_eq![options.auto_mode, AutoMode::Ask];
         let networks = get_3_unknown_networks();
         let nw = select_network_impl(&options, &networks, select_last)?;
@@ -266,7 +267,7 @@ mod tests {
 
     #[test]
     fn test_fail_to_manually_select() {
-        let options = Options::default();
+        let options = WifiOptions::default();
         assert_eq![options.auto_mode, AutoMode::Ask];
         let networks = get_3_unknown_networks();
         let res = select_network_impl(&options, &networks, select_first_known);
@@ -275,7 +276,7 @@ mod tests {
 
     #[test]
     fn test_auto_first_known() -> Result<(), RuwiError> {
-        let mut options = Options::default();
+        let mut options = WifiOptions::default();
         options.auto_mode = AutoMode::KnownOrFail;
 
         let networks = get_3_networks_last_known();
@@ -286,7 +287,7 @@ mod tests {
 
     #[test]
     fn test_auto_no_ask_first_known() -> Result<(), RuwiError> {
-        let mut options = Options::default();
+        let mut options = WifiOptions::default();
         options.auto_mode = AutoMode::KnownOrFail;
 
         let networks = get_3_networks_first_known();
@@ -297,7 +298,7 @@ mod tests {
 
     #[test]
     fn test_auto_no_ask_first_known2() -> Result<(), RuwiError> {
-        let mut options = Options::default();
+        let mut options = WifiOptions::default();
         options.auto_mode = AutoMode::KnownOrFail;
 
         let networks = get_3_networks_last_known();
@@ -308,7 +309,7 @@ mod tests {
 
     #[test]
     fn test_auto_fallback() -> Result<(), RuwiError> {
-        let mut options = Options::default();
+        let mut options = WifiOptions::default();
         options.auto_mode = AutoMode::KnownOrAsk;
 
         let networks = get_3_unknown_networks();
@@ -319,7 +320,7 @@ mod tests {
 
     #[test]
     fn test_manually_refresh() {
-        let options = Options::default();
+        let options = WifiOptions::default();
         assert_eq![options.auto_mode, AutoMode::Ask];
         let networks = get_3_unknown_networks();
         assert![networks
@@ -331,7 +332,7 @@ mod tests {
 
     #[test]
     fn test_manual_selector_output() {
-        let opts = Options::default();
+        let opts = WifiOptions::default();
         let networks = get_3_unknown_networks();
 
         let run_without_whitespace = run_manual_selector_impl(&opts, &networks, |_opts, names| {

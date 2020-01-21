@@ -8,7 +8,7 @@ static NMCLI_SCAN_ERR_MSG: &str = concat!(
     "or you can manually specify an essid with -e.",
 );
 
-pub(crate) fn run_nmcli_scan(options: &Options, scan_type: ScanType) -> Result<ScanResult, RuwiError> {
+pub(crate) fn run_nmcli_scan(options: &WifiOptions, scan_type: ScanType) -> Result<ScanResult, RuwiError> {
     bring_interface_up(options)?;
     let scan_output = if options.force_synchronous_scan || options.synchronous_retry.is_some() {
         run_nmcli_scan_cmd_synchronous(options)?
@@ -22,9 +22,9 @@ pub(crate) fn run_nmcli_scan(options: &Options, scan_type: ScanType) -> Result<S
     })
 }
 
-fn run_nmcli_scan_cmd(options: &Options) -> Result<String, RuwiError> {
+fn run_nmcli_scan_cmd(options: &WifiOptions) -> Result<String, RuwiError> {
     run_command_pass_stdout(
-        options.debug,
+        options.d(),
         "nmcli",
         &["--escape", "no", "--color", "no", "-g", "SECURITY,SIGNAL,SSID", "device", "wifi", "list"],
         RuwiErrorKind::FailedToRunNmcliScan,
@@ -32,9 +32,9 @@ fn run_nmcli_scan_cmd(options: &Options) -> Result<String, RuwiError> {
     )
 }
 
-fn run_nmcli_scan_cmd_synchronous(options: &Options) -> Result<String, RuwiError> {
+fn run_nmcli_scan_cmd_synchronous(options: &WifiOptions) -> Result<String, RuwiError> {
     run_command_pass_stdout(
-        options.debug,
+        options.d(),
         "nmcli",
         &["--escape", "no", "--color", "no", "-g", "SECURITY,SIGNAL,SSID", "device", "wifi", "list", "--rescan", "yes"],
         RuwiErrorKind::FailedToRunNmcliScanSynchronous,

@@ -2,19 +2,19 @@ use crate::select_utils::*;
 use crate::structs::*;
 
 pub(crate) fn possibly_get_encryption_key(
-    options: &Options,
+    options: &WifiOptions,
     selected_network: &AnnotatedWirelessNetwork,
 ) -> Result<Option<String>, RuwiError> {
     possibly_get_encryption_key_impl(options, selected_network, prompt_for_encryption_key)
 }
 
 fn possibly_get_encryption_key_impl<F>(
-    options: &Options,
+    options: &WifiOptions,
     selected_network: &AnnotatedWirelessNetwork,
     prompt_func: F,
 ) -> Result<Option<String>, RuwiError>
 where
-    F: Fn(&Options, &str) -> Result<String, RuwiError>,
+    F: Fn(&WifiOptions, &str) -> Result<String, RuwiError>,
 {
     // Don't bother asking for a password if:
     // * a password was given on the command line
@@ -37,15 +37,15 @@ where
         },
     };
 
-    if options.debug {
+    if options.d() {
         dbg![&pw];
     }
 
     Ok(pw)
 }
 
-fn prompt_for_encryption_key(options: &Options, network_name: &str) -> Result<String, RuwiError> {
-    match &options.selection_method {
+fn prompt_for_encryption_key(options: &WifiOptions, network_name: &str) -> Result<String, RuwiError> {
+    match options.get_selection_method() {
         SelectionMethod::Dmenu => {
             run_dmenu(options, &format!("Password for {}: ", network_name), &[])
         }
@@ -61,13 +61,13 @@ fn prompt_for_encryption_key(options: &Options, network_name: &str) -> Result<St
 mod tests {
     use super::*;
 
-    fn should_not_run(_opt: &Options, _nw: &str) -> Result<String, RuwiError> {
+    fn should_not_run(_opt: &WifiOptions, _nw: &str) -> Result<String, RuwiError> {
         panic!("Should not run.")
     }
 
     #[test]
     fn test_no_ask_on_open_network() -> Result<(), RuwiError> {
-        let options = Options::default();
+        let options = WifiOptions::default();
         let nw = AnnotatedWirelessNetwork::default();
         let output = possibly_get_encryption_key_impl(&options, &nw, should_not_run)?;
         if let Some(_pw) = output {
@@ -78,7 +78,7 @@ mod tests {
 
     #[test]
     fn test_no_ask_on_known_closed_network() -> Result<(), RuwiError> {
-        let options = Options::default();
+        let options = WifiOptions::default();
         let nw = AnnotatedWirelessNetwork {
             is_encrypted: true,
             known: true,
@@ -93,7 +93,7 @@ mod tests {
 
     #[test]
     fn test_ask_on_unknown_closed_network() -> Result<(), RuwiError> {
-        let options = Options::default();
+        let options = WifiOptions::default();
         let nw = AnnotatedWirelessNetwork {
             is_encrypted: true,
             ..AnnotatedWirelessNetwork::default()
@@ -108,9 +108,9 @@ mod tests {
     #[test]
     fn test_use_given_pw() -> Result<(), RuwiError> {
         let given_essid = "YEETU";
-        let options = Options {
+        let options = WifiOptions {
             given_encryption_key: Some("YEETU".into()),
-            ..Options::default()
+            ..WifiOptions::default()
         };
         let nw = AnnotatedWirelessNetwork::default();
         let output = possibly_get_encryption_key_impl(&options, &nw, should_not_run)?;
@@ -120,9 +120,9 @@ mod tests {
 
     #[test]
     fn test_force_ask_password() -> Result<(), RuwiError> {
-        let options = Options {
+        let options = WifiOptions {
             force_ask_password: true,
-            ..Options::default()
+            ..WifiOptions::default()
         };
 
         let nw = AnnotatedWirelessNetwork::default();
@@ -135,9 +135,9 @@ mod tests {
 
     #[test]
     fn test_do_not_ask_for_pw_on_print() -> Result<(), RuwiError> {
-        let options = Options {
+        let options = WifiOptions {
             connect_via: WifiConnectionType::Print,
-            ..Options::default()
+            ..WifiOptions::default()
         };
 
         let nw = AnnotatedWirelessNetwork::default();

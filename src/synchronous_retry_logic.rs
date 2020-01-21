@@ -1,7 +1,7 @@
 use crate::structs::*;
 
 pub(crate) fn should_retry_with_synchronous_scan(
-    options: &Options,
+    options: &WifiOptions,
     annotated_networks: &AnnotatedNetworks,
 ) -> bool {
     let networks = &annotated_networks.networks;
@@ -16,10 +16,10 @@ pub(crate) fn should_retry_with_synchronous_scan(
 mod tests {
     use super::*;
 
-    fn get_options(auto_mode: &AutoMode) -> Options {
-        Options {
+    fn get_options(auto_mode: &AutoMode) -> WifiOptions {
+        WifiOptions {
             auto_mode: auto_mode.clone(),
-            ..Options::default()
+            ..WifiOptions::default()
         }
     }
 

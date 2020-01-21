@@ -27,7 +27,7 @@ static IW_SCAN_SYNC_ERR_MSG: &str = concat!(
     "or you can manually specify an essid with -e.",
 );
 
-pub(crate) fn run_iw_scan(options: &Options, scan_type: ScanType) -> Result<ScanResult, RuwiError> {
+pub(crate) fn run_iw_scan(options: &WifiOptions, scan_type: ScanType) -> Result<ScanResult, RuwiError> {
     bring_interface_up(options)?;
     let scan_output = if options.force_synchronous_scan || options.synchronous_retry.is_some() {
         run_iw_scan_synchronous(options)?
@@ -47,16 +47,16 @@ pub(crate) fn run_iw_scan(options: &Options, scan_type: ScanType) -> Result<Scan
     })
 }
 
-fn run_iw_scan_synchronous(options: &Options) -> Result<String, RuwiError> {
+fn run_iw_scan_synchronous(options: &WifiOptions) -> Result<String, RuwiError> {
     run_iw_scan_synchronous_impl(options, run_iw_scan_synchronous_cmd)
 }
 
 fn run_iw_scan_synchronous_impl<F>(
-    options: &Options,
+    options: &WifiOptions,
     mut synchronous_scan_func: F,
 ) -> Result<String, RuwiError>
 where
-    F: FnMut(&Options) -> Result<Output, RuwiError>,
+    F: FnMut(&WifiOptions) -> Result<Output, RuwiError>,
 {
     #[cfg(not(test))]
     abort_ongoing_iw_scan(&options).ok();
@@ -90,13 +90,13 @@ where
     }
 }
 
-fn run_iw_scan_synchronous_cmd(options: &Options) -> Result<Output, RuwiError> {
-    run_command_output(options.debug, "iw", &[&options.interface, "scan"])
+fn run_iw_scan_synchronous_cmd(options: &WifiOptions) -> Result<Output, RuwiError> {
+    run_command_output(options.d(), "iw", &[&options.interface, "scan"])
 }
 
-fn run_iw_scan_dump(options: &Options) -> Result<String, RuwiError> {
+fn run_iw_scan_dump(options: &WifiOptions) -> Result<String, RuwiError> {
     run_command_pass_stdout(
-        options.debug,
+        options.d(),
         "iw",
         &[&options.interface, "scan", "dump"],
         RuwiErrorKind::FailedToRunIWScanDump,
@@ -104,10 +104,10 @@ fn run_iw_scan_dump(options: &Options) -> Result<String, RuwiError> {
     )
 }
 
-fn run_iw_scan_trigger(options: &Options) -> Result<String, RuwiError> {
+fn run_iw_scan_trigger(options: &WifiOptions) -> Result<String, RuwiError> {
     // Initiate a rescan. This command should return instantaneously.
     run_command_pass_stdout(
-        options.debug,
+        options.d(),
         "iw",
         &[&options.interface, "scan", "trigger"],
         RuwiErrorKind::FailedToRunIWScanTrigger,
@@ -116,9 +116,9 @@ fn run_iw_scan_trigger(options: &Options) -> Result<String, RuwiError> {
 }
 
 #[cfg(not(test))]
-fn abort_ongoing_iw_scan(options: &Options) -> Result<String, RuwiError> {
+fn abort_ongoing_iw_scan(options: &WifiOptions) -> Result<String, RuwiError> {
     run_command_pass_stdout(
-        options.debug,
+        options.d(),
         "iw",
         &[&options.interface, "scan", "abort"],
         RuwiErrorKind::FailedToRunIWScanAbort,
@@ -133,7 +133,7 @@ mod tests {
 
     #[test]
     fn test_synchronous_scan_pass() {
-        let options = &Options::default();
+        let options = &WifiOptions::default();
         let res = run_iw_scan_synchronous_impl(options, command_pass);
 
         assert_eq![res.ok().unwrap().trim(), FAKE_OUTPUT];
@@ -141,7 +141,7 @@ mod tests {
 
     #[test]
     fn test_synchronous_scan_failed() {
-        let options = &Options::default();
+        let options = &WifiOptions::default();
         let res = run_iw_scan_synchronous_impl(options, command_fail_with_exitcode_1);
 
         assert_eq![
@@ -152,7 +152,7 @@ mod tests {
 
     #[test]
     fn test_synchronous_scan_ran_out_of_retries() {
-        let options = &Options::default();
+        let options = &WifiOptions::default();
         let res = run_iw_scan_synchronous_impl(options, command_fail_with_device_or_resource_busy);
 
         assert_eq![
@@ -163,7 +163,7 @@ mod tests {
 
     #[test]
     fn test_synchronous_scan_retried_successfully() {
-        let options = &Options::default();
+        let options = &WifiOptions::default();
         let mut allowed_retries = 2;
         let res = run_iw_scan_synchronous_impl(options, |opts| {
             allowed_retries -= 1;
@@ -179,7 +179,7 @@ mod tests {
 
     #[test]
     fn test_synchronous_scan_ran_out_of_retries_explicit() {
-        let options = &Options::default();
+        let options = &WifiOptions::default();
         let mut allowed_retries = ALLOWED_SYNCHRONOUS_RETRIES + 1;
         let res = run_iw_scan_synchronous_impl(options, |opts| {
             allowed_retries -= 1;

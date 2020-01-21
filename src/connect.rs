@@ -6,7 +6,7 @@ use crate::structs::*;
 use crate::service_management::GetService;
 
 pub(crate) fn connect_to_network(
-    options: &Options,
+    options: &WifiOptions,
     selected_network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> Result<ConnectionResult, RuwiError> {
@@ -49,7 +49,7 @@ pub(crate) fn connect_to_network(
 
     // TODO: retry connection once if failed
 
-    if options.debug {
+    if options.d() {
         dbg![&res];
     }
 
@@ -75,10 +75,10 @@ pub(crate) fn connect_to_network(
 }
 
 fn connect_via_netctl(
-    options: &Options,
+    options: &WifiOptions,
     selected_network: &AnnotatedWirelessNetwork,
 ) -> Result<ConnectionResult, RuwiError> {
-    if options.dry_run {
+    if options.is_dry_run() {
         return Ok(ConnectionResult {
             connection_type: WifiConnectionType::Netctl,
         });
@@ -88,7 +88,7 @@ fn connect_via_netctl(
     // TODO: don't lock so hard into filename?
     let netctl_file_name = get_netctl_file_name(&selected_network.essid);
 
-    let res = run_command_output(options.debug, "netctl", &["switch-to", &netctl_file_name])?;
+    let res = run_command_output(options.d(), "netctl", &["switch-to", &netctl_file_name])?;
 
     if res.status.success() {
         Ok(ConnectionResult {
@@ -103,7 +103,7 @@ fn connect_via_netctl(
 }
 
 fn connect_via_networkmanager(
-    options: &Options,
+    options: &WifiOptions,
     selected_network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> Result<ConnectionResult, RuwiError> {
@@ -117,7 +117,7 @@ fn connect_via_networkmanager(
     //       if connection is unsuccessful?
     // TODO TODO TODO TODO
 
-    if options.dry_run {
+    if options.is_dry_run() {
         return Ok(ConnectionResult {
             connection_type: WifiConnectionType::NetworkManager,
         });
@@ -130,7 +130,7 @@ fn connect_via_networkmanager(
     } else {
         args
     };
-    let res = run_command_output(options.debug, "nmcli", &args)?;
+    let res = run_command_output(options.d(), "nmcli", &args)?;
 
     if res.status.success() {
         Ok(ConnectionResult {
@@ -150,7 +150,7 @@ mod tests {
 
     //    #[test]
     //    fn test_connect_via_netctl_pass() {
-    //        let opts = Options::default();
+    //        let opts = WifiOptions::default();
     //        let nw = AnnotatedWirelessNetwork::default();
     //        // TODO: test connect based on nw passed in
     //        let _res = connect_via_netctl(&opts, &nw);

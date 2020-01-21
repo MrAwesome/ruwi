@@ -1,7 +1,7 @@
 use crate::structs::*;
 
 pub(crate) fn parse_nmcli_scan(
-    _options: &Options,
+    _options: &WifiOptions,
     output: &str,
     scan_type: ScanType,
 ) -> Result<ParseResult, RuwiError> {
