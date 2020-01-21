@@ -55,12 +55,12 @@ impl GetService for WifiConnectionType {
     }
 }
 
-impl GetService for WifiScanType {
+impl GetService for ScanType {
     fn get_service(&self) -> NetworkingService {
         match self {
-            Self::Nmcli => NetworkingService::NetworkManager,
-            Self::WpaCli => NetworkingService::WpaSupplicant,
-            Self::IW | Self::RuwiJSON => NetworkingService::None,
+            Self::Wifi(WifiScanType::Nmcli) => NetworkingService::NetworkManager,
+            Self::Wifi(WifiScanType::WpaCli) => NetworkingService::WpaSupplicant,
+            Self::Wifi(WifiScanType::IW) | Self::Wifi(WifiScanType::RuwiJSON) => NetworkingService::None,
         }
     }
 }

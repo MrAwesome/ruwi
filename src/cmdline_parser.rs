@@ -1,23 +1,28 @@
 use crate::get_default_interface::get_default_interface;
 use crate::rerr;
 use crate::structs::*;
-use crate::strum_utils::{get_val_as_enum, possible_vals};
-use clap::{App, Arg, ArgMatches};
+use crate::strum_utils::*;
+use clap::{App, Arg, ArgMatches, SubCommand};
 use strum::AsStaticRef;
 
 // TODO: respect force_ask_password
 // TODO: fail if not run as root
 // TODO: use subcommands for conuigurations of options, but still go through all functions always?
 //       or just run certain functions for certain subcommands?
+#[allow(clippy::too_many_lines)]
 fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
+    // TODO: use .aliases for commands
+    // TODO: set (.global(true)).subcommand() where needed?
     let debug = Arg::with_name("debug")
         .short("d")
         .long("debug")
+        .global(true)
         .help("Print out debug information on what ruwi sees.");
 
     let dry_run = Arg::with_name("dry_run")
         .short("D")
         .long("dry-run")
+        .global(true)
         .help("Don't write to or read from any files, interfaces, or networks. Mostly just useful for integration tests.");
 
     let input_file = Arg::with_name("input_file")
@@ -29,6 +34,7 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
     let input_stdin = Arg::with_name("input_stdin")
         .short("I")
         .long("input-stdin")
+        .global(true)
         .help("Instead of running a scan, use scan results from stdin.");
 
     let auto = Arg::with_name("auto").short("a").long("auto").help(
@@ -52,10 +58,11 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .long("ignore-known")
         .help("Do not try to determine if networks are already known. Passwords will be requested always in this mode.");
 
-    let interface = Arg::with_name("interface")
+    let wifi_interface = Arg::with_name("interface")
         .short("i")
         .long("interface")
         .takes_value(true)
+        .global(true)
         .help("The wireless device interface (e.g. wlp3s0) to use. Will attempt to use wpa_cli to infer it, if none given.");
 
     let essid = Arg::with_name("essid")
@@ -75,10 +82,11 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .long("force-ask-password")
         .help("Will always prompt for a password when selecting a network, or passing an SSID with `-e`. Ignored with `-p`, or on connection/output types where a password wouldn't be used anyway.");
 
-    let scan_type = Arg::with_name("scan_type")
+    let wifi_scan_type = Arg::with_name("scan_type")
         .short("s")
         .long("scan-type")
         .takes_value(true)
+        .global(true)
         .default_value(&WifiScanType::default().as_static())
         .possible_values(&possible_vals::<WifiScanType, _>())
         .help("The wifi scanning program to use to get results.");
@@ -103,21 +111,26 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .version("0.2")
         .author("Glenn Hope <glenn.alexander.hope@gmail.com>")
         .about("Combines existing network management layers (netctl, NetworkManager, wicd) and selection utilities (fzf, dmenu) to find, select, configure, and connect to wireless networks.")
-        .arg(auto)
-        .arg(auto_mode)
-        .arg(connect_via)
         .arg(debug)
         .arg(dry_run)
-        .arg(essid)
-        .arg(force_synchronous)
-        .arg(force_ask_password)
-        .arg(interface)
-        .arg(ignore_known)
+        .arg(selection_method)
         .arg(input_file)
         .arg(input_stdin)
-        .arg(password)
-        .arg(scan_type)
-        .arg(selection_method)
+        .subcommand(
+            SubCommand::with_name("wifi")
+            .arg(ignore_known)
+            .arg(force_synchronous)
+            .arg(wifi_interface)
+            .arg(wifi_scan_type)
+            .subcommand(
+                SubCommand::with_name("connect")
+                    .arg(auto)
+                    .arg(auto_mode)
+                    .arg(connect_via)
+                    .arg(essid)
+                    .arg(force_ask_password)
+                    .arg(password)
+        ))
 }
 
 pub(crate) fn get_options() -> Result<Options, RuwiError> {
@@ -144,7 +157,18 @@ fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
         None => get_default_interface(debug, dry_run)?,
     };
 
-    let scan_type = get_val_as_enum::<WifiScanType>(&m, "scan_type");
+    // TODO: better structure where you grab all the subcommand-related options in one pass
+    let TODO = "check for subcommand, and parse wifi-specific things there";
+    let scan_type = match m.subcommand() {
+        (subc_name, Some(sub_m)) if subc_name == RuwiCommand::Wifi(RuwiWifiCommand::default()).to_string() => {
+            ScanType::Wifi(get_val_as_enum::<WifiScanType>(&m, "scan_type"))
+        }
+        // (subc_name, Some(sub_m)) if subc_name == RuwiCommand::Wired(Default::default()).to_string() => {}
+        // (subc_name, Some(sub_m)) if subc_name == RuwiCommand::Bluetooth(Default::default()).to_string() => {}
+        (_, Some(_)) => todo!("Non-wifi commands are not yet implemented."),
+        (_, None) => ScanType::default(),
+    };
+
     let scan_method = if let Some(filename) = m.value_of("input_file").map(String::from) {
         ScanMethod::FromFile(filename)
     } else if m.is_present("input_stdin") {
@@ -153,6 +177,8 @@ fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
         ScanMethod::ByRunning
     };
     validate_scan_method_and_type(&scan_method, &scan_type)?;
+
+    dbg!(m.subcommand());
 
     let auto_mode = if m.is_present("auto") {
         AutoMode::KnownOrAsk
@@ -163,20 +189,37 @@ fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
     let selection_method = get_val_as_enum::<SelectionMethod>(&m, "selection_method");
     let connect_via = get_val_as_enum::<WifiConnectionType>(&m, "connect_via");
 
+//    let TODO = "Clean up!";
+//    let wifi_scan_type = get_val_as_enum::<WifiScanType>(&m, "scan_type");
+//    let cmd_opts = CommandOptions::Wifi(WifiCommandOptions {
+//        scan_type: wifi_scan_type,
+//        scan_method,
+//        interface,
+//        ignore_known,
+//        connect_via,
+//        given_essid,
+//        given_encryption_key,
+//        auto_mode,
+//        force_synchronous_scan,
+//        force_ask_password,
+//        ..Default::default()
+//    });
+
+    let TODO = "should options have the same structure as the cmdline options (WifiOptions, WifiConnectOptions) or similar?";
     let opts = Options {
+        selection_method,
+        debug,
+        dry_run,
         scan_type,
         scan_method,
-        selection_method,
         interface,
         ignore_known,
         connect_via,
-        debug,
         given_essid,
         given_encryption_key,
         auto_mode,
         force_synchronous_scan,
         force_ask_password,
-        dry_run,
         ..Options::default()
     };
 
@@ -189,10 +232,10 @@ fn get_options_impl(m: &ArgMatches) -> Result<Options, RuwiError> {
 // TODO: can this be expressed in the type system somehow?
 fn validate_scan_method_and_type(
     scan_method: &ScanMethod,
-    scan_type: &WifiScanType,
+    scan_type: &ScanType,
 ) -> Result<(), RuwiError> {
     match (scan_method, scan_type) {
-        (ScanMethod::ByRunning, WifiScanType::RuwiJSON) => Err(rerr!(
+        (ScanMethod::ByRunning, ScanType::Wifi(WifiScanType::RuwiJSON)) => Err(rerr!(
                 RuwiErrorKind::InvalidScanTypeAndMethod,
                 "There is currently no binary for providing JSON results, you must format them yourself and pass in via stdin or from a file.",
         )),
@@ -250,34 +293,42 @@ mod tests {
 
     #[test]
     fn test_interface() {
-        let opts = getopts(&["-i", "BFUGG"]);
+        let opts = getopts(&["wifi", "-i", "BFUGG"]);
         assert_eq![opts.interface, "BFUGG"];
-        let opts = getopts(&["--interface", "BLEEBLOO"]);
+        let opts = getopts(&["wifi", "connect", "-i", "HARBO"]);
+        assert_eq![opts.interface, "HARBO"];
+        let opts = getopts(&["wifi", "--interface", "BLEEBLOO"]);
         assert_eq![opts.interface, "BLEEBLOO"];
     }
 
     #[test]
     fn test_ignore_known() {
-        let opts = getopts(&[]);
+        let opts = getopts(&["wifi"]);
         assert![!opts.ignore_known];
-        let opts = getopts(&["--ignore-known"]);
+        let opts = getopts(&["wifi", "connect"]);
+        assert![!opts.ignore_known];
+        let opts = getopts(&["wifi", "--ignore-known"]);
+        assert![opts.ignore_known];
+        let opts = getopts(&["wifi", "connect", "--ignore-known"]);
         assert![opts.ignore_known];
     }
 
     #[test]
     fn test_scan_type() {
-        let expected = WifiScanType::WpaCli;
-        let opts = getopts(&["-s", expected.to_string().as_ref()]);
+        let wifi_type = WifiScanType::WpaCli;
+        let expected = ScanType::Wifi(wifi_type.clone());
+        let opts = getopts(&["wifi", "connect", "-s", wifi_type.to_string().as_ref()]);
         assert_eq![opts.scan_type, expected];
 
-        let expected = WifiScanType::IW;
-        let opts = getopts(&["--scan-type", expected.to_string().as_ref()]);
+        let wifi_type = WifiScanType::IW;
+        let expected = ScanType::Wifi(wifi_type.clone());
+        let opts = getopts(&["wifi", "connect", "--scan-type", wifi_type.to_string().as_ref()]);
         assert_eq![opts.scan_type, expected];
     }
 
     #[test]
     fn test_scan_method_default() {
-        let scan_type = WifiScanType::default();
+        let scan_type = ScanType::default();
         let scan_method = ScanMethod::default();
         let opts = getopts(&[]);
         assert_eq![opts.scan_method, scan_method];
@@ -286,23 +337,24 @@ mod tests {
 
     #[test]
     fn test_scan_method_stdin() {
-        let scan_type = WifiScanType::default();
+        let scan_type = ScanType::default();
         let scan_method = ScanMethod::FromStdin;
         let opts = getopts(&["-I"]);
         assert_eq![opts.scan_method, scan_method];
         assert_eq![opts.scan_type, scan_type];
 
-        let scan_type = WifiScanType::WpaCli;
+        let wifi_scan_type = WifiScanType::WpaCli;
+        let scan_type = ScanType::Wifi(wifi_scan_type.clone());
         let scan_method = ScanMethod::FromStdin;
-        let opts = getopts(&["-I", "-s", scan_type.to_string().as_ref()]);
+        let opts = getopts(&["wifi", "-I", "-s", wifi_scan_type.to_string().as_ref()]);
         assert_eq![opts.scan_method, scan_method];
         assert_eq![opts.scan_type, scan_type];
     }
 
     #[test]
     fn test_invalid_type_and_method() {
-        let st = WifiScanType::RuwiJSON;
-        let opts = getopts_safe(&["-s", st.to_string().as_ref()]);
+        let wst = WifiScanType::RuwiJSON;
+        let opts = getopts_safe(&["wifi", "-s", wst.to_string().as_ref()]);
         assert![opts.is_err()];
     }
 
@@ -320,44 +372,59 @@ mod tests {
     #[test]
     fn test_give_password() {
         let pw = "fakepasswordddd";
-        let opts = getopts(&["-p", pw]);
+        let opts = getopts(&["wifi", "connect", "-p", pw]);
         assert_eq![opts.given_encryption_key.unwrap(), pw];
 
         let pw2 = "FAKEP_SSS_A_W_W_W_W";
-        let opts = getopts(&["--password", pw2]);
+        let opts = getopts(&["wifi", "connect", "--password", pw2]);
         assert_eq![opts.given_encryption_key.unwrap(), pw2];
     }
 
     #[test]
     fn test_force_ask_password() {
-        let opts = getopts(&[]);
+        let opts = getopts(&["wifi", "connect"]);
         assert![!opts.force_ask_password];
 
-        let opts = getopts(&["-P"]);
+        let opts = getopts(&["wifi", "connect", "-P"]);
         assert![opts.force_ask_password];
 
-        let opts = getopts(&["--force-ask-password"]);
+        let opts = getopts(&["wifi", "connect", "--force-ask-password"]);
         assert![opts.force_ask_password];
     }
 
     #[test]
     fn test_auto_mode() {
-        let opts = getopts(&[]);
+        let opts = getopts(&["wifi", "connect"]);
         assert_eq![opts.auto_mode, AutoMode::default()];
 
-        let opts = getopts(&["-a"]);
+        let opts = getopts(&["wifi", "connect", "-a"]);
         assert_eq![opts.auto_mode, AutoMode::KnownOrAsk];
 
-        let opts = getopts(&["--auto"]);
+        let opts = getopts(&["wifi", "connect", "--auto"]);
         assert_eq![opts.auto_mode, AutoMode::KnownOrAsk];
 
-        let opts = getopts(&["-A", AutoMode::KnownOrFail.to_string().as_ref()]);
+        let opts = getopts(&[
+            "wifi",
+            "connect",
+            "-A",
+            AutoMode::KnownOrFail.to_string().as_ref(),
+        ]);
         assert_eq![opts.auto_mode, AutoMode::KnownOrFail];
 
-        let opts = getopts(&["-A", AutoMode::First.to_string().as_ref()]);
+        let opts = getopts(&[
+            "wifi",
+            "connect",
+            "-A",
+            AutoMode::First.to_string().as_ref(),
+        ]);
         assert_eq![opts.auto_mode, AutoMode::First];
 
-        let opts = getopts(&["--auto-mode", AutoMode::KnownOrAsk.to_string().as_ref()]);
+        let opts = getopts(&[
+            "wifi",
+            "connect",
+            "--auto-mode",
+            AutoMode::KnownOrAsk.to_string().as_ref(),
+        ]);
         assert_eq![opts.auto_mode, AutoMode::KnownOrAsk];
     }
 
@@ -373,20 +440,26 @@ mod tests {
 
     #[test]
     fn test_force_synchronous_scan() {
-        let opts = getopts(&[]);
+        let opts = getopts(&["wifi", "connect"]);
         assert![!opts.force_synchronous_scan];
 
-        let opts = getopts(&["-f"]);
+        let opts = getopts(&["wifi"]);
+        assert![!opts.force_synchronous_scan];
+
+        let opts = getopts(&["wifi", "-f"]);
         assert![opts.force_synchronous_scan];
 
-        let opts = getopts(&["--force-sync"]);
+        let opts = getopts(&["wifi", "connect", "-f"]);
+        assert![opts.force_synchronous_scan];
+
+        let opts = getopts(&["wifi", "connect", "--force-sync"]);
         assert![opts.force_synchronous_scan];
     }
 
     #[test]
     fn test_incorrect_selection_method() {
-        let short_res = getopts_safe(&["-s", "BOOOBLOOOBOO"]);
-        let long_res = getopts_safe(&["--selection-method", "BOOWOEOOOOOO"]);
+        let short_res = getopts_safe(&["wifi", "-s", "BOOOBLOOOBOO"]);
+        let long_res = getopts_safe(&["wifi", "--selection-method", "BOOWOEOOOOOO"]);
 
         let short_failed = short_res.is_err();
         let long_failed = long_res.is_err();

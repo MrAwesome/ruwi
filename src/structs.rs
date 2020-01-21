@@ -4,12 +4,12 @@ use std::error::Error;
 use std::fmt;
 use std::fmt::Debug;
 use std::ops::{Deref, DerefMut};
-use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
+use strum_macros::{AsStaticStr, Display, EnumIter, EnumString, AsRefStr};
 
 pub static PROG_NAME: &str = "ruwi";
 
-// TODO: Strum
-#[derive(Debug, Clone)]
+#[strum(serialize_all = "snake_case")]
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr, AsRefStr)]
 pub enum RuwiCommand {
     Wifi(RuwiWifiCommand),
     Wired(RuwiWiredCommand),
@@ -22,7 +22,8 @@ impl Default for RuwiCommand {
     }
 }
 
-#[derive(Debug, Clone)]
+#[strum(serialize_all = "snake_case")]
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr, AsRefStr)]
 pub enum RuwiWifiCommand {
     Connect
     // Select
@@ -35,7 +36,8 @@ impl Default for RuwiWifiCommand {
     }
 }
 
-#[derive(Debug, Clone)]
+#[strum(serialize_all = "snake_case")]
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr, AsRefStr)]
 pub enum RuwiWiredCommand {
     Connect
 }
@@ -46,7 +48,8 @@ impl Default for RuwiWiredCommand {
     }
 }
 
-#[derive(Debug, Clone)]
+#[strum(serialize_all = "snake_case")]
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr, AsRefStr)]
 pub enum RuwiBluetoothCommand {
     Pair
 }
@@ -60,38 +63,75 @@ impl Default for RuwiBluetoothCommand {
 
 #[derive(Debug, Clone)]
 pub struct Options {
-    pub scan_type: WifiScanType,
-    pub scan_method: ScanMethod,
+    pub debug: bool,
+    pub dry_run: bool,
     pub selection_method: SelectionMethod,
-    pub interface: String,
+    pub scan_type: ScanType,
+    pub scan_method: ScanMethod,
+    pub interface: String, // TODO: make some struct?
     pub ignore_known: bool,
     pub connect_via: WifiConnectionType,
-    pub debug: bool,
     pub given_essid: Option<String>,
     pub given_encryption_key: Option<String>,
     pub auto_mode: AutoMode,
     pub force_synchronous_scan: bool,
     pub force_ask_password: bool,
     pub synchronous_retry: Option<SynchronousRescanType>,
-    pub dry_run: bool,
 }
 
 impl Default for Options {
     fn default() -> Self {
+	Self {
+	    scan_type: ScanType::default(),
+	    scan_method: ScanMethod::default(),
+	    interface: "wlan0".to_string(),
+	    ignore_known: false,
+	    selection_method: SelectionMethod::default(),
+	    connect_via: WifiConnectionType::default(),
+	    debug: false,
+	    given_essid: None,
+	    given_encryption_key: None,
+	    auto_mode: AutoMode::default(),
+	    force_synchronous_scan: false,
+	    force_ask_password: false,
+	    synchronous_retry: None,
+	    #[cfg(not(test))]
+	    dry_run: false,
+	    #[cfg(test)]
+	    dry_run: true,
+	}
+    }
+}
+
+impl Options {
+    #[cfg(test)]
+    pub fn from_scan_type(scan_type: ScanType) -> Self {
         Self {
-            scan_type: WifiScanType::default(),
-            scan_method: ScanMethod::default(),
-            interface: "wlan0".to_string(),
-            ignore_known: false,
-            selection_method: SelectionMethod::default(),
-            connect_via: WifiConnectionType::default(),
+            scan_type,
+            ..Self::default()
+        }
+    }
+
+    pub fn with_synchronous_retry(&self, t: SynchronousRescanType) -> Self {
+        Self {
+            synchronous_retry: Some(t),
+            ..self.clone()
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct GlobalOptions {
+    pub debug: bool,
+    pub dry_run: bool,
+    pub selection_method: SelectionMethod,
+}
+
+impl Default for GlobalOptions {
+    fn default() -> Self {
+        Self {
             debug: false,
-            given_essid: None,
-            given_encryption_key: None,
-            auto_mode: AutoMode::default(),
-            force_synchronous_scan: false,
-            force_ask_password: false,
-            synchronous_retry: None,
+            selection_method: SelectionMethod::default(),
             #[cfg(not(test))]
             dry_run: false,
             #[cfg(test)]
@@ -100,7 +140,56 @@ impl Default for Options {
     }
 }
 
-impl Options {
+#[derive(Debug, Clone)]
+pub enum CommandOptions {
+    Wifi(WifiCommandOptions),
+    Bluetooth(BluetoothCommandOptions),
+}
+
+impl Default for CommandOptions {
+    fn default() -> Self {
+        Self::Wifi(WifiCommandOptions::default())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct BluetoothCommandOptions {
+}
+
+#[derive(Debug, Clone)]
+pub struct WifiCommandOptions {
+    pub scan_type: WifiScanType,
+    pub scan_method: ScanMethod,
+    pub interface: String, // TODO: make some struct?
+    pub ignore_known: bool,
+    pub connect_via: WifiConnectionType,
+    pub given_essid: Option<String>,
+    pub given_encryption_key: Option<String>,
+    pub auto_mode: AutoMode,
+    pub force_synchronous_scan: bool,
+    pub force_ask_password: bool,
+    pub synchronous_retry: Option<SynchronousRescanType>,
+}
+
+impl Default for WifiCommandOptions {
+    fn default() -> Self {
+        Self {
+            scan_type: WifiScanType::default(),
+            scan_method: ScanMethod::default(),
+            interface: "wlan0".to_string(),
+            ignore_known: false,
+            connect_via: WifiConnectionType::default(),
+            given_essid: None,
+            given_encryption_key: None,
+            auto_mode: AutoMode::default(),
+            force_synchronous_scan: false,
+            force_ask_password: false,
+            synchronous_retry: None,
+        }
+    }
+}
+
+impl WifiCommandOptions {
     #[cfg(test)]
     pub fn from_scan_type(scan_type: WifiScanType) -> Self {
         Self {
@@ -116,6 +205,7 @@ impl Options {
         }
     }
 }
+
 
 // TODO: set to pub(crate) temporarily to find unused values
 #[derive(Debug, PartialEq, Eq)]
@@ -205,6 +295,18 @@ impl Default for ScanMethod {
 
 #[strum(serialize_all = "snake_case")]
 #[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
+pub enum ScanType {
+    Wifi(WifiScanType)
+}
+
+impl Default for ScanType {
+    fn default() -> Self {
+        Self::Wifi(WifiScanType::default())
+    }
+}
+
+#[strum(serialize_all = "snake_case")]
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
 pub enum WifiScanType {
     IW,
     WpaCli,
@@ -280,13 +382,13 @@ pub enum SynchronousRescanType {
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ScanResult {
-    pub scan_type: WifiScanType,
+    pub scan_type: ScanType,
     pub scan_output: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ParseResult {
-    pub scan_type: WifiScanType,
+    pub scan_type: ScanType,
     pub seen_networks: Vec<WirelessNetwork>,
     pub line_parse_errors: Vec<(String, IndividualParseError)>,
 }

@@ -13,10 +13,11 @@ pub(crate) fn parse_result(
 ) -> Result<ParseResult, RuwiError> {
     let st = scan_result.scan_type.clone();
     let res = match &st {
-        WifiScanType::Nmcli => parse_nmcli_scan(options, &scan_result.scan_output, st),
-        WifiScanType::WpaCli => parse_wpa_cli_scan(options, &scan_result.scan_output, st),
-        WifiScanType::IW => parse_iw_scan(options, &scan_result.scan_output, st),
-        WifiScanType::RuwiJSON => Err(nie("JSON support is coming soon!")),
+        // Impl on ScanResult, match ScanType and then WifiScanType, then this all becomes scan_result.parse()
+        ScanType::Wifi(WifiScanType::Nmcli) => parse_nmcli_scan(options, &scan_result.scan_output, st),
+        ScanType::Wifi(WifiScanType::WpaCli) => parse_wpa_cli_scan(options, &scan_result.scan_output, st),
+        ScanType::Wifi(WifiScanType::IW) => parse_iw_scan(options, &scan_result.scan_output, st),
+        ScanType::Wifi(WifiScanType::RuwiJSON) => Err(nie("JSON support is coming soon!")),
     };
 
     if options.debug {
@@ -28,7 +29,7 @@ pub(crate) fn parse_result(
 fn parse_iw_scan(
     options: &Options,
     output: &str,
-    scan_type: WifiScanType,
+    scan_type: ScanType,
 ) -> Result<ParseResult, RuwiError> {
     let network_chunks = break_iw_output_into_chunks_per_network(options, output)?;
     let mut seen_networks = vec![];
@@ -155,7 +156,7 @@ fn err_iw_no_networks_seen(options: &Options) -> RuwiError {
 fn parse_wpa_cli_scan(
     _options: &Options,
     output: &str,
-    scan_type: WifiScanType,
+    scan_type: ScanType,
 ) -> Result<ParseResult, RuwiError> {
     let mut lines = output.trim().lines().map(ToString::to_string);
     let mut networks = vec![];
@@ -262,7 +263,7 @@ mod tests {
 
     #[test]
     fn test_iw_one_network() {
-        let st = WifiScanType::IW;
+        let st = ScanType::Wifi(WifiScanType::IW);
         let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
             scan_type: st.clone(),
@@ -284,7 +285,7 @@ mod tests {
 
     #[test]
     fn test_iw_two_different_networks() {
-        let st = WifiScanType::IW;
+        let st = ScanType::Wifi(WifiScanType::IW);
         let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
             scan_type: st.clone(),
@@ -315,7 +316,7 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_no_networks() {
-        let st = WifiScanType::WpaCli;
+        let st = ScanType::Wifi(WifiScanType::WpaCli);
         let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
             scan_type: st,
@@ -327,7 +328,7 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_two_different_networks() {
-        let st = WifiScanType::WpaCli;
+        let st = ScanType::Wifi(WifiScanType::WpaCli);
         let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
             scan_type: st.clone(),
@@ -358,7 +359,7 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_seven_networks_two_duplicates_two_empty() {
-        let st = WifiScanType::WpaCli;
+        let st = ScanType::Wifi(WifiScanType::WpaCli);
         let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
             scan_type: st.clone(),
@@ -424,7 +425,7 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_two_lines_missing_info() {
-        let st = WifiScanType::WpaCli;
+        let st = ScanType::Wifi(WifiScanType::WpaCli);
         let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
             scan_type: st.clone(),
@@ -455,7 +456,7 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_two_networks_one_with_signal_level_parse_error() {
-        let st = WifiScanType::WpaCli;
+        let st = ScanType::Wifi(WifiScanType::WpaCli);
         let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
             scan_type: st.clone(),
@@ -481,7 +482,7 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_broken_input_two_words() {
-        let st = WifiScanType::WpaCli;
+        let st = ScanType::Wifi(WifiScanType::WpaCli);
         let options = Options::from_scan_type(st.clone());
         let scan_result = ScanResult {
             scan_type: st,
@@ -493,7 +494,7 @@ mod tests {
 
     #[test]
     fn test_nmcli_many_networks() {
-        let st = WifiScanType::Nmcli;
+        let st = ScanType::Wifi(WifiScanType::Nmcli);
         let options = Options::default();
         let scan_result = ScanResult {
             scan_type: st.clone(),

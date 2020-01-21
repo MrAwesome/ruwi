@@ -3,7 +3,7 @@ use crate::structs::*;
 pub(crate) fn parse_nmcli_scan(
     _options: &Options,
     output: &str,
-    scan_type: WifiScanType,
+    scan_type: ScanType,
 ) -> Result<ParseResult, RuwiError> {
     let mut seen_networks = vec![];
     let mut line_parse_errors = vec![];

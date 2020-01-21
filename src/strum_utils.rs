@@ -16,7 +16,11 @@ where
     T::Err: std::fmt::Debug,
 {
     match m.value_of(arg) {
-        Some(x) => T::from_str(x).unwrap_or_else(|_| panic!(format!("Failed to parse: {}", arg))),
+        Some(x) => parse_as_enum(x),
         None => T::default(),
     }
+}
+
+pub(crate) fn parse_as_enum<T: FromStr>(x: &str) -> T {
+    T::from_str(x).unwrap_or_else(|_| panic!(format!("Failed to parse: {}", x)))
 }

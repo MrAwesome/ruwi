@@ -19,7 +19,7 @@ mod tests {
     fn get_options(auto_mode: &AutoMode) -> Options {
         Options {
             auto_mode: auto_mode.clone(),
-            ..Default::default()
+            ..Options::default()
         }
     }
 
@@ -28,15 +28,15 @@ mod tests {
             networks: vec![
                 AnnotatedWirelessNetwork {
                     known: false,
-                    ..Default::default()
+                    ..AnnotatedWirelessNetwork::default()
                 },
                 AnnotatedWirelessNetwork {
                     known: false,
-                    ..Default::default()
+                    ..AnnotatedWirelessNetwork::default()
                 },
                 AnnotatedWirelessNetwork {
                     known: false,
-                    ..Default::default()
+                    ..AnnotatedWirelessNetwork::default()
                 },
             ],
         }
@@ -47,15 +47,15 @@ mod tests {
             networks: vec![
                 AnnotatedWirelessNetwork {
                     known: true,
-                    ..Default::default()
+                    ..AnnotatedWirelessNetwork::default()
                 },
                 AnnotatedWirelessNetwork {
                     known: true,
-                    ..Default::default()
+                    ..AnnotatedWirelessNetwork::default()
                 },
                 AnnotatedWirelessNetwork {
                     known: true,
-                    ..Default::default()
+                    ..AnnotatedWirelessNetwork::default()
                 },
             ],
         }
@@ -91,7 +91,7 @@ mod tests {
             auto_mode: AutoMode,
             expected_should_retry: bool,
         ) -> Self {
-            SyncTestDataProvider {
+            Self {
                 network_list_type,
                 auto_mode,
                 expected_should_retry,
@@ -135,7 +135,7 @@ mod tests {
             network_list_type,
             auto_mode,
             expected_should_retry,
-        } in get_data_providers().iter()
+        } in &get_data_providers()
         {
             let options = get_options(auto_mode);
             let networks = get_networks(network_list_type);

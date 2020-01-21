@@ -44,6 +44,7 @@ use structs::*;
 // TODO(mid): add colors to output / use a real logging library
 // TODO(mid): add a "list seen networks" mode?
 // TODO(mid): have known netctl networks return essid, for matching/annotation with config name
+// TODO(mid): kill, or suggest killing, wpa_supplicant if netctl fails to connect
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
 // TODO(low): flag to disable looking for known networks
 // TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
