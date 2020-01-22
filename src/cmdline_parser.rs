@@ -167,24 +167,9 @@ fn get_options_impl(m: &ArgMatches) -> Result<WifiOptions, RuwiError> {
 
     let TODO = "Should scan type just be associated with the options type?";
     let TODO = "Remove all references to WifiOptions from this file, return/test something less specific?";
-
-//    let TODO = "Clean up!";
-//    let wifi_scan_type = get_val_as_enum::<WifiScanType>(&m, "scan_type");
-//    let cmd_opts = CommandOptions::Wifi(WifiCommandOptions {
-//        scan_type: wifi_scan_type,
-//        scan_method,
-//        interface,
-//        ignore_known,
-//        connect_via,
-//        given_essid,
-//        given_encryption_key,
-//        auto_mode,
-//        force_synchronous_scan,
-//        force_ask_password,
-//        ..Default::default()
-//    });
-
     let TODO = "should options have the same structure as the cmdline options (WifiOptions, WifiConnectOptions) or similar?";
+
+    let TODO = "FIX UNIT TESTS! :D";
 
     if opts.d() {
         dbg![&opts];
