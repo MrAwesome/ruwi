@@ -7,9 +7,7 @@ use wifi::WifiStep;
 
 const SANITY_LOOP_CAP: u32 = 1000;
 
-pub fn run_ruwi_using_state_machine(
-    command: &RuwiCommand,
-) -> Result<(), RuwiError> {
+pub fn run_ruwi_using_state_machine(command: &RuwiCommand) -> Result<(), RuwiError> {
     let sanity_loop_cap = SANITY_LOOP_CAP;
 
     match command {
