@@ -15,12 +15,12 @@ use std::path::Path;
 use unescape::unescape;
 
 // TODO: unit test the logic in this function
-pub(crate) fn find_known_network_names(options: &WifiOptions) -> Result<KnownNetworkNames, RuwiError> {
-    if options.is_dry_run() || options.ignore_known {
+pub(crate) fn find_known_network_names(options: &WifiConnectOptions) -> Result<KnownNetworkNames, RuwiError> {
+    if options.get_dry_run() || options.get_ignore_known() {
         return Ok(KnownNetworkNames::default());
     }
 
-    let known_network_names = match options.connect_via {
+    let known_network_names = match options.get_connect_via() {
         WifiConnectionType::Netctl => find_known_netctl_networks()
             .map_err(|_e| rerr!(RuwiErrorKind::KnownNetworksFetchError, "Failed to fetch known network names for netctl! Does /etc/netctl/ exist? Run with `-d` for more info.")),
         WifiConnectionType::NetworkManager => find_known_networkmanager_networks(&options),
@@ -35,12 +35,12 @@ pub(crate) fn find_known_network_names(options: &WifiOptions) -> Result<KnownNet
 }
 
 #[cfg(test)]
-fn find_known_networkmanager_networks(_options: &WifiOptions) -> Result<KnownNetworkNames, RuwiError> {
+fn find_known_networkmanager_networks(_options: &WifiConnectOptions) -> Result<KnownNetworkNames, RuwiError> {
     Ok(KnownNetworkNames::default())
 }
 
 #[cfg(not(test))]
-fn find_known_networkmanager_networks(options: &WifiOptions) -> Result<KnownNetworkNames, RuwiError> {
+fn find_known_networkmanager_networks(options: &WifiConnectOptions) -> Result<KnownNetworkNames, RuwiError> {
     let cmd_output = run_command_pass_stdout(
         options.d(),
         "nmcli",

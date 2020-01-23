@@ -11,7 +11,7 @@ update_config=1
 
 See https://wiki.archlinux.org/index.php/WPA_supplicant#Connecting_with_wpa_cli for more info.";
 
-pub(crate) fn initialize_wpa_supplicant(options: &WifiOptions) -> Result<(), RuwiError> {
+pub(crate) fn initialize_wpa_supplicant(options: &WifiConnectOptions) -> Result<(), RuwiError> {
     //        /etc/wpa_supplicant/wpa_supplicant.conf
     //    ctrl_interface=/run/wpa_supplicant
     //    ctrl_interface_group=wheel
@@ -55,7 +55,7 @@ pub(crate) fn initialize_wpa_supplicant(options: &WifiOptions) -> Result<(), Ruw
     ))
 }
 
-fn wpa_ping_success(options: &WifiOptions) -> bool {
+fn wpa_ping_success(options: &WifiConnectOptions) -> bool {
     let ping_status = run_command_status_dumb(options.d(), "wpa_cli", &["ping"]);
 
     if options.d() {

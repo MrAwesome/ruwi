@@ -3,6 +3,7 @@ use crate::rerr;
 use crate::run_commands::*;
 use crate::structs::*;
 
+// TODO: make interface a struct of some sort?
 pub(crate) fn get_default_interface(debug: bool, dry_run: bool) -> Result<String, RuwiError> {
     if dry_run {
         return Ok("FAKE_INTERFACE".to_string());

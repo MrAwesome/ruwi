@@ -7,6 +7,7 @@ extern crate clap;
 extern crate regex;
 extern crate strum;
 extern crate strum_macros;
+extern crate typed_builder;
 
 pub(crate) mod annotate_networks;
 pub(crate) mod cmdline_parser;
@@ -60,9 +61,8 @@ use structs::*;
 // TODO(think): make -a the default?
 
 pub fn run_ruwi() -> Result<(), RuwiError> {
-    let command = RuwiCommand::default();
-    let options = &get_options()?;
-    run_ruwi_using_state_machine(&command, options)
+    let command = &get_options()?;
+    run_ruwi_using_state_machine(&command)
 }
 
 #[cfg(test)]

@@ -2,7 +2,7 @@ use crate::structs::*;
 
 // TODO: unit test that networks passed in equal networks passed out
 pub(crate) fn annotate_networks(
-    options: &WifiOptions,
+    options: &WifiConnectOptions,
     networks: &[WirelessNetwork],
     known_network_names: &KnownNetworkNames,
 ) -> AnnotatedNetworks {
@@ -39,7 +39,7 @@ mod tests {
         };
         let mut known_networks = KnownNetworkNames::default();
         known_networks.insert(essid);
-        let annotated_networks = annotate_networks(&WifiOptions::default(), &vec![nw], &known_networks);
+        let annotated_networks = annotate_networks(&WifiConnectOptions::builder().build(), &vec![nw], &known_networks);
 
         let resulting_nw = annotated_networks.networks.first().unwrap();
         assert![resulting_nw.known];
@@ -53,7 +53,7 @@ mod tests {
             ..Default::default()
         };
         let known_networks = Default::default();
-        let annotated_networks = annotate_networks(&WifiOptions::default(), &vec![nw], &known_networks);
+        let annotated_networks = annotate_networks(&WifiConnectOptions::builder().build(), &vec![nw], &known_networks);
 
         let resulting_nw = annotated_networks.networks.first().unwrap();
         assert![!resulting_nw.known];
@@ -67,7 +67,7 @@ mod tests {
             ..Default::default()
         };
         let known_networks = Default::default();
-        let annotated_networks = annotate_networks(&WifiOptions::default(), &vec![nw], &known_networks);
+        let annotated_networks = annotate_networks(&WifiConnectOptions::builder().build(), &vec![nw], &known_networks);
 
         let resulting_nw = annotated_networks.networks.first().unwrap();
         assert_eq![essid, resulting_nw.essid];
@@ -81,7 +81,7 @@ mod tests {
             ..Default::default()
         };
         let known_networks = Default::default();
-        let annotated_networks = annotate_networks(&WifiOptions::default(), &vec![nw], &known_networks);
+        let annotated_networks = annotate_networks(&WifiConnectOptions::builder().build(), &vec![nw], &known_networks);
 
         let resulting_nw = annotated_networks.networks.first().unwrap();
         assert![!resulting_nw.known];

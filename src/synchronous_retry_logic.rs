@@ -1,12 +1,12 @@
 use crate::structs::*;
 
 pub(crate) fn should_retry_with_synchronous_scan(
-    options: &WifiOptions,
+    options: &WifiConnectOptions,
     annotated_networks: &AnnotatedNetworks,
 ) -> bool {
     let networks = &annotated_networks.networks;
     networks.is_empty()
-        || match options.auto_mode {
+        || match options.get_auto_mode() {
             AutoMode::KnownOrAsk | AutoMode::KnownOrFail => !networks.iter().any(|x| x.known),
             AutoMode::First | AutoMode::Ask => false,
         }
@@ -16,11 +16,10 @@ pub(crate) fn should_retry_with_synchronous_scan(
 mod tests {
     use super::*;
 
-    fn get_options(auto_mode: &AutoMode) -> WifiOptions {
-        WifiOptions {
-            auto_mode: auto_mode.clone(),
-            ..WifiOptions::default()
-        }
+    fn get_options(auto_mode: &AutoMode) -> WifiConnectOptions {
+        WifiConnectOptions::builder()
+            .auto_mode(auto_mode.clone())
+        .build()
     }
 
     fn get_three_unknown_networks() -> AnnotatedNetworks {

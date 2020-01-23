@@ -11,7 +11,7 @@ pub(crate) enum NetworkingService {
 }
 
 impl NetworkingService {
-    pub(crate) fn start(&self, options: &WifiOptions) -> Result<(), RuwiError> {
+    pub(crate) fn start(&self, options: &WifiConnectOptions) -> Result<(), RuwiError> {
         match self {
             Self::Netctl => start_netctl(options),
             Self::NetworkManager => start_networkmanager(options),
@@ -21,7 +21,7 @@ impl NetworkingService {
     }
 }
 
-fn start_netctl(options: &WifiOptions) -> Result<(), RuwiError> {
+fn start_netctl(options: &WifiConnectOptions) -> Result<(), RuwiError> {
     run_command_pass(
         options.d(),
         "systemctl",
@@ -31,7 +31,7 @@ fn start_netctl(options: &WifiOptions) -> Result<(), RuwiError> {
     )
 }
 
-fn start_networkmanager(options: &WifiOptions) -> Result<(), RuwiError> {
+fn start_networkmanager(options: &WifiConnectOptions) -> Result<(), RuwiError> {
     run_command_pass(
         options.d(),
         "systemctl",

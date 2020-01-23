@@ -6,11 +6,11 @@ use crate::structs::*;
 use crate::service_management::GetService;
 
 pub(crate) fn connect_to_network(
-    options: &WifiOptions,
+    options: &WifiConnectOptions,
     selected_network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> Result<ConnectionResult, RuwiError> {
-    let cv = &options.connect_via;
+    let cv = options.get_connect_via();
     cv.get_service().start(options)?;
 
     match cv {
@@ -75,10 +75,10 @@ pub(crate) fn connect_to_network(
 }
 
 fn connect_via_netctl(
-    options: &WifiOptions,
+    options: &WifiConnectOptions,
     selected_network: &AnnotatedWirelessNetwork,
 ) -> Result<ConnectionResult, RuwiError> {
-    if options.is_dry_run() {
+    if options.get_dry_run() {
         return Ok(ConnectionResult {
             connection_type: WifiConnectionType::Netctl,
         });
@@ -103,7 +103,7 @@ fn connect_via_netctl(
 }
 
 fn connect_via_networkmanager(
-    options: &WifiOptions,
+    options: &WifiConnectOptions,
     selected_network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> Result<ConnectionResult, RuwiError> {
@@ -117,7 +117,7 @@ fn connect_via_networkmanager(
     //       if connection is unsuccessful?
     // TODO TODO TODO TODO
 
-    if options.is_dry_run() {
+    if options.get_dry_run() {
         return Ok(ConnectionResult {
             connection_type: WifiConnectionType::NetworkManager,
         });
@@ -150,7 +150,7 @@ mod tests {
 
     //    #[test]
     //    fn test_connect_via_netctl_pass() {
-    //        let opts = WifiOptions::default();
+    //        let opts = WifiConnectOptions::default();
     //        let nw = AnnotatedWirelessNetwork::default();
     //        // TODO: test connect based on nw passed in
     //        let _res = connect_via_netctl(&opts, &nw);

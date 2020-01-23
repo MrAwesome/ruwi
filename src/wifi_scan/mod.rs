@@ -18,9 +18,9 @@ pub(crate) static SYNCHRONOUS_RETRY_DELAY_SECS: f64 = 0.3;
 
 pub(crate) static DEVICE_OR_RESOURCE_BUSY_EXIT_CODE: i32 = 240;
 
-pub(crate) fn wifi_scan(options: &WifiOptions) -> Result<ScanResult, RuwiError> {
-    let sm = options.scan_method.clone();
-    let st = options.scan_type.clone();
+pub(crate) fn wifi_scan(options: &WifiConnectOptions) -> Result<ScanResult, RuwiError> {
+    let sm = options.get_scan_method().clone();
+    let st = options.get_scan_type().clone();
     st.get_service().start(options)?;
 
     let res = match sm {
@@ -45,7 +45,7 @@ pub(crate) fn wifi_scan(options: &WifiOptions) -> Result<ScanResult, RuwiError> 
 }
 
 fn get_scan_contents_from_stdin(
-    _options: &WifiOptions,
+    _options: &WifiConnectOptions,
     scan_type: ScanType,
 ) -> Result<ScanResult, RuwiError> {
     let mut stdin_contents = "".into();
@@ -65,7 +65,7 @@ fn get_scan_contents_from_stdin(
 }
 
 fn get_scan_contents_from_file(
-    _options: &WifiOptions,
+    _options: &WifiConnectOptions,
     scan_type: ScanType,
     filename: &str,
 ) -> Result<ScanResult, RuwiError> {
@@ -89,7 +89,7 @@ fn get_scan_contents_from_file(
     })
 }
 
-fn run_wpa_cli_scan(options: &WifiOptions, scan_type: ScanType) -> Result<ScanResult, RuwiError> {
+fn run_wpa_cli_scan(options: &WifiConnectOptions, scan_type: ScanType) -> Result<ScanResult, RuwiError> {
     let err_msg = concat!(
         "Failed to scan with `wpa_cli scan_results`. ",
         "Is wpa_supplicant running? Is it installed? ",
@@ -131,17 +131,17 @@ mod tests {
             .unwrap()
     }
 
-    pub(crate) fn command_fail_with_exitcode_1(_options: &WifiOptions) -> Result<Output, RuwiError> {
+    pub(crate) fn command_fail_with_exitcode_1(_options: &WifiConnectOptions) -> Result<Output, RuwiError> {
         Ok(command_fail_with_exitcode(1))
     }
 
-    pub(crate) fn command_fail_with_device_or_resource_busy(_options: &WifiOptions) -> Result<Output, RuwiError> {
+    pub(crate) fn command_fail_with_device_or_resource_busy(_options: &WifiConnectOptions) -> Result<Output, RuwiError> {
         Ok(command_fail_with_exitcode(
             DEVICE_OR_RESOURCE_BUSY_EXIT_CODE,
         ))
     }
 
-    pub(crate) fn command_pass(_opts: &WifiOptions) -> Result<Output, RuwiError> {
+    pub(crate) fn command_pass(_opts: &WifiConnectOptions) -> Result<Output, RuwiError> {
         Ok(Command::new("/bin/echo")
             .arg(FAKE_OUTPUT)
             .stdout(Stdio::piped())

@@ -49,7 +49,7 @@ pub(crate) enum WifiStep {
 }
 
 impl RuwiStep for WifiStep {
-    fn exec(self, command: &RuwiCommand, options: &WifiOptions) -> Result<Self, RuwiError> {
+    fn exec(self, command: &RuwiCommand, options: &WifiConnectOptions) -> Result<Self, RuwiError> {
         wifi_exec(self, command, options)
     }
 }
@@ -57,11 +57,11 @@ impl RuwiStep for WifiStep {
 fn wifi_exec(
     step: WifiStep,
     _command: &RuwiCommand,
-    options: &WifiOptions,
+    options: &WifiConnectOptions,
 ) -> Result<WifiStep, RuwiError> {
         match step {
         WifiStep::ConnectionInit => {
-            if let Some(essid) = &options.given_essid {
+            if let Some(essid) = &options.get_given_essid() {
                 let selected_network = get_network_from_given_essid(options, &essid)?;
                 Ok(WifiStep::PasswordAsker { selected_network })
             } else {
@@ -171,11 +171,11 @@ fn term_step() -> Result<WifiStep, RuwiError> {
 }
 
 fn get_network_from_given_essid(
-    options: &WifiOptions,
+    options: &WifiConnectOptions,
     essid: &str,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
     let is_known = find_known_network_names(options)?.contains(essid);
-    let is_encrypted = options.given_encryption_key.is_some();
+    let is_encrypted = options.get_given_encryption_key().is_some();
     Ok(AnnotatedWirelessNetwork::from_essid(
         essid.into(),
         is_known,
@@ -184,7 +184,7 @@ fn get_network_from_given_essid(
 }
 
 fn gather_wifi_network_data(
-    options: &WifiOptions,
+    options: &WifiConnectOptions,
 ) -> Result<(KnownNetworkNames, ScanResult), RuwiError> {
     let (opt1, opt2) = (options.clone(), options.clone());
     let get_nw_names = thread::spawn(move || find_known_network_names(&opt1));
@@ -213,8 +213,8 @@ mod tests {
     #[test]
     fn test_basic_runner_functionality() {
         let test_step = WifiStep::BasicTestStep;
-        let command = RuwiCommand::Wifi(RuwiWifiCommand::Connect);
-        let options = WifiOptions::default();
+        let options = WifiConnectOptions::default();
+        let command = RuwiCommand::Wifi(RuwiWifiCommand::Connect(options.clone()));
         let next = test_step.exec(&command, &options);
         if let Ok(WifiStep::ConnectionSuccessful) = next {
         } else {
@@ -225,8 +225,8 @@ mod tests {
 
     #[test]
     fn test_connection_init() {
-        let command = RuwiCommand::Wifi(RuwiWifiCommand::Connect);
-        let options = WifiOptions::default();
+        let options = WifiConnectOptions::default();
+        let command = RuwiCommand::Wifi(RuwiWifiCommand::Connect(options.clone()));
         let step = WifiStep::ConnectionInit;
         let expected_next_step = WifiStep::DataGatherer;
         assert_eq!(step.exec(&command, &options).unwrap(), expected_next_step);
@@ -285,8 +285,8 @@ mod tests {
             networks: networks.clone(),
         };
         let test_step = WifiStep::NetworkSorter { annotated_networks };
-        let command = RuwiCommand::Wifi(RuwiWifiCommand::Connect);
-        let options = WifiOptions::default();
+        let options = WifiConnectOptions::default();
+        let command = RuwiCommand::Wifi(RuwiWifiCommand::Connect(options.clone()));
         let next = test_step.exec(&command, &options);
         if let Ok(WifiStep::NetworkSelector { sorted_networks }) = next {
             assert_eq![first, sorted_networks.networks.first().unwrap().clone()];

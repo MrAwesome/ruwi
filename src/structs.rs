@@ -5,15 +5,28 @@ use std::fmt;
 use std::fmt::Debug;
 use std::ops::{Deref, DerefMut};
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString, AsRefStr};
+use typed_builder::TypedBuilder;
 
 pub static PROG_NAME: &str = "ruwi";
 
 #[strum(serialize_all = "snake_case")]
-#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr, AsRefStr)]
+#[derive(Debug, Clone, EnumString, EnumIter, Display, AsStaticStr, AsRefStr)]
 pub enum RuwiCommand {
     Wifi(RuwiWifiCommand),
     Wired(RuwiWiredCommand),
     Bluetooth(RuwiBluetoothCommand),
+}
+
+impl RuwiCommand {
+    // TODO: Obviously, this should return some trait?
+    #[cfg(test)]
+    pub fn get_options(&self) -> &WifiConnectOptions {
+        if let Self::Wifi(RuwiWifiCommand::Connect(opts)) = self {
+            opts
+        } else {
+            todo!("Get rid of this");
+        }
+    }
 }
 
 impl Default for RuwiCommand {
@@ -23,16 +36,16 @@ impl Default for RuwiCommand {
 }
 
 #[strum(serialize_all = "snake_case")]
-#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr, AsRefStr)]
+#[derive(Debug, Clone, EnumString, EnumIter, Display, AsStaticStr, AsRefStr)]
 pub enum RuwiWifiCommand {
-    Connect
+    Connect(WifiConnectOptions)
     // Select
     // JSON
 }
 
 impl Default for RuwiWifiCommand {
     fn default() -> Self {
-        Self::Connect
+        Self::Connect(WifiConnectOptions::default())
     }
 }
 
@@ -60,71 +73,34 @@ impl Default for RuwiBluetoothCommand {
     }
 }
 
-
-//#[derive(Debug, Clone)]
-//pub struct Options {
-//    pub debug: bool,
-//    pub dry_run: bool,
-//    pub selection_method: SelectionMethod,
-//    pub scan_type: ScanType,
-//    pub scan_method: ScanMethod,
-//    pub interface: String, // TODO: make some struct?
-//    pub ignore_known: bool,
-//    pub connect_via: WifiConnectionType,
-//    pub given_essid: Option<String>,
-//    pub given_encryption_key: Option<String>,
-//    pub auto_mode: AutoMode,
-//    pub force_synchronous_scan: bool,
-//    pub force_ask_password: bool,
-//    pub synchronous_retry: Option<SynchronousRescanType>,
-//}
-//
-//impl Default for Options {
-//    fn default() -> Self {
-//	Self {
-//	    scan_type: ScanType::default(),
-//	    scan_method: ScanMethod::default(),
-//	    interface: "wlan0".to_string(),
-//	    ignore_known: false,
-//	    selection_method: SelectionMethod::default(),
-//	    connect_via: WifiConnectionType::default(),
-//	    debug: false,
-//	    given_essid: None,
-//	    given_encryption_key: None,
-//	    auto_mode: AutoMode::default(),
-//	    force_synchronous_scan: false,
-//	    force_ask_password: false,
-//	    synchronous_retry: None,
-//	    #[cfg(not(test))]
-//	    dry_run: false,
-//	    #[cfg(test)]
-//	    dry_run: true,
-//	}
-//    }
-//}
-//
-//impl Options {
-//    #[cfg(test)]
-//    pub fn from_scan_type(scan_type: ScanType) -> Self {
-//        Self {
-//            scan_type,
-//            ..Self::default()
-//        }
-//    }
-//
-//    pub fn with_synchronous_retry(&self, t: SynchronousRescanType) -> Self {
-//        Self {
-//            synchronous_retry: Some(t),
-//            ..self.clone()
-//        }
-//    }
-//}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, TypedBuilder)]
 pub struct GlobalOptions {
-    pub debug: bool,
-    pub dry_run: bool,
-    pub selection_method: SelectionMethod,
+    debug: bool,
+    dry_run: bool,
+    selection_method: SelectionMethod,
+}
+
+// Is this useful at all?
+pub trait Global {
+    fn d(&self) -> bool;
+    fn get_debug(&self) -> bool;
+    fn get_dry_run(&self) -> bool;
+    fn get_selection_method(&self) -> &SelectionMethod;
+}
+
+impl Global for GlobalOptions {
+    fn d(&self) -> bool {
+        self.get_debug()
+    }
+    fn get_debug(&self) -> bool {
+        self.debug
+    }
+    fn get_dry_run(&self) -> bool {
+        self.dry_run
+    }
+    fn get_selection_method(&self) -> &SelectionMethod {
+        &self.selection_method
+    }
 }
 
 impl Default for GlobalOptions {
@@ -145,20 +121,22 @@ pub struct BluetoothCommandOptions {
 }
 
 // TODO: use TypedBuilder for this, make globals and other fields private
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, TypedBuilder)]
 pub struct WifiOptions {
-    pub globals: GlobalOptions,
-    pub scan_type: ScanType,
-    pub scan_method: ScanMethod,
-    pub interface: String, // TODO: make some struct?
-    pub ignore_known: bool,
-    pub connect_via: WifiConnectionType,
-    pub given_essid: Option<String>,
-    pub given_encryption_key: Option<String>,
-    pub auto_mode: AutoMode,
-    pub force_synchronous_scan: bool,
-    pub force_ask_password: bool,
-    pub synchronous_retry: Option<SynchronousRescanType>,
+    // TODO: REMOVE GLOBALS FROM HERE?
+    globals: GlobalOptions,
+    #[builder(default)]
+    scan_type: ScanType,
+    #[builder(default)]
+    scan_method: ScanMethod,
+    #[builder(default="wlan0".to_string())]
+    interface: String,
+    #[builder(default=false)]
+    ignore_known: bool,
+    #[builder(default=None)]
+    synchronous_retry: Option<SynchronousRescanType>,
+    #[builder(default=false)]
+    force_synchronous_scan: bool,
 }
 
 impl Default for WifiOptions {
@@ -169,36 +147,9 @@ impl Default for WifiOptions {
             scan_method: ScanMethod::default(),
             interface: "wlan0".to_string(),
             ignore_known: false,
-            connect_via: WifiConnectionType::default(),
-            given_essid: None,
-            given_encryption_key: None,
-            auto_mode: AutoMode::default(),
             force_synchronous_scan: false,
-            force_ask_password: false,
             synchronous_retry: None,
         }
-    }
-}
-
-// Is this useful at all?
-pub trait RuwiCommandOptions {
-    fn d(&self) -> bool;
-    fn is_dry_run(&self) -> bool;
-    fn get_selection_method(&self) -> &SelectionMethod;
-}
-
-impl RuwiCommandOptions for WifiOptions {
-    // TODO: impl givesdebug or impl ruwioptions etc etc
-    fn d(&self) -> bool {
-        self.globals.debug
-    }
-
-    fn is_dry_run(&self) -> bool {
-        self.globals.debug
-    }
-
-    fn get_selection_method(&self) -> &SelectionMethod {
-        &self.globals.selection_method
     }
 }
 
@@ -214,6 +165,148 @@ impl WifiOptions {
     pub fn with_synchronous_retry(&self, t: SynchronousRescanType) -> Self {
         Self {
             synchronous_retry: Some(t),
+            ..self.clone()
+        }
+    }
+}
+
+pub trait Wifi {
+    fn get_scan_type(&self) -> &ScanType;
+    fn get_scan_method(&self) -> &ScanMethod;
+    fn get_interface(&self) -> &str;
+    fn get_ignore_known(&self) -> bool;
+    fn get_force_synchronous_scan(&self) -> bool;
+    fn get_synchronous_retry(&self) -> &Option<SynchronousRescanType>;
+}
+
+impl Wifi for WifiOptions {
+    fn get_scan_type(&self) -> &ScanType {
+        &self.scan_type
+    }
+    fn get_scan_method(&self) -> &ScanMethod {
+        &self.scan_method
+    }
+    fn get_interface(&self) -> &str {
+        &self.interface
+    }
+    fn get_ignore_known(&self) -> bool {
+        self.ignore_known
+    }
+    fn get_force_synchronous_scan(&self) -> bool {
+        self.force_synchronous_scan
+    }
+    fn get_synchronous_retry(&self) -> &Option<SynchronousRescanType> {
+        &self.synchronous_retry
+    }
+}
+
+#[derive(Debug, Clone, TypedBuilder)]
+pub struct WifiConnectOptions {
+    #[builder(default)]
+    globals: GlobalOptions,
+    #[builder(default)]
+    wifi: WifiOptions,
+    #[builder(default)]
+    auto_mode: AutoMode,
+    #[builder(default)]
+    connect_via: WifiConnectionType,
+    #[builder(default=None)]
+    given_essid: Option<String>,
+    #[builder(default=false)]
+    force_ask_password: bool,
+    #[builder(default=None)]
+    given_encryption_key: Option<String>,
+}
+
+impl Default for WifiConnectOptions {
+    fn default() -> Self {
+        Self {
+            globals: GlobalOptions::default(),
+            wifi: WifiOptions::default(),
+            connect_via: WifiConnectionType::default(),
+            given_essid: None,
+            given_encryption_key: None,
+            auto_mode: AutoMode::default(),
+            force_ask_password: false,
+        }
+    }
+}
+
+pub trait WifiConnect {
+    fn get_auto_mode(&self) -> &AutoMode;
+    fn get_force_ask_password(&self) -> bool;
+    fn get_given_essid(&self) -> &Option<String>;
+    fn get_given_encryption_key(&self) -> &Option<String>;
+    fn get_connect_via(&self) -> &WifiConnectionType;
+}
+
+impl Global for WifiConnectOptions {
+    fn d(&self) -> bool {
+        self.get_debug()
+    }
+    fn get_debug(&self) -> bool {
+        self.globals.get_debug()
+    }
+    fn get_dry_run(&self) -> bool {
+        self.globals.get_dry_run()
+    }
+    fn get_selection_method(&self) -> &SelectionMethod {
+        self.globals.get_selection_method()
+    }
+}
+
+impl Wifi for WifiConnectOptions {
+    fn get_scan_type(&self) -> &ScanType {
+        self.wifi.get_scan_type()
+    }
+    fn get_scan_method(&self) -> &ScanMethod {
+        self.wifi.get_scan_method()
+    }
+    fn get_interface(&self) -> &str {
+        self.wifi.get_interface()
+    }
+    fn get_ignore_known(&self) -> bool {
+        self.wifi.get_ignore_known()
+    }
+    fn get_force_synchronous_scan(&self) -> bool {
+        self.wifi.get_force_synchronous_scan()
+    }
+    fn get_synchronous_retry(&self) -> &Option<SynchronousRescanType> {
+        self.wifi.get_synchronous_retry()
+    }
+}
+
+impl WifiConnect for WifiConnectOptions {
+    fn get_auto_mode(&self) -> &AutoMode {
+        &self.auto_mode
+    }
+    fn get_force_ask_password(&self) -> bool {
+        self.force_ask_password
+    }
+    fn get_given_essid(&self) -> &Option<String> {
+        &self.given_essid
+    }
+    fn get_given_encryption_key(&self) -> &Option<String> {
+        &self.given_encryption_key
+    }
+    fn get_connect_via(&self) -> &WifiConnectionType {
+        &self.connect_via
+    }
+}
+
+impl WifiConnectOptions {
+    #[cfg(test)]
+    pub fn from_scan_type(scan_type: ScanType) -> Self {
+        Self {
+            wifi: WifiOptions::from_scan_type(scan_type),
+            ..Self::default()
+        }
+    }
+
+    // TODO: kill with fire
+    pub fn with_synchronous_retry(&self, t: SynchronousRescanType) -> Self {
+        Self {
+            wifi: self.wifi.with_synchronous_retry(t),
             ..self.clone()
         }
     }
