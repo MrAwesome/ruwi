@@ -7,6 +7,8 @@ use std::ops::{Deref, DerefMut};
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString, AsRefStr};
 use typed_builder::TypedBuilder;
 
+// NOTE: instead of strum, you can use arg_enum! from the clap crate, to cut down on compile times
+
 pub static PROG_NAME: &str = "ruwi";
 
 #[strum(serialize_all = "snake_case")]

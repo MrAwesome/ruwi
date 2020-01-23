@@ -12,30 +12,26 @@ use strum::AsStaticRef;
 #[allow(clippy::too_many_lines)]
 fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
     // TODO: use .aliases for commands
-    // TODO: set (.global(true)).subcommand() where needed?
+    // TODO: use .global(true) once there's a supported function in clap for recursively checking subcommands
     let debug = Arg::with_name("debug")
         .short("d")
         .long("debug")
-        .global(true)
         .help("Print out debug information on what ruwi sees.");
 
     let dry_run = Arg::with_name("dry_run")
         .short("D")
         .long("dry-run")
-        .global(true)
         .help("Don't write to or read from any files, interfaces, or networks. Mostly just useful for integration tests.");
 
     let input_file = Arg::with_name("input_file")
         .short("F")
         .long("input-file")
         .takes_value(true)
-        .global(true)
         .help("Instead of running a scan, use scan results from specified file.");
 
     let input_stdin = Arg::with_name("input_stdin")
         .short("I")
         .long("input-stdin")
-        .global(true)
         .help("Instead of running a scan, use scan results from stdin.");
 
     let auto = Arg::with_name("auto").short("a").long("auto").help(
@@ -53,19 +49,16 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
     let force_synchronous = Arg::with_name("force_synchronous_scan")
         .short("f")
         .long("force-sync")
-        .global(true)
         .help("Do not look at cached results, always scan for networks when run.");
 
     let ignore_known = Arg::with_name("ignore_known")
         .long("ignore-known")
-        .global(true)
         .help("Do not try to determine if networks are already known. Passwords will be requested always in this mode.");
 
     let wifi_interface = Arg::with_name("interface")
         .short("i")
         .long("interface")
         .takes_value(true)
-        .global(true)
         .help("The wireless device interface (e.g. wlp3s0) to use. Will attempt to use wpa_cli to infer it, if none given.");
 
     let essid = Arg::with_name("essid")
@@ -89,7 +82,6 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .short("s")
         .long("scan-type")
         .takes_value(true)
-        .global(true)
         .default_value(&WifiScanType::default().as_static())
         .possible_values(&possible_vals::<WifiScanType, _>())
         .help("The wifi scanning program to use to get results.");
@@ -117,10 +109,10 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .arg(debug)
         .arg(dry_run)
         .arg(selection_method)
-        .arg(input_file)
-        .arg(input_stdin)
         .subcommand(SubCommand::with_name("wifi")
             .arg(ignore_known)
+            .arg(input_file)
+            .arg(input_stdin)
             .arg(force_synchronous)
             .arg(wifi_interface)
             .arg(wifi_scan_type)
@@ -165,7 +157,7 @@ fn get_options_impl(m: &ArgMatches) -> Result<RuwiCommand, RuwiError> {
         {
             dbg!(subc_name, maybe_sub_m);
             // TODO: fix????
-            get_wifi_connect_opts(globals, maybe_sub_m)
+            get_wifi_opts(globals, maybe_sub_m)
         }
 
         // (subc_name, Some(sub_m)) if subc_name == RuwiCommand::Wired(Default::default()).to_string() => {}
@@ -182,7 +174,7 @@ fn get_options_impl(m: &ArgMatches) -> Result<RuwiCommand, RuwiError> {
     Ok(opts)
 }
 
-fn get_wifi_connect_opts(
+fn get_wifi_opts(
     globals: GlobalOptions,
     maybe_sub_m: Option<&ArgMatches>,
 ) -> Result<RuwiCommand, RuwiError> {
@@ -194,8 +186,64 @@ fn get_wifi_connect_opts(
         )));
     };
 
-    // WIFI options
+    match sub_m.subcommand() {
+        (subc_name, _) if subc_name == "" => Ok(RuwiCommand::Wifi(RuwiWifiCommand::Connect(
+            WifiConnectOptions::builder()
+                .globals(globals.clone())
+                .wifi(get_wifi_opts_impl(&globals, sub_m, None)?)
+                .build(),
+        ))),
+        // TODO: ew @ this string thing
+        (subc_name, Some(sub_sub_m))
+            if subc_name == RuwiWifiCommand::Connect(WifiConnectOptions::builder().build()).to_string() =>
+        {
+            Ok(RuwiCommand::Wifi(RuwiWifiCommand::Connect(
+                get_wifi_connect_opts(
+                    &globals, 
+                    get_wifi_opts_impl(&globals, sub_m, Some(sub_sub_m))?,
+                    sub_sub_m
+                )?
+            )))
+        }
+
+        _ => todo!("other command types"),
+    }
+}
+
+fn get_wifi_connect_opts(
+    globals: &GlobalOptions,
+    wifi_opts: WifiOptions,
+    sub_sub_m: &ArgMatches,
+) -> Result<WifiConnectOptions, RuwiError> {
+    // CONNECT options
+    let force_ask_password = sub_sub_m.is_present("force_ask_password");
+    let given_essid = sub_sub_m.value_of("essid").map(String::from);
+    let given_encryption_key = sub_sub_m.value_of("password").map(String::from);
+
+    let auto_mode = if sub_sub_m.is_present("auto") {
+        AutoMode::KnownOrAsk
+    } else {
+        get_val_as_enum::<AutoMode>(&sub_sub_m, "auto_mode")
+    };
+
+    let connect_via = get_val_as_enum::<WifiConnectionType>(&sub_sub_m, "connect_via");
+
+    let opts = WifiConnectOptions::builder()
+        .globals(globals.clone())
+        .wifi(wifi_opts)
+        .connect_via(connect_via)
+        .given_essid(given_essid)
+        .given_encryption_key(given_encryption_key)
+        .auto_mode(auto_mode)
+        .force_ask_password(force_ask_password)
+        .build();
+    Ok(opts)
+}
+
+
+fn get_wifi_opts_impl(globals: &GlobalOptions, sub_m: &ArgMatches, sub_sub_m: Option<&ArgMatches>) -> Result<WifiOptions, RuwiError> {
     let scan_method = get_scan_method(sub_m);
+    dbg!(&scan_method);
     let force_synchronous_scan = sub_m.is_present("force_synchronous_scan");
     let ignore_known = sub_m.is_present("ignore_known");
     let interface = get_wifi_interface(sub_m, globals.d(), globals.get_dry_run())?;
@@ -203,6 +251,7 @@ fn get_wifi_connect_opts(
     validate_scan_method_and_type(&scan_method, &scan_type)?;
 
     let wifi_opts = WifiOptions::builder()
+        // TODO: remove this
         .globals(globals.clone())
         .scan_type(scan_type)
         .scan_method(scan_method)
@@ -211,54 +260,19 @@ fn get_wifi_connect_opts(
         .force_synchronous_scan(force_synchronous_scan)
         .build();
 
-    match sub_m.subcommand() {
-        (subc_name, _) if subc_name == "" => Ok(RuwiCommand::Wifi(RuwiWifiCommand::Connect(
-            WifiConnectOptions::builder()
-                .globals(globals)
-                .wifi(wifi_opts)
-                .build(),
-        ))),
-        // TODO: ew @ this string thing
-        (subc_name, Some(sub_sub_m))
-            if subc_name == RuwiWifiCommand::Connect(WifiConnectOptions::builder().build()).to_string() =>
-        {
-            // CONNECT options
-            let force_ask_password = sub_sub_m.is_present("force_ask_password");
-            let given_essid = sub_sub_m.value_of("essid").map(String::from);
-            let given_encryption_key = sub_sub_m.value_of("password").map(String::from);
-
-            let auto_mode = if sub_sub_m.is_present("auto") {
-                AutoMode::KnownOrAsk
-            } else {
-                get_val_as_enum::<AutoMode>(&sub_sub_m, "auto_mode")
-            };
-
-            let connect_via = get_val_as_enum::<WifiConnectionType>(&sub_sub_m, "connect_via");
-
-            let opts = WifiConnectOptions::builder()
-                .globals(globals)
-                .wifi(wifi_opts)
-                .connect_via(connect_via)
-                .given_essid(given_essid)
-                .given_encryption_key(given_encryption_key)
-                .auto_mode(auto_mode)
-                .force_ask_password(force_ask_password)
-                .build();
-            Ok(RuwiCommand::Wifi(RuwiWifiCommand::Connect(opts)))
-        }
-
-        _ => todo!("other command types"),
-    }
+    Ok(wifi_opts)
 }
 
 fn get_scan_method(m: &ArgMatches) -> ScanMethod {
-    if let Some(filename) = m.value_of("input_file").map(String::from) {
+    let scanmethod = if let Some(filename) = m.value_of("input_file").map(String::from) {
         ScanMethod::FromFile(filename)
     } else if m.is_present("input_stdin") {
         ScanMethod::FromStdin
     } else {
         ScanMethod::ByRunning
-    }
+    };
+    dbg!(&scanmethod);
+    scanmethod
 }
 
 fn get_wifi_interface(m: &ArgMatches, debug: bool, dry_run: bool) -> Result<String, RuwiError> {
@@ -339,8 +353,6 @@ mod tests {
     fn test_interface() {
         let opts = getopts(&["wifi", "-i", "BFUGG"]);
         assert_eq![opts.get_interface(), "BFUGG"];
-        let opts = getopts(&["wifi", "connect", "-i", "HARBO"]);
-        assert_eq![opts.get_interface(), "HARBO"];
         let opts = getopts(&["wifi", "--interface", "BLEEBLOO"]);
         assert_eq![opts.get_interface(), "BLEEBLOO"];
     }
@@ -349,11 +361,7 @@ mod tests {
     fn test_ignore_known() {
         let opts = getopts(&["wifi"]);
         assert![!opts.get_ignore_known()];
-        let opts = getopts(&["wifi", "connect"]);
-        assert![!opts.get_ignore_known()];
         let opts = getopts(&["wifi", "--ignore-known"]);
-        assert![opts.get_ignore_known()];
-        let opts = getopts(&["wifi", "connect", "--ignore-known"]);
         assert![opts.get_ignore_known()];
     }
 
@@ -361,14 +369,13 @@ mod tests {
     fn test_scan_type() {
         let wifi_type = WifiScanType::WpaCli;
         let expected = ScanType::Wifi(wifi_type.clone());
-        let opts = getopts(&["wifi", "connect", "-s", wifi_type.to_string().as_ref()]);
+        let opts = getopts(&["wifi", "-s", wifi_type.to_string().as_ref()]);
         assert_eq![opts.get_scan_type(), &expected];
 
         let wifi_type = WifiScanType::IW;
         let expected = ScanType::Wifi(wifi_type.clone());
         let opts = getopts(&[
             "wifi",
-            "connect",
             "--scan-type",
             wifi_type.to_string().as_ref(),
         ]);
@@ -388,7 +395,7 @@ mod tests {
     fn test_scan_method_stdin() {
         let scan_type = ScanType::default();
         let scan_method = ScanMethod::FromStdin;
-        let opts = getopts(&["-I"]);
+        let opts = getopts(&["wifi", "-I"]);
         assert_eq![opts.get_scan_method(), &scan_method];
         assert_eq![opts.get_scan_type(), &scan_type];
 
@@ -489,19 +496,13 @@ mod tests {
 
     #[test]
     fn test_force_synchronous_scan() {
-        let opts = getopts(&["wifi", "connect"]);
-        assert![!opts.get_force_synchronous_scan()];
-
         let opts = getopts(&["wifi"]);
         assert![!opts.get_force_synchronous_scan()];
 
         let opts = getopts(&["wifi", "-f"]);
         assert![opts.get_force_synchronous_scan()];
 
-        let opts = getopts(&["wifi", "connect", "-f"]);
-        assert![opts.get_force_synchronous_scan()];
-
-        let opts = getopts(&["wifi", "connect", "--force-sync"]);
+        let opts = getopts(&["wifi", "--force-sync"]);
         assert![opts.get_force_synchronous_scan()];
     }
 

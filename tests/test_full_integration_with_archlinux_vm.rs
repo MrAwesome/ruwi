@@ -73,15 +73,15 @@ fn test_full_integration_with_archlinux_vm() -> Result<()> {
     p.exp_string("wlan1: AP-ENABLED")?;
     p.exp_string("@archiso")?;
     eprintln!("[TEST]: Started second wifi radio!");
-    p.send_line("/tmp/host_shared/ruwi -i wlan2 -e bravery")?;
+    p.send_line("/tmp/host_shared/ruwi wifi -i wlan2 connect -e bravery")?;
     p.exp_string("[NOTE]: Successfully connected to: \"bravery\"")?;
     p.exp_string("@archiso")?;
     eprintln!("[TEST]: Successfully connected to bravery with `-e`!");
-    p.send_line("/tmp/host_shared/ruwi -i wlan2 -A known_or_fail")?;
+    p.send_line("/tmp/host_shared/ruwi wifi -i wlan2 connect -A known_or_fail")?;
     p.exp_string("[NOTE]: Successfully connected to: \"bravery\"")?;
     p.exp_string("@archiso")?;
     eprintln!("[TEST]: Successfully connected to bravery with `-A known_or_fail`!");
-    p.send_line("/tmp/host_shared/ruwi -i wlan2 -e cowardice -p cowardice2")?;
+    p.send_line("/tmp/host_shared/ruwi wifi -i wlan2 connect -e cowardice -p cowardice2")?;
     p.exp_string("[NOTE]: Successfully connected to: \"cowardice\"")?;
     p.exp_string("@archiso")?;
     eprintln!("[TEST]: Successfully connected to cowardice with `-e` and `-p`!");

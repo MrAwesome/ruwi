@@ -4,7 +4,7 @@ use rexpect::spawn;
 #[test]
 fn test_iw_fourth_of_many_networks_with_fzf() -> Result<()> {
     let mut p = spawn(
-        "./target/debug/ruwi -D -m fzf -F src/parse/samples/iw_many_networks.txt -c print -s iw",
+        "./target/debug/ruwi -D -m fzf wifi -F src/parse/samples/iw_many_networks.txt -s iw connect -c print",
         Some(300),
     )?;
     p.exp_regex("Select a network")?;
@@ -20,7 +20,7 @@ fn test_iw_fourth_of_many_networks_with_fzf() -> Result<()> {
 #[test]
 fn test_fzf_ctrl_c_exits() -> Result<()> {
     let mut p = spawn(
-        "./target/debug/ruwi -D -m fzf -F src/parse/samples/iw_many_networks.txt -c print -s iw",
+        "./target/debug/ruwi -D -m fzf wifi -F src/parse/samples/iw_many_networks.txt -s iw connect -c print",
         Some(300),
     )?;
     p.exp_regex("Select a network")?;
@@ -40,7 +40,7 @@ fn test_fzf_ctrl_c_exits() -> Result<()> {
 #[test]
 fn test_fzf_respects_ctrl_r_refresh() -> Result<()> {
     let mut p = spawn(
-        "./target/debug/ruwi -D -m fzf -F src/parse/samples/iw_many_networks.txt -c print -s iw",
+        "./target/debug/ruwi -D -m fzf wifi -F src/parse/samples/iw_many_networks.txt -s iw connect -c print",
         Some(300),
     )?;
     p.exp_regex("Select a network")?;
@@ -56,7 +56,7 @@ fn test_fzf_respects_ctrl_r_refresh() -> Result<()> {
 #[test]
 fn test_fzf_respects_refresh_string_refresh() -> Result<()> {
     let mut p = spawn(
-        "./target/debug/ruwi -D -m fzf -F src/parse/samples/iw_many_networks.txt -c print -s iw",
+        "./target/debug/ruwi -D -m fzf wifi -F src/parse/samples/iw_many_networks.txt -s iw connect -c print",
         Some(300),
     )?;
     p.exp_regex("Select a network")?;
