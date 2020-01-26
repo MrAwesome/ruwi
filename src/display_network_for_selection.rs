@@ -2,13 +2,17 @@ use crate::structs::*;
 pub static KNOWN_TOKEN: &str = "K";
 pub static OPEN_TOKEN: &str = "O";
 
-impl AnnotatedWirelessNetwork {
-    pub fn get_display_string(&self) -> String {
+use crate::select_utils::Selectable;
+
+impl Selectable for AnnotatedWirelessNetwork {
+    fn get_display_string(&self) -> String {
         let tags = self.get_tags_string();
         let strength = self.get_strenth_string();
         format!("{}{}{}", strength, self.essid, tags)
     }
+}
 
+impl AnnotatedWirelessNetwork {
     pub(crate) fn get_tags_string(&self) -> String {
         let open = !self.is_encrypted;
         let known = self.known;
