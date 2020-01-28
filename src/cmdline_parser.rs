@@ -140,7 +140,8 @@ fn get_options_impl(m: &ArgMatches) -> Result<RuwiCommand, RuwiError> {
 
     let dry_run = m.is_present("dry_run");
     if dry_run {
-        eprintln!("[NOTE] Running in dryrun mode! Will not run any external commands or write/read configs on disk, and will only use cached scan results.");
+        // TODO: actually use cached results, or remove that from the message here.
+        eprintln!("[NOTE] Running in dryrun mode! Will not run any external commands (besides the requested prompt command) or write/read configs on disk, and will only use cached scan results.");
     }
 
     let globals = GlobalOptions::builder()

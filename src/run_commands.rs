@@ -1,14 +1,13 @@
 use crate::rerr;
 use crate::structs::*;
 use std::error::Error;
+use std::fmt::Debug;
 use std::io;
 #[cfg(not(test))]
 use std::io::Write;
 use std::process::Output;
-use std::process::{Command, Stdio, ExitStatus};
-use std::fmt::Debug;
+use std::process::{Command, ExitStatus, Stdio};
 
-// TODO: T: Globals
 // TODO: don't run commands in dryrun mode
 
 pub(crate) fn run_command_pass<T>(
@@ -18,7 +17,8 @@ pub(crate) fn run_command_pass<T>(
     err_kind: RuwiErrorKind,
     err_msg: &str,
 ) -> Result<(), RuwiError>
-where T: Global + Debug
+where
+    T: Global + Debug,
 {
     if opts.d() {
         dbg!(&opts, &cmd_name, &args, &err_kind, &err_msg);
@@ -40,8 +40,9 @@ pub(crate) fn run_command_pass_stdout<T>(
     args: &[&str],
     err_kind: RuwiErrorKind,
     err_msg: &str,
-) -> Result<String, RuwiError> 
-where T: Global + Debug
+) -> Result<String, RuwiError>
+where
+    T: Global + Debug,
 {
     if opts.d() {
         dbg!(opts, &cmd_name, &args, &err_kind, &err_msg);
@@ -61,8 +62,9 @@ pub(crate) fn run_command_output<T>(
     opts: &T,
     cmd_name: &str,
     args: &[&str],
-) -> Result<Output, RuwiError> 
-where T: Global + Debug
+) -> Result<Output, RuwiError>
+where
+    T: Global + Debug,
 {
     if opts.d() {
         dbg!(&cmd_name, &args);
@@ -73,12 +75,9 @@ where T: Global + Debug
         .map_err(|e| rerr!(RuwiErrorKind::FailedToRunCommand, e.description()))
 }
 
-pub(crate) fn run_command_status_dumb<T>(
-    opts: &T,
-    cmd_name: &str,
-    args: &[&str],
-) -> bool 
-where T: Global + Debug
+pub(crate) fn run_command_status_dumb<T>(opts: &T, cmd_name: &str, args: &[&str]) -> bool
+where
+    T: Global + Debug,
 {
     if opts.d() {
         dbg!(&cmd_name, &args);
@@ -91,21 +90,44 @@ where T: Global + Debug
     } else {
         false
     }
-
 }
 
-fn run_command_impl<T>(opts: &T, cmd_name: &str, args: &[&str]) -> io::Result<Output> 
-where T: Global + Debug
+fn run_command_impl<T>(opts: &T, cmd_name: &str, args: &[&str]) -> io::Result<Output>
+where
+    T: Global + Debug,
 {
-    let mut cmd = Command::new(cmd_name);
-    cmd.args(args).stdout(Stdio::piped()).stderr(Stdio::piped());
+    let mut cmd = get_output_command(opts, cmd_name, args);
+    spawn_and_await_output_command(opts, &mut cmd)
+}
+
+fn get_output_command<T>(opts: &T, cmd_name: &str, args: &[&str]) -> Command
+where
+    T: Global + Debug,
+{
+    let cmd = if opts.get_dry_run() {
+        empty_command_dryrun(cmd_name, args)
+    } else {
+        let mut cmd = Command::new(cmd_name);
+        cmd.args(args).stdout(Stdio::piped()).stderr(Stdio::piped());
+        cmd
+    };
 
     if opts.d() {
         dbg!(&cmd);
     }
 
+    cmd
+}
+
+fn spawn_and_await_output_command<T>(opts: &T, cmd: &mut Command) -> io::Result<Output>
+where
+    T: Global + Debug,
+{
     #[cfg(test)]
-    panic!("Prevented command usage in test!");
+    {
+        dbg!(&opts, &cmd);
+        panic!("Prevented command usage in test!");
+    }
 
     #[cfg(not(test))]
     {
@@ -125,18 +147,45 @@ where T: Global + Debug
     }
 }
 
-fn run_command_silent_impl<T>(opts: &T, cmd_name: &str, args: &[&str]) -> io::Result<ExitStatus> 
-where T: Global + Debug
+fn run_command_silent_impl<T>(opts: &T, cmd_name: &str, args: &[&str]) -> io::Result<ExitStatus>
+where
+    T: Global + Debug,
 {
-    let mut cmd = Command::new(cmd_name);
-    cmd.args(args).stdout(Stdio::null()).stderr(Stdio::null());
+    let mut cmd = get_silent_command(opts, cmd_name, args);
+    spawn_and_await_silent_command(opts, &mut cmd)
+}
+
+fn get_silent_command<T>(opts: &T, cmd_name: &str, args: &[&str]) -> Command
+where
+    T: Global + Debug,
+{
+    let cmd = if opts.get_dry_run() {
+        empty_command_dryrun(cmd_name, args)
+    } else {
+        let mut cmd = Command::new(cmd_name);
+        cmd.args(args)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .stdin(Stdio::null());
+        cmd
+    };
 
     if opts.d() {
         dbg!(&cmd);
     }
 
+    cmd
+}
+
+fn spawn_and_await_silent_command<T>(opts: &T, cmd: &mut Command) -> io::Result<ExitStatus>
+where
+    T: Global + Debug,
+{
     #[cfg(test)]
-    panic!("Prevented command usage in test!");
+    {
+        dbg!(&opts, &cmd);
+        panic!("Prevented command usage in test!");
+    }
 
     #[cfg(not(test))]
     {
@@ -162,8 +211,9 @@ pub(crate) fn run_prompt_cmd<T>(
     cmd_name: &str,
     args: &[&str],
     elements: &[String],
-) -> Result<String, RuwiError> 
-where T: Global + Debug
+) -> Result<String, RuwiError>
+where
+    T: Global + Debug,
 {
     if opts.d() {
         dbg!(&cmd_name, &args, &elements);
@@ -196,16 +246,23 @@ fn run_prompt_cmd_system_impl<T>(
     cmd_name: &str,
     args: &[&str],
     elements: &[String],
-) -> io::Result<Output> 
-where T: Global + Debug
+) -> io::Result<Output>
+where
+    T: Global + Debug,
 {
-    if opts.d() {
-        dbg!(&cmd_name, &args, &elements);
-    }
+    let mut cmd = get_prompt_command(opts, cmd_name, args);
+    spawn_and_await_prompt_command(opts, &mut cmd, elements)
+}
 
+fn get_prompt_command<T>(opts: &T, cmd_name: &str, args: &[&str]) -> Command
+where
+    T: Global + Debug,
+{
+    // NOTE: prompt commands are run in dryrun mode, as they should have 
+    //       no effect on the external state of the system, and should be 
+    //       tested thoroughly in integration tests.
     let mut cmd = Command::new(cmd_name);
-    let cmd = cmd
-        .args(args)
+    cmd.args(args)
         .stdin(Stdio::piped())
         // Taking stderr breaks fzf.
         //.stderr(Stdio::piped())
@@ -215,12 +272,31 @@ where T: Global + Debug
         dbg![&cmd];
     }
 
+    cmd
+}
+
+fn spawn_and_await_prompt_command<T>(
+    opts: &T,
+    cmd: &mut Command,
+    elements: &[String],
+) -> io::Result<Output>
+where
+    T: Global + Debug,
+{
     #[cfg(test)]
-    panic!("Prevented prompt command usage in test!");
+    {
+        dbg!(&opts, &cmd, &elements);
+        panic!("Prevented prompt command usage in test!");
+    }
 
     #[cfg(not(test))]
     {
         let mut child = cmd.spawn()?;
+
+        if opts.d() {
+            dbg!(&child);
+        }
+
         let stdin = child.stdin.as_mut().ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::Other,
@@ -232,48 +308,45 @@ where T: Global + Debug
 
         let output = child.wait_with_output()?;
 
+        if opts.d() {
+            dbg!(&output);
+        }
+
         Ok(output)
     }
 }
 
 fn is_cmd_installed<T>(opts: &T, cmd_name: &str) -> Result<(), RuwiError>
-where T: Global + Debug
+where
+    T: Global + Debug,
 {
-    let mut cmd = Command::new("which");
-    cmd.arg(cmd_name)
-        .stdin(Stdio::null())
-        .stderr(Stdio::null())
-        .stdout(Stdio::null());
-
-    if opts.d() {
-        dbg!(&cmd);
+    if opts.get_dry_run() {
+        return Ok(());
     }
 
-    #[cfg(test)]
-    panic!("Prevented is_cmd_installed command usage in test!");
+    let status = run_command_silent_impl(opts, "which", &[cmd_name]);
+    let is_installed = match status {
+        Ok(exit_status) => exit_status.success(),
+        Err(_) => false,
+    };
 
-    #[cfg(not(test))]
-    {
-        let status = cmd.status();
-
-        if opts.d() {
-            dbg!(&status);
-        }
-
-        let is_installed = match status {
-            Ok(exit_status) => exit_status.success(),
-            Err(_) => false,
-        };
-
-        if is_installed {
-            Ok(())
-        } else {
-            Err(rerr!(
-                RuwiErrorKind::CommandNotInstalled,
-                format!("`{}` is not installed or is not in $PATH.", cmd_name),
-            ))
-        }
+    if is_installed {
+        Ok(())
+    } else {
+        Err(rerr!(
+            RuwiErrorKind::CommandNotInstalled,
+            format!("`{}` is not installed or is not in $PATH.", cmd_name),
+        ))
     }
+}
+
+fn empty_command_dryrun(cmd_name: &str, args: &[&str]) -> Command {
+    eprintln!(
+        "[NOTE]: Not running command in dryrun mode: `{} {}`",
+        cmd_name,
+        args.join(" ")
+    );
+    return Command::new("true");
 }
 
 #[cfg(test)]
@@ -284,7 +357,7 @@ mod tests {
     #[should_panic = "Prevented command usage in test!"]
     fn test_cmd_use_in_test_panics() {
         run_command_pass_stdout(
-            &GlobalOptions::builder().debug(true).build(),
+            &GlobalOptions::builder().debug(true).dry_run(false).build(),
             "echo",
             &["lawl"],
             RuwiErrorKind::TestShouldNeverBeSeen,
@@ -297,7 +370,7 @@ mod tests {
     #[should_panic = "Prevented command usage in test!"]
     fn test_cmd_output_use_in_test_panics() {
         run_command_output(
-            &GlobalOptions::builder().debug(true).build(),
+            &GlobalOptions::builder().debug(true).dry_run(false).build(),
             "echo",
             &["lawl"],
         )
@@ -305,10 +378,20 @@ mod tests {
     }
 
     #[test]
+    #[should_panic = "Prevented command usage in test!"]
+    fn test_cmd_silent_use_in_test_panics() {
+        run_command_status_dumb(
+            &GlobalOptions::builder().debug(true).dry_run(false).build(),
+            "echo",
+            &["lawl"],
+        );
+    }
+
+    #[test]
     #[should_panic = "Prevented prompt command usage in test!"]
     fn test_prompt_cmd_use_in_test_panics() {
         run_prompt_cmd(
-            &GlobalOptions::builder().debug(true).build(),
+            &GlobalOptions::builder().debug(true).dry_run(false).build(),
             "echo",
             &["loooool"],
             &["lawl".to_string()],
@@ -317,10 +400,20 @@ mod tests {
     }
 
     #[test]
-    #[should_panic = "Prevented is_cmd_installed command usage in test!"]
+    #[should_panic = "Prevented command usage in test!"]
     fn test_is_cmd_installed_use_in_test_panics() {
         is_cmd_installed(
-            &GlobalOptions::builder().debug(true).build(),
-            "FUFAJKFL").unwrap();
+            &GlobalOptions::builder().debug(true).dry_run(false).build(),
+            "FUFAJKFL",
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn test_empty_command_returns_empty() {
+        let output = empty_command_dryrun("echo", &["LAWL"]).output().unwrap();
+        assert![output.stdout.is_empty()];
+        assert![output.stderr.is_empty()];
+        assert![output.status.success()];
     }
 }
