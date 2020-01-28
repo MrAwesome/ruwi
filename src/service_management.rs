@@ -23,7 +23,7 @@ impl NetworkingService {
 
 fn start_netctl(options: &WifiConnectOptions) -> Result<(), RuwiError> {
     run_command_pass(
-        options.d(),
+        options,
         "systemctl",
         &["start", "netctl"],
         RuwiErrorKind::FailedToStartNetctl,
@@ -33,7 +33,7 @@ fn start_netctl(options: &WifiConnectOptions) -> Result<(), RuwiError> {
 
 fn start_networkmanager(options: &WifiConnectOptions) -> Result<(), RuwiError> {
     run_command_pass(
-        options.d(),
+        options,
         "systemctl",
         &["start", "NetworkManager"],
         RuwiErrorKind::FailedToStartNetworkManager,

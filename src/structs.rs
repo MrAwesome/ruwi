@@ -77,8 +77,11 @@ impl Default for RuwiBluetoothCommand {
 
 #[derive(Debug, Clone, TypedBuilder)]
 pub struct GlobalOptions {
+    #[builder(default=true)]
     debug: bool,
+    #[builder(default=true)]
     dry_run: bool,
+    #[builder(default)]
     selection_method: SelectionMethod,
 }
 

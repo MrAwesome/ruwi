@@ -88,7 +88,7 @@ fn connect_via_netctl(
     // TODO: don't lock so hard into filename?
     let netctl_file_name = get_netctl_file_name(&selected_network.essid);
 
-    let res = run_command_output(options.d(), "netctl", &["switch-to", &netctl_file_name])?;
+    let res = run_command_output(options, "netctl", &["switch-to", &netctl_file_name])?;
 
     if res.status.success() {
         Ok(ConnectionResult {
@@ -130,7 +130,7 @@ fn connect_via_networkmanager(
     } else {
         args
     };
-    let res = run_command_output(options.d(), "nmcli", &args)?;
+    let res = run_command_output(options, "nmcli", &args)?;
 
     if res.status.success() {
         Ok(ConnectionResult {

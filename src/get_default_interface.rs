@@ -2,27 +2,33 @@ use crate::rerr;
 #[cfg(not(test))]
 use crate::run_commands::*;
 use crate::structs::*;
+use std::fmt::Debug;
 
 // TODO: make interface a struct of some sort?
-pub(crate) fn get_default_interface(debug: bool, dry_run: bool) -> Result<String, RuwiError> {
-    if dry_run {
+pub(crate) fn get_default_interface<T>(opts: &T) -> Result<String, RuwiError> 
+where T: Global + Debug
+{
+    // TODO: push this further down the stack?
+    if opts.get_dry_run() {
         return Ok("FAKE_INTERFACE".to_string());
     }
     // NOTE: Other methods of determining the interface can be added here
     // TODO: nmcli device show (look at the first two fields, find wifi (can also use for wired when that day comes)
-    let interface = get_interface_with_iw(debug);
+    let interface = get_interface_with_iw(opts);
 
-    if debug {
+    if opts.d() {
         dbg![&interface];
     }
 
     interface
 }
 
-fn get_interface_with_iw(debug: bool) -> Result<String, RuwiError> {
+fn get_interface_with_iw<T>(opts: &T) -> Result<String, RuwiError> 
+where T: Global + Debug
+{
     #[cfg(test)]
     {
-        let _ = debug;
+        dbg!(&opts);
         return Ok("FAKE_INTERFACE".to_string());
     }
 
@@ -33,7 +39,7 @@ fn get_interface_with_iw(debug: bool) -> Result<String, RuwiError> {
             "Check the output of `iw dev`, or provide an interface manually with -i.",
         );
         let iw_dev_output = run_command_pass_stdout(
-            debug,
+            opts,
             "iw",
             &["dev"],
             RuwiErrorKind::FailedToRunIWDev,

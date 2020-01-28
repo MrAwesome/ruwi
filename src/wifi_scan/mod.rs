@@ -99,7 +99,7 @@ fn run_wpa_cli_scan(options: &WifiConnectOptions, scan_type: ScanType) -> Result
 
     // TODO: add scan_results latest
     let scan_output = run_command_pass_stdout(
-        options.d(),
+        options,
         "wpa_cli",
         &["scan_results"],
         RuwiErrorKind::FailedToScanWithWPACli,

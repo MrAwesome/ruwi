@@ -24,7 +24,7 @@ pub(crate) fn run_nmcli_scan(options: &WifiConnectOptions, scan_type: ScanType) 
 
 fn run_nmcli_scan_cmd(options: &WifiConnectOptions) -> Result<String, RuwiError> {
     run_command_pass_stdout(
-        options.d(),
+        options,
         "nmcli",
         &["--escape", "no", "--color", "no", "-g", "SECURITY,SIGNAL,SSID", "device", "wifi", "list"],
         RuwiErrorKind::FailedToRunNmcliScan,
@@ -34,7 +34,7 @@ fn run_nmcli_scan_cmd(options: &WifiConnectOptions) -> Result<String, RuwiError>
 
 fn run_nmcli_scan_cmd_synchronous(options: &WifiConnectOptions) -> Result<String, RuwiError> {
     run_command_pass_stdout(
-        options.d(),
+        options,
         "nmcli",
         &["--escape", "no", "--color", "no", "-g", "SECURITY,SIGNAL,SSID", "device", "wifi", "list", "--rescan", "yes"],
         RuwiErrorKind::FailedToRunNmcliScanSynchronous,

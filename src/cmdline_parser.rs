@@ -4,6 +4,7 @@ use crate::structs::*;
 use crate::strum_utils::*;
 use clap::{App, Arg, ArgMatches, SubCommand};
 use strum::AsStaticRef;
+use std::fmt::Debug;
 
 // TODO: respect force_ask_password
 // TODO: fail if not run as root
@@ -185,10 +186,7 @@ fn get_wifi_opts(
                         // TODO: this feels like a nasty hack, and doesn't belong here? Just store
                         // None if none given, and calculate the default later? It is nice to have
                         // the default show up in --help, but it still feels off.
-                        .interface(get_default_interface(
-                            globals.get_debug(),
-                            globals.get_dry_run(),
-                        )?)
+                        .interface(get_default_interface(&globals)?)
                         .globals(globals)
                         .build(),
                 )
@@ -259,7 +257,7 @@ fn get_wifi_opts_impl(
     let scan_method = get_scan_method(sub_m);
     let force_synchronous_scan = sub_m.is_present("force_synchronous_scan");
     let ignore_known = sub_m.is_present("ignore_known");
-    let interface = get_wifi_interface(sub_m, globals.d(), globals.get_dry_run())?;
+    let interface = get_wifi_interface(sub_m, globals)?;
     let scan_type = ScanType::Wifi(get_val_as_enum::<WifiScanType>(&sub_m, "scan_type"));
     validate_scan_method_and_type(&scan_method, &scan_type)?;
 
@@ -288,10 +286,12 @@ fn get_scan_method(m: &ArgMatches) -> ScanMethod {
     scanmethod
 }
 
-fn get_wifi_interface(m: &ArgMatches, debug: bool, dry_run: bool) -> Result<String, RuwiError> {
+fn get_wifi_interface<T>(m: &ArgMatches, opts: &T) -> Result<String, RuwiError> 
+where T: Global + Debug
+{
     Ok(match m.value_of("interface") {
         Some(val) => String::from(val),
-        None => get_default_interface(debug, dry_run)?,
+        None => get_default_interface(opts)?,
     })
 }
 

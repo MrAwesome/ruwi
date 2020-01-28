@@ -23,7 +23,7 @@ fn bring_interface(
     let cmd_args = &["link", "set", "dev", if_name, &if_state];
     if !options.get_dry_run() {
         run_command_pass_stdout(
-            options.d(),
+            options,
             cmd,
             cmd_args,
             err_kind,

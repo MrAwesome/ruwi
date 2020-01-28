@@ -42,7 +42,7 @@ fn find_known_networkmanager_networks(_options: &WifiConnectOptions) -> Result<K
 #[cfg(not(test))]
 fn find_known_networkmanager_networks(options: &WifiConnectOptions) -> Result<KnownNetworkNames, RuwiError> {
     let cmd_output = run_command_pass_stdout(
-        options.d(),
+        options,
         "nmcli",
         &["-g", "NAME", "connection", "show"],
         RuwiErrorKind::FailedToListKnownNetworksWithNetworkManager,

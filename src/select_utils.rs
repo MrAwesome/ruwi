@@ -16,7 +16,7 @@ pub(crate) fn run_dmenu(
     prompt: &str,
     elements: &[String],
 ) -> Result<String, RuwiError> {
-    run_prompt_cmd(options.d(), "dmenu", &["-i", "-p", prompt], elements)
+    run_prompt_cmd(options, "dmenu", &["-i", "-p", prompt], elements)
 }
 
 #[cfg_attr(test, allow(unused))]
@@ -26,7 +26,7 @@ pub(crate) fn run_fzf(
     elements: &[String],
 ) -> Result<String, RuwiError> {
     run_prompt_cmd(
-        options.d(),
+        options,
         "fzf",
         &[
             "--layout",

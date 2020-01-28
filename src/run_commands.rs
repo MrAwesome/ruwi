@@ -6,20 +6,26 @@ use std::io;
 use std::io::Write;
 use std::process::Output;
 use std::process::{Command, Stdio, ExitStatus};
+use std::fmt::Debug;
 
-pub(crate) fn run_command_pass(
-    debug: bool,
+// TODO: T: Globals
+// TODO: don't run commands in dryrun mode
+
+pub(crate) fn run_command_pass<T>(
+    opts: &T,
     cmd_name: &str,
     args: &[&str],
     err_kind: RuwiErrorKind,
     err_msg: &str,
-) -> Result<(), RuwiError> {
-    if debug {
-        dbg!(&debug, &cmd_name, &args, &err_kind, &err_msg);
+) -> Result<(), RuwiError>
+where T: Global + Debug
+{
+    if opts.d() {
+        dbg!(&opts, &cmd_name, &args, &err_kind, &err_msg);
     }
 
     // TODO: allow the err_msg to be or contain stderr somehow, esp for netctl switch-to
-    let output_res = run_command_silent_impl(debug, cmd_name, args);
+    let output_res = run_command_silent_impl(opts, cmd_name, args);
     if let Ok(output) = &output_res {
         if output.success() {
             return Ok(());
@@ -28,19 +34,21 @@ pub(crate) fn run_command_pass(
     Err(rerr!(err_kind, err_msg))
 }
 
-pub(crate) fn run_command_pass_stdout(
-    debug: bool,
+pub(crate) fn run_command_pass_stdout<T>(
+    opts: &T,
     cmd_name: &str,
     args: &[&str],
     err_kind: RuwiErrorKind,
     err_msg: &str,
-) -> Result<String, RuwiError> {
-    if debug {
-        dbg!(&debug, &cmd_name, &args, &err_kind, &err_msg);
+) -> Result<String, RuwiError> 
+where T: Global + Debug
+{
+    if opts.d() {
+        dbg!(opts, &cmd_name, &args, &err_kind, &err_msg);
     }
 
     // TODO: allow the err_msg to be or contain stderr somehow, esp for netctl switch-to
-    let output_res = run_command_output(debug, cmd_name, args);
+    let output_res = run_command_output(opts, cmd_name, args);
     if let Ok(output) = &output_res {
         if output.status.success() {
             return Ok(String::from_utf8_lossy(&output.stdout).to_string());
@@ -49,30 +57,34 @@ pub(crate) fn run_command_pass_stdout(
     Err(rerr!(err_kind, err_msg))
 }
 
-pub(crate) fn run_command_output(
-    debug: bool,
+pub(crate) fn run_command_output<T>(
+    opts: &T,
     cmd_name: &str,
     args: &[&str],
-) -> Result<Output, RuwiError> {
-    if debug {
+) -> Result<Output, RuwiError> 
+where T: Global + Debug
+{
+    if opts.d() {
         dbg!(&cmd_name, &args);
     }
 
     // TODO: instead of e.description, use stderr?
-    run_command_impl(debug, cmd_name, args)
+    run_command_impl(opts, cmd_name, args)
         .map_err(|e| rerr!(RuwiErrorKind::FailedToRunCommand, e.description()))
 }
 
-pub(crate) fn run_command_status_dumb(
-    debug: bool,
+pub(crate) fn run_command_status_dumb<T>(
+    opts: &T,
     cmd_name: &str,
     args: &[&str],
-) -> bool {
-    if debug {
+) -> bool 
+where T: Global + Debug
+{
+    if opts.d() {
         dbg!(&cmd_name, &args);
     }
 
-    let res = run_command_silent_impl(debug, cmd_name, args);
+    let res = run_command_silent_impl(opts, cmd_name, args);
 
     if let Ok(output) = res {
         output.success()
@@ -82,11 +94,13 @@ pub(crate) fn run_command_status_dumb(
 
 }
 
-fn run_command_impl(debug: bool, cmd_name: &str, args: &[&str]) -> io::Result<Output> {
+fn run_command_impl<T>(opts: &T, cmd_name: &str, args: &[&str]) -> io::Result<Output> 
+where T: Global + Debug
+{
     let mut cmd = Command::new(cmd_name);
     cmd.args(args).stdout(Stdio::piped()).stderr(Stdio::piped());
 
-    if debug {
+    if opts.d() {
         dbg!(&cmd);
     }
 
@@ -97,13 +111,13 @@ fn run_command_impl(debug: bool, cmd_name: &str, args: &[&str]) -> io::Result<Ou
     {
         let spawn_res = cmd.spawn();
 
-        if debug {
+        if opts.d() {
             dbg!(&spawn_res);
         }
 
         let output_res = spawn_res?.wait_with_output();
 
-        if debug {
+        if opts.d() {
             dbg!(&output_res);
         }
 
@@ -111,11 +125,13 @@ fn run_command_impl(debug: bool, cmd_name: &str, args: &[&str]) -> io::Result<Ou
     }
 }
 
-fn run_command_silent_impl(debug: bool, cmd_name: &str, args: &[&str]) -> io::Result<ExitStatus> {
+fn run_command_silent_impl<T>(opts: &T, cmd_name: &str, args: &[&str]) -> io::Result<ExitStatus> 
+where T: Global + Debug
+{
     let mut cmd = Command::new(cmd_name);
     cmd.args(args).stdout(Stdio::null()).stderr(Stdio::null());
 
-    if debug {
+    if opts.d() {
         dbg!(&cmd);
     }
 
@@ -126,13 +142,13 @@ fn run_command_silent_impl(debug: bool, cmd_name: &str, args: &[&str]) -> io::Re
     {
         let spawn_res = cmd.spawn();
 
-        if debug {
+        if opts.d() {
             dbg!(&spawn_res);
         }
 
         let run_res = spawn_res?.wait();
 
-        if debug {
+        if opts.d() {
             dbg!(&run_res);
         }
 
@@ -141,22 +157,24 @@ fn run_command_silent_impl(debug: bool, cmd_name: &str, args: &[&str]) -> io::Re
 }
 
 // Special runner for fzf, dmenu, etc
-pub(crate) fn run_prompt_cmd(
-    debug: bool,
+pub(crate) fn run_prompt_cmd<T>(
+    opts: &T,
     cmd_name: &str,
     args: &[&str],
     elements: &[String],
-) -> Result<String, RuwiError> {
-    if debug {
+) -> Result<String, RuwiError> 
+where T: Global + Debug
+{
+    if opts.d() {
         dbg!(&cmd_name, &args, &elements);
     }
 
-    let res = run_prompt_cmd_system_impl(debug, cmd_name, args, elements);
-    if debug {
+    let res = run_prompt_cmd_system_impl(opts, cmd_name, args, elements);
+    if opts.d() {
         dbg!(&res);
     }
 
-    is_cmd_installed(debug, cmd_name)?;
+    is_cmd_installed(opts, cmd_name)?;
 
     let output =
         res.map_err(|e| rerr!(RuwiErrorKind::PromptCommandSpawnFailed, format!("{}", e)))?;
@@ -173,13 +191,15 @@ pub(crate) fn run_prompt_cmd(
     }
 }
 
-fn run_prompt_cmd_system_impl(
-    debug: bool,
+fn run_prompt_cmd_system_impl<T>(
+    opts: &T,
     cmd_name: &str,
     args: &[&str],
     elements: &[String],
-) -> io::Result<Output> {
-    if debug {
+) -> io::Result<Output> 
+where T: Global + Debug
+{
+    if opts.d() {
         dbg!(&cmd_name, &args, &elements);
     }
 
@@ -191,7 +211,7 @@ fn run_prompt_cmd_system_impl(
         //.stderr(Stdio::piped())
         .stdout(Stdio::piped());
 
-    if debug {
+    if opts.d() {
         dbg![&cmd];
     }
 
@@ -216,14 +236,16 @@ fn run_prompt_cmd_system_impl(
     }
 }
 
-fn is_cmd_installed(debug: bool, cmd_name: &str) -> Result<(), RuwiError> {
+fn is_cmd_installed<T>(opts: &T, cmd_name: &str) -> Result<(), RuwiError>
+where T: Global + Debug
+{
     let mut cmd = Command::new("which");
     cmd.arg(cmd_name)
         .stdin(Stdio::null())
         .stderr(Stdio::null())
         .stdout(Stdio::null());
 
-    if debug {
+    if opts.d() {
         dbg!(&cmd);
     }
 
@@ -234,7 +256,7 @@ fn is_cmd_installed(debug: bool, cmd_name: &str) -> Result<(), RuwiError> {
     {
         let status = cmd.status();
 
-        if debug {
+        if opts.d() {
             dbg!(&status);
         }
 
@@ -262,7 +284,7 @@ mod tests {
     #[should_panic = "Prevented command usage in test!"]
     fn test_cmd_use_in_test_panics() {
         run_command_pass_stdout(
-            true,
+            &GlobalOptions::builder().debug(true).build(),
             "echo",
             &["lawl"],
             RuwiErrorKind::TestShouldNeverBeSeen,
@@ -275,7 +297,7 @@ mod tests {
     #[should_panic = "Prevented command usage in test!"]
     fn test_cmd_output_use_in_test_panics() {
         run_command_output(
-            true,
+            &GlobalOptions::builder().debug(true).build(),
             "echo",
             &["lawl"],
         )
@@ -286,7 +308,7 @@ mod tests {
     #[should_panic = "Prevented prompt command usage in test!"]
     fn test_prompt_cmd_use_in_test_panics() {
         run_prompt_cmd(
-            true,
+            &GlobalOptions::builder().debug(true).build(),
             "echo",
             &["loooool"],
             &["lawl".to_string()],
@@ -297,6 +319,8 @@ mod tests {
     #[test]
     #[should_panic = "Prevented is_cmd_installed command usage in test!"]
     fn test_is_cmd_installed_use_in_test_panics() {
-        is_cmd_installed(true, "FUFAJKFL").unwrap();
+        is_cmd_installed(
+            &GlobalOptions::builder().debug(true).build(),
+            "FUFAJKFL").unwrap();
     }
 }

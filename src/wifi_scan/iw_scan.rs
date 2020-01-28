@@ -91,12 +91,12 @@ where
 }
 
 fn run_iw_scan_synchronous_cmd(options: &WifiConnectOptions) -> Result<Output, RuwiError> {
-    run_command_output(options.d(), "iw", &[&options.get_interface(), "scan"])
+    run_command_output(options, "iw", &[&options.get_interface(), "scan"])
 }
 
 fn run_iw_scan_dump(options: &WifiConnectOptions) -> Result<String, RuwiError> {
     run_command_pass_stdout(
-        options.d(),
+        options,
         "iw",
         &[&options.get_interface(), "scan", "dump"],
         RuwiErrorKind::FailedToRunIWScanDump,
@@ -107,7 +107,7 @@ fn run_iw_scan_dump(options: &WifiConnectOptions) -> Result<String, RuwiError> {
 fn run_iw_scan_trigger(options: &WifiConnectOptions) -> Result<String, RuwiError> {
     // Initiate a rescan. This command should return instantaneously.
     run_command_pass_stdout(
-        options.d(),
+        options,
         "iw",
         &[&options.get_interface(), "scan", "trigger"],
         RuwiErrorKind::FailedToRunIWScanTrigger,
@@ -118,7 +118,7 @@ fn run_iw_scan_trigger(options: &WifiConnectOptions) -> Result<String, RuwiError
 #[cfg(not(test))]
 fn abort_ongoing_iw_scan(options: &WifiConnectOptions) -> Result<String, RuwiError> {
     run_command_pass_stdout(
-        options.d(),
+        options,
         "iw",
         &[&options.get_interface(), "scan", "abort"],
         RuwiErrorKind::FailedToRunIWScanAbort,
