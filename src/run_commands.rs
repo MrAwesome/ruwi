@@ -126,6 +126,7 @@ where
     #[cfg(test)]
     {
         dbg!(&cmd);
+        let _ = opts.d();
         panic!("Prevented command usage in test!");
     }
 
@@ -184,6 +185,7 @@ where
     #[cfg(test)]
     {
         dbg!(&cmd);
+        let _ = opts.d();
         panic!("Prevented command usage in test!");
     }
 
@@ -286,6 +288,7 @@ where
     #[cfg(test)]
     {
         dbg!(&cmd, &elements);
+        let _ = opts.d();
         panic!("Prevented prompt command usage in test!");
     }
 

@@ -9,13 +9,13 @@ use wifi::WifiStep;
 
 const SANITY_LOOP_CAP: u32 = 1000;
 
-pub fn run_ruwi_using_state_machine(command: &RuwiCommand) -> Result<(), RuwiError> {
+pub fn run_ruwi_using_state_machine(command: RuwiCommand) -> Result<(), RuwiError> {
     let sanity_loop_cap = SANITY_LOOP_CAP;
 
-    match command {
+    match &command {
         RuwiCommand::Wifi(RuwiWifiCommand::Connect(options)) => step_runner(
-            command,
-            options,
+            command.clone(),
+            options.clone(),
             sanity_loop_cap,
             WifiStep::ConnectionInit,
             WifiStep::ConnectionSuccessful,
@@ -31,7 +31,7 @@ pub fn run_ruwi_using_state_machine(command: &RuwiCommand) -> Result<(), RuwiErr
 }
 
 pub(crate) trait RuwiStep<O> {
-    fn exec(self, command: &RuwiCommand, options: &O) -> Result<Self, RuwiError>
+    fn exec(self, command: &RuwiCommand, options: &'static O) -> Result<Self, RuwiError>
     where
         O: Global + Wifi + WifiConnect,
         Self: Sized;
@@ -39,17 +39,19 @@ pub(crate) trait RuwiStep<O> {
 
 #[allow(clippy::needless_pass_by_value)]
 fn step_runner<O, T>(
-    command: &RuwiCommand,
-    options: &O,
+    command: RuwiCommand,
+    options: O,
     sanity_loop_cap: u32,
     first_step: T,
     last_step: T,
 ) -> Result<(), RuwiError>
 where
     // TODO: oh god
-    O: Global + Wifi + WifiConnect + LinuxNetworkingInterface,
+    O: 'static + Global + Wifi + WifiConnect + LinuxNetworkingInterface,
     T: RuwiStep<O> + PartialEq,
 {
+    let command = &command;
+    let options: &'static O = Box::leak(Box::new(options));
     let mut iterations = sanity_loop_cap;
     let mut next = first_step;
     while next != last_step {

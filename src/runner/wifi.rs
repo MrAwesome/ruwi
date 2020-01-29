@@ -50,15 +50,15 @@ pub(crate) enum WifiStep {
     ConnectionSuccessful,
 }
 
-impl<O: Global + Wifi + WifiConnect + LinuxNetworkingInterface> RuwiStep<O> for WifiStep {
-    fn exec(self, command: &RuwiCommand, options: &O) -> Result<Self, RuwiError> {
+impl<O: Global + Wifi + WifiConnect + LinuxNetworkingInterface + Clone + Send + Sync> RuwiStep<O> for WifiStep {
+    fn exec(self, command: &RuwiCommand, options: &'static O) -> Result<Self, RuwiError> {
         wifi_exec(self, command, options)
     }
 }
 
-fn wifi_exec<O>(step: WifiStep, _command: &RuwiCommand, options: &O) -> Result<WifiStep, RuwiError>
+fn wifi_exec<O>(step: WifiStep, _command: &RuwiCommand, options: &'static O) -> Result<WifiStep, RuwiError>
 where
-    O: Global + Wifi + WifiConnect + LinuxNetworkingInterface,
+    O: Global + Wifi + WifiConnect + LinuxNetworkingInterface + Clone + Send + Sync,
 {
     match step {
         WifiStep::ConnectionInit => {
@@ -186,22 +186,15 @@ where
     ))
 }
 
-fn gather_wifi_network_data<O>(options: &O, synchronous_rescan: Option<SynchronousRescanType>) -> Result<(KnownNetworkNames, ScanResult), RuwiError>
+fn gather_wifi_network_data<O>(options: &'static O, synchronous_rescan: Option<SynchronousRescanType>) -> Result<(KnownNetworkNames, ScanResult), RuwiError>
 where
-    O: Global + Wifi + WifiConnect + LinuxNetworkingInterface,
+    O: Global + Wifi + WifiConnect + LinuxNetworkingInterface + Clone + Send + Sync,
 {
-    let TODO = "FIX THREAD SAFETY OF OPTIONS";
-    //let get_nw_names = thread::spawn(move || find_known_network_names(opt1.clone()));
-    //let get_scan_results = thread::spawn(move || wifi_scan(opt2.clone()));
-    //
-    let get_nw_names = find_known_network_names(options);
-    let get_scan_results = wifi_scan(options, synchronous_rescan);
+    let get_nw_names = thread::spawn(move || find_known_network_names(options));
+    let get_scan_results = thread::spawn(move || wifi_scan(options, synchronous_rescan));
 
-    //let known_network_names = await_thread(get_nw_names)??;
-    //let scan_result = await_thread(get_scan_results)??;
-    //
-    let known_network_names = get_nw_names?;
-    let scan_result = get_scan_results?;
+    let known_network_names = await_thread(get_nw_names)??;
+    let scan_result = await_thread(get_scan_results)??;
 
     Ok((known_network_names, scan_result))
 }
@@ -224,9 +217,9 @@ mod tests {
     #[test]
     fn test_basic_runner_functionality() {
         let test_step = WifiStep::BasicTestStep;
-        let options = WifiConnectOptions::default();
+        let options = Box::leak(Box::new(WifiConnectOptions::default()));
         let command = RuwiCommand::Wifi(RuwiWifiCommand::Connect(options.clone()));
-        let next = test_step.exec(&command, &options);
+        let next = test_step.exec(&command, options);
         if let Ok(WifiStep::ConnectionSuccessful) = next {
         } else {
             dbg!(&next);
@@ -236,11 +229,11 @@ mod tests {
 
     #[test]
     fn test_connection_init() {
-        let options = WifiConnectOptions::default();
+        let options = Box::leak(Box::new(WifiConnectOptions::default()));
         let command = RuwiCommand::Wifi(RuwiWifiCommand::Connect(options.clone()));
         let step = WifiStep::ConnectionInit;
         let expected_next_step = WifiStep::DataGatherer;
-        assert_eq!(step.exec(&command, &options).unwrap(), expected_next_step);
+        assert_eq!(step.exec(&command, options).unwrap(), expected_next_step);
     }
 
     //        if let WifiStep::NetworkParserAndAnnotator { .. } = &step {
@@ -296,9 +289,9 @@ mod tests {
             networks: networks.clone(),
         };
         let test_step = WifiStep::NetworkSorter { annotated_networks };
-        let options = WifiConnectOptions::default();
+        let options = Box::leak(Box::new(WifiConnectOptions::default()));
         let command = RuwiCommand::Wifi(RuwiWifiCommand::Connect(options.clone()));
-        let next = test_step.exec(&command, &options);
+        let next = test_step.exec(&command, options);
         if let Ok(WifiStep::NetworkSelector { sorted_networks }) = next {
             assert_eq![first, sorted_networks.networks.first().unwrap().clone()];
             assert_eq![networks.len(), sorted_networks.networks.len()];
