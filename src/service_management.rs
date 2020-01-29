@@ -1,3 +1,4 @@
+use crate::options::interfaces::*;
 use crate::run_commands::run_command_pass;
 use crate::wpa_cli_initialize::initialize_wpa_supplicant;
 use crate::structs::*;
@@ -11,7 +12,7 @@ pub(crate) enum NetworkingService {
 }
 
 impl NetworkingService {
-    pub(crate) fn start(&self, options: &WifiConnectOptions) -> Result<(), RuwiError> {
+    pub(crate) fn start<O>(&self, options: &O) -> Result<(), RuwiError> where O: Global {
         match self {
             Self::Netctl => start_netctl(options),
             Self::NetworkManager => start_networkmanager(options),
@@ -21,7 +22,7 @@ impl NetworkingService {
     }
 }
 
-fn start_netctl(options: &WifiConnectOptions) -> Result<(), RuwiError> {
+fn start_netctl<O>(options: &O) -> Result<(), RuwiError> where O: Global {
     run_command_pass(
         options,
         "systemctl",
@@ -31,7 +32,7 @@ fn start_netctl(options: &WifiConnectOptions) -> Result<(), RuwiError> {
     )
 }
 
-fn start_networkmanager(options: &WifiConnectOptions) -> Result<(), RuwiError> {
+fn start_networkmanager<O>(options: &O) -> Result<(), RuwiError> where O: Global {
     run_command_pass(
         options,
         "systemctl",

@@ -1,3 +1,4 @@
+use crate::options::interfaces::*;
 use crate::rerr;
 use crate::run_commands::*;
 use crate::structs::*;
@@ -11,20 +12,20 @@ pub trait Selectable {
     fn get_display_string(&self) -> String;
 }
 
-pub(crate) fn run_dmenu(
-    options: &WifiConnectOptions,
+pub(crate) fn run_dmenu<O>(
+    options: &O,
     prompt: &str,
     elements: &[String],
-) -> Result<String, RuwiError> {
+) -> Result<String, RuwiError> where O: Global {
     run_prompt_cmd(options, "dmenu", &["-i", "-p", prompt], elements)
 }
 
 #[cfg_attr(test, allow(unused))]
-pub(crate) fn run_fzf(
-    options: &WifiConnectOptions,
+pub(crate) fn run_fzf<O>(
+    options: &O,
     prompt: &str,
     elements: &[String],
-) -> Result<String, RuwiError> {
+) -> Result<String, RuwiError> where O: Global {
     run_prompt_cmd(
         options,
         "fzf",
@@ -39,20 +40,20 @@ pub(crate) fn run_fzf(
     )
 }
 
-pub(crate) fn run_stdin_prompt_single_line(
-    options: &WifiConnectOptions,
+pub(crate) fn run_stdin_prompt_single_line<O>(
+    options: &O,
     prompt: &str,
     elements: &[String],
-) -> Result<String, RuwiError> {
+) -> Result<String, RuwiError> where O: Global {
     run_stdin_prompt_single_line_impl(options, prompt, elements)
         .map_err(|e| rerr!(RuwiErrorKind::SingleLinePromptFailed, e.description()))
 }
 
-fn run_stdin_prompt_single_line_impl(
-    _options: &WifiConnectOptions,
+fn run_stdin_prompt_single_line_impl<O>(
+    _options: &O,
     prompt: &str,
     _elements: &[String],
-) -> io::Result<String> {
+) -> io::Result<String> where O: Global {
     print!("{}", prompt);
     io::stdout().flush()?;
     let stdin = io::stdin();

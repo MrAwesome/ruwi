@@ -1,9 +1,10 @@
+use crate::options::interfaces::*;
 use crate::structs::*;
 
-pub(crate) fn should_retry_with_synchronous_scan(
-    options: &WifiConnectOptions,
+pub(crate) fn should_retry_with_synchronous_scan<O>(
+    options: &O,
     annotated_networks: &AnnotatedNetworks,
-) -> bool {
+) -> bool where O: Global + WifiConnect {
     let networks = &annotated_networks.networks;
     networks.is_empty()
         || match options.get_auto_mode() {
@@ -15,6 +16,7 @@ pub(crate) fn should_retry_with_synchronous_scan(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::options::structs::WifiConnectOptions;
 
     fn get_options(auto_mode: &AutoMode) -> WifiConnectOptions {
         WifiConnectOptions::builder()

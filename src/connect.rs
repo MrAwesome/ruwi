@@ -1,3 +1,4 @@
+use crate::options::interfaces::*;
 use crate::interface_management::bring_interface_down;
 use crate::netctl_config_writer::get_netctl_file_name;
 use crate::rerr;
@@ -5,11 +6,11 @@ use crate::run_commands::*;
 use crate::structs::*;
 use crate::service_management::GetService;
 
-pub(crate) fn connect_to_network(
-    options: &WifiConnectOptions,
+pub(crate) fn connect_to_network<O>(
+    options: &O,
     selected_network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
-) -> Result<ConnectionResult, RuwiError> {
+) -> Result<ConnectionResult, RuwiError> where O: Global + Wifi + WifiConnect + LinuxNetworkingInterface {
     let cv = options.get_connect_via();
     cv.get_service().start(options)?;
 
@@ -74,10 +75,10 @@ pub(crate) fn connect_to_network(
     res
 }
 
-fn connect_via_netctl(
-    options: &WifiConnectOptions,
+fn connect_via_netctl<O>(
+    options: &O,
     selected_network: &AnnotatedWirelessNetwork,
-) -> Result<ConnectionResult, RuwiError> {
+) -> Result<ConnectionResult, RuwiError> where O: Global + LinuxNetworkingInterface {
     if options.get_dry_run() {
         return Ok(ConnectionResult {
             connection_type: WifiConnectionType::Netctl,
@@ -102,11 +103,11 @@ fn connect_via_netctl(
     }
 }
 
-fn connect_via_networkmanager(
-    options: &WifiConnectOptions,
+fn connect_via_networkmanager<O>(
+    options: &O,
     selected_network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
-) -> Result<ConnectionResult, RuwiError> {
+) -> Result<ConnectionResult, RuwiError> where O: Global {
     // TODO: see if interface needs to be down
     //bring_interface_down(options)?;
 

@@ -1,6 +1,6 @@
+use crate::options::interfaces::*;
 use crate::run_commands::*;
 use crate::structs::*;
-use std::fmt::Debug;
 use std::thread;
 use std::time::Duration;
 
@@ -12,9 +12,9 @@ update_config=1
 
 See https://wiki.archlinux.org/index.php/WPA_supplicant#Connecting_with_wpa_cli for more info.";
 
-pub(crate) fn initialize_wpa_supplicant<T>(options: &T) -> Result<(), RuwiError>
+pub(crate) fn initialize_wpa_supplicant<O>(options: &O) -> Result<(), RuwiError>
 where
-    T: Global + Debug,
+    O: Global,
 {
     //        /etc/wpa_supplicant/wpa_supplicant.conf
     //    ctrl_interface=/run/wpa_supplicant
@@ -59,9 +59,9 @@ where
     ))
 }
 
-fn wpa_ping_success<T>(options: &T) -> bool
+fn wpa_ping_success<O>(options: &O) -> bool
 where
-    T: Global + Debug,
+    O: Global,
 {
     let ping_status = run_command_status_dumb(options, "wpa_cli", &["ping"]);
 

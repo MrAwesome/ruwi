@@ -1,10 +1,11 @@
+use crate::options::interfaces::*;
 use crate::structs::*;
 
-pub(crate) fn parse_nmcli_scan(
-    _options: &WifiConnectOptions,
+pub(crate) fn parse_nmcli_scan<O>(
+    _options: &O,
     output: &str,
     scan_type: ScanType,
-) -> Result<ParseResult, RuwiError> {
+) -> Result<ParseResult, RuwiError> where O: Global {
     let mut seen_networks = vec![];
     let mut line_parse_errors = vec![];
     for line in output.trim().lines() {

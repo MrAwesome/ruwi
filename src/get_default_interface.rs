@@ -1,3 +1,4 @@
+use crate::options::interfaces::*;
 use crate::rerr;
 #[cfg(not(test))]
 use crate::run_commands::*;
@@ -5,8 +6,8 @@ use crate::structs::*;
 use std::fmt::Debug;
 
 // TODO: make interface a struct of some sort?
-pub(crate) fn get_default_interface<T>(opts: &T) -> Result<String, RuwiError> 
-where T: Global + Debug
+pub(crate) fn get_default_interface<O>(opts: &O) -> Result<String, RuwiError> 
+where O: Global + Debug
 {
     // TODO: push this further down the stack?
     if opts.get_dry_run() {
@@ -23,8 +24,8 @@ where T: Global + Debug
     interface
 }
 
-fn get_interface_with_iw<T>(opts: &T) -> Result<String, RuwiError> 
-where T: Global + Debug
+fn get_interface_with_iw<O>(opts: &O) -> Result<String, RuwiError> 
+where O: Global + Debug
 {
     #[cfg(test)]
     {

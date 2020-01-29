@@ -1,3 +1,5 @@
+use crate::options::interfaces::*;
+use crate::options::structs::PROG_NAME;
 use crate::run_commands::*;
 use crate::structs::*;
 
@@ -12,11 +14,11 @@ enum InterfaceState {
 
 
 // TODO: make this work for wired, wifi, and possibly bluetooth (if needed)
-fn bring_interface(
-    options: &WifiConnectOptions,
+fn bring_interface<O>(
+    options: &O,
     interface_state: &InterfaceState,
     err_kind: RuwiErrorKind,
-) -> Result<(), RuwiError> {
+) -> Result<(), RuwiError> where O: Global + LinuxNetworkingInterface {
     let if_name = &options.get_interface();
     let if_state = interface_state.to_string();
     let cmd = "ip";
@@ -41,7 +43,7 @@ fn bring_interface(
     Ok(())
 }
 
-pub(crate) fn bring_interface_up(options: &WifiConnectOptions) -> Result<(), RuwiError> {
+pub(crate) fn bring_interface_up<O>(options: &O) -> Result<(), RuwiError> where O: Global + LinuxNetworkingInterface {
     bring_interface(
         options,
         &InterfaceState::UP,
@@ -49,7 +51,7 @@ pub(crate) fn bring_interface_up(options: &WifiConnectOptions) -> Result<(), Ruw
     )
 }
 
-pub(crate) fn bring_interface_down(options: &WifiConnectOptions) -> Result<(), RuwiError> {
+pub(crate) fn bring_interface_down<O>(options: &O) -> Result<(), RuwiError> where O: Global + LinuxNetworkingInterface {
     bring_interface(
         options,
         &InterfaceState::DOWN,

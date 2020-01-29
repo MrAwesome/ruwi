@@ -1,5 +1,6 @@
 // TODO: abstract away this functionality to not be wifi-specific
 use crate::rerr;
+use crate::options::interfaces::*;
 use crate::select_utils::*;
 use crate::structs::*;
 
@@ -30,17 +31,17 @@ impl SortedUniqueNetworks {
     }
 }
 
-pub(crate) fn select_network(
-    options: &WifiConnectOptions,
+pub(crate) fn select_network<O>(
+    options: &O,
     networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> {
+) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global + WifiConnect {
     select_network_impl(options, networks, prompt_user_for_selection)
 }
 
-fn prompt_user_for_selection(
-    options: &WifiConnectOptions,
+fn prompt_user_for_selection<O>(
+    options: &O,
     networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> {
+) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global {
     let selector_output = run_manual_selector(options, networks)?;
 
     if let Ok(selection_option) = SelectionOption::from_str(&selector_output) {
@@ -62,33 +63,34 @@ fn prompt_user_for_selection(
     }
 }
 
-fn run_manual_selector(
-    options: &WifiConnectOptions,
+fn run_manual_selector<O>(
+    options: &O,
     networks: &SortedUniqueNetworks,
-) -> Result<String, RuwiError> {
+) -> Result<String, RuwiError> where O: Global {
     run_manual_selector_impl(options, networks, pass_tokens_to_selection_program)
 }
 
-fn run_manual_selector_impl<F>(
-    options: &WifiConnectOptions,
+fn run_manual_selector_impl<O, F>(
+    options: &O,
     networks: &SortedUniqueNetworks,
     selector: F,
 ) -> Result<String, RuwiError>
 where
-    F: FnOnce(&WifiConnectOptions, &[String]) -> Result<String, RuwiError>,
+    O: Global,
+    F: FnOnce(&O, &[String]) -> Result<String, RuwiError>,
 {
     let selection_tokens = networks.get_tokens_for_selection();
     selector(options, &selection_tokens).map(|x| x.trim().into())
 }
 
-fn pass_tokens_to_selection_program(
-    options: &WifiConnectOptions,
+fn pass_tokens_to_selection_program<O>(
+    options: &O,
     selection_tokens: &[String],
-) -> Result<String, RuwiError> {
+) -> Result<String, RuwiError> where O: Global {
     match options.get_selection_method() {
-        SelectionMethod::Dmenu => run_dmenu(&options, "Select a network: ", &selection_tokens),
+        SelectionMethod::Dmenu => run_dmenu(options, "Select a network: ", &selection_tokens),
         SelectionMethod::Fzf => run_fzf(
-            &options,
+            options,
             "Select a network (ctrl-r or \"refresh\" to refresh results): ",
             &selection_tokens,
         ),
@@ -110,10 +112,10 @@ fn get_line_parse_err(line: &str) -> RuwiError {
     )
 }
 
-fn select_first_known(
-    _options: &WifiConnectOptions,
+fn select_first_known<O>(
+    _options: &O,
     networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> {
+) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global {
     networks
         .networks
         .iter()
@@ -127,10 +129,10 @@ fn select_first_known(
         .map(Clone::clone)
 }
 
-fn select_first(
-    _options: &WifiConnectOptions,
+fn select_first<O>(
+    _options: &O,
     networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> {
+) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global {
     networks
         .networks
         .iter()
@@ -144,13 +146,14 @@ fn select_first(
         .map(Clone::clone)
 }
 
-fn select_network_impl<'a, 'b, F>(
-    options: &'a WifiConnectOptions,
+fn select_network_impl<'a, 'b, O, F>(
+    options: &'a O,
     networks: &'b SortedUniqueNetworks,
     manual_selector: F,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError>
 where
-    F: FnOnce(&'a WifiConnectOptions, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, RuwiError>,
+    O: Global + WifiConnect,
+    F: FnOnce(&'a O, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, RuwiError>,
 {
     let selected_network_res = match options.get_auto_mode() {
         AutoMode::Ask => manual_selector(options, networks),
@@ -182,6 +185,7 @@ where
 mod tests {
     use super::*;
     use crate::strum::AsStaticRef;
+    use crate::options::structs::WifiConnectOptions;
 
     static FIRST_NW_NAME: &str = "FIRSTNWLOL";
     static SECND_NW_NAME: &str = "SECNDNWWUT";
@@ -211,10 +215,10 @@ mod tests {
         networks
     }
 
-    fn select_last(
-        _options: &WifiConnectOptions,
+    fn select_last<O>(
+        _options: &O,
         networks: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
+    ) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global {
         networks
             .networks
             .iter()
@@ -228,17 +232,17 @@ mod tests {
             .map(Clone::clone)
     }
 
-    fn select_refresh(
-        _options: &WifiConnectOptions,
+    fn select_refresh<O>(
+        _options: &O,
         _networks: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
+    ) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global {
         Err(rerr!(RuwiErrorKind::RefreshRequested, "Refresh requested."))
     }
 
-    fn err_should_not_have_used_manual(
-        _opt: &WifiConnectOptions,
+    fn err_should_not_have_used_manual<O>(
+        _opt: &O,
         _nw: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, RuwiError> {
+    ) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global {
         Err(rerr!(
             RuwiErrorKind::TestUsedManualWhenNotExpected,
             "Used manual selector in test when should not have!",

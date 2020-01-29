@@ -1,5 +1,7 @@
 // TODO: move these pieces into their own helper library
+use crate::options::interfaces::*;
 use crate::rerr;
+use crate::options::structs::*;
 use crate::structs::*;
 
 mod wifi;
@@ -28,22 +30,25 @@ pub fn run_ruwi_using_state_machine(command: &RuwiCommand) -> Result<(), RuwiErr
     //      RuwiCommand::Disconnect => {}
 }
 
-pub(crate) trait RuwiStep {
-    fn exec(self, command: &RuwiCommand, options: &WifiConnectOptions) -> Result<Self, RuwiError>
+pub(crate) trait RuwiStep<O> {
+    fn exec(self, command: &RuwiCommand, options: &O) -> Result<Self, RuwiError>
     where
+        O: Global + Wifi + WifiConnect,
         Self: Sized;
 }
 
 #[allow(clippy::needless_pass_by_value)]
-fn step_runner<T>(
+fn step_runner<O, T>(
     command: &RuwiCommand,
-    options: &WifiConnectOptions,
+    options: &O,
     sanity_loop_cap: u32,
     first_step: T,
     last_step: T,
 ) -> Result<(), RuwiError>
 where
-    T: RuwiStep + PartialEq,
+    // TODO: oh god
+    O: Global + Wifi + WifiConnect + LinuxNetworkingInterface,
+    T: RuwiStep<O> + PartialEq,
 {
     let mut iterations = sanity_loop_cap;
     let mut next = first_step;

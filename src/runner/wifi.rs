@@ -5,14 +5,16 @@ use crate::configure_network::possibly_configure_network;
 use crate::connect::connect_to_network;
 use crate::encryption_key::possibly_get_encryption_key;
 use crate::find_known_network_names::find_known_network_names;
+use crate::options::interfaces::*;
+use crate::options::structs::RuwiCommand; // TODO: Remove
 use crate::parse::parse_result;
 use crate::rerr;
 use crate::runner::RuwiStep;
-use crate::wifi_scan::wifi_scan;
 use crate::select_network::select_network;
 use crate::sort_networks::sort_and_filter_networks;
 use crate::structs::*;
 use crate::synchronous_retry_logic::should_retry_with_synchronous_scan;
+use crate::wifi_scan::wifi_scan;
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum WifiStep {
@@ -48,20 +50,19 @@ pub(crate) enum WifiStep {
     ConnectionSuccessful,
 }
 
-impl RuwiStep for WifiStep {
-    fn exec(self, command: &RuwiCommand, options: &WifiConnectOptions) -> Result<Self, RuwiError> {
+impl<O: Global + Wifi + WifiConnect + LinuxNetworkingInterface> RuwiStep<O> for WifiStep {
+    fn exec(self, command: &RuwiCommand, options: &O) -> Result<Self, RuwiError> {
         wifi_exec(self, command, options)
     }
 }
 
-fn wifi_exec(
-    step: WifiStep,
-    _command: &RuwiCommand,
-    options: &WifiConnectOptions,
-) -> Result<WifiStep, RuwiError> {
-        match step {
+fn wifi_exec<O>(step: WifiStep, _command: &RuwiCommand, options: &O) -> Result<WifiStep, RuwiError>
+where
+    O: Global + Wifi + WifiConnect + LinuxNetworkingInterface,
+{
+    match step {
         WifiStep::ConnectionInit => {
-            if let Some(essid) = &options.get_given_essid() {
+            if let Some(essid) = options.get_given_essid() {
                 let selected_network = get_network_from_given_essid(options, &essid)?;
                 Ok(WifiStep::PasswordAsker { selected_network })
             } else {
@@ -71,11 +72,11 @@ fn wifi_exec(
 
         // TODO: decide if there should be an explicit service management step,
         //       or if services should be managed as they are used for scan/connect/etc
-        //       Should you use the service of connect_via? of scan? 
+        //       Should you use the service of connect_via? of scan?
         //       It is probably best to have a utility function to start a given service, then
         //       run that as needed whenever a service might be needed.
         WifiStep::DataGatherer => {
-            let (known_network_names, scan_result) = gather_wifi_network_data(options)?;
+            let (known_network_names, scan_result) = gather_wifi_network_data(options, None)?;
             Ok(WifiStep::NetworkParserAndAnnotator {
                 known_network_names,
                 scan_result,
@@ -99,8 +100,7 @@ fn wifi_exec(
         }
 
         WifiStep::SynchronousRescan { rescan_type } => {
-            let (known_network_names, scan_result) =
-                gather_wifi_network_data(&options.with_synchronous_retry(rescan_type))?;
+            let (known_network_names, scan_result) = gather_wifi_network_data(options, Some(rescan_type))?;
             Ok(WifiStep::NetworkParserAndAnnotator {
                 scan_result,
                 known_network_names,
@@ -170,10 +170,13 @@ fn term_step() -> Result<WifiStep, RuwiError> {
     ))
 }
 
-fn get_network_from_given_essid(
-    options: &WifiConnectOptions,
+fn get_network_from_given_essid<O>(
+    options: &O,
     essid: &str,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> {
+) -> Result<AnnotatedWirelessNetwork, RuwiError>
+where
+    O: Global + Wifi + WifiConnect + LinuxNetworkingInterface,
+{
     let is_known = find_known_network_names(options)?.contains(essid);
     let is_encrypted = options.get_given_encryption_key().is_some();
     Ok(AnnotatedWirelessNetwork::from_essid(
@@ -183,15 +186,22 @@ fn get_network_from_given_essid(
     ))
 }
 
-fn gather_wifi_network_data(
-    options: &WifiConnectOptions,
-) -> Result<(KnownNetworkNames, ScanResult), RuwiError> {
-    let (opt1, opt2) = (options.clone(), options.clone());
-    let get_nw_names = thread::spawn(move || find_known_network_names(&opt1));
-    let get_scan_results = thread::spawn(move || wifi_scan(&opt2));
+fn gather_wifi_network_data<O>(options: &O, synchronous_rescan: Option<SynchronousRescanType>) -> Result<(KnownNetworkNames, ScanResult), RuwiError>
+where
+    O: Global + Wifi + WifiConnect + LinuxNetworkingInterface,
+{
+    let TODO = "FIX THREAD SAFETY OF OPTIONS";
+    //let get_nw_names = thread::spawn(move || find_known_network_names(opt1.clone()));
+    //let get_scan_results = thread::spawn(move || wifi_scan(opt2.clone()));
+    //
+    let get_nw_names = find_known_network_names(options);
+    let get_scan_results = wifi_scan(options, synchronous_rescan);
 
-    let known_network_names = await_thread(get_nw_names)??;
-    let scan_result = await_thread(get_scan_results)??;
+    //let known_network_names = await_thread(get_nw_names)??;
+    //let scan_result = await_thread(get_scan_results)??;
+    //
+    let known_network_names = get_nw_names?;
+    let scan_result = get_scan_results?;
 
     Ok((known_network_names, scan_result))
 }
@@ -209,6 +219,7 @@ fn await_thread<T>(handle: thread::JoinHandle<T>) -> Result<T, RuwiError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::options::structs::*;
 
     #[test]
     fn test_basic_runner_functionality() {

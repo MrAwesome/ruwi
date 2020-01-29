@@ -27,6 +27,7 @@ pub(crate) mod select_network;
 pub(crate) mod select_utils;
 pub(crate) mod sort_networks;
 pub(crate) mod structs;
+pub(crate) mod options;
 pub(crate) mod synchronous_retry_logic;
 pub(crate) mod service_management;
 #[macro_use]

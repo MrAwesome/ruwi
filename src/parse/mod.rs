@@ -3,14 +3,17 @@ use nmcli::parse_nmcli_scan;
 
 use crate::rerr;
 use crate::structs::*;
+use crate::options::interfaces::*;
 
 use regex::Regex;
 use unescape::unescape;
 
-pub(crate) fn parse_result(
-    options: &WifiConnectOptions,
+// TODO: you can include the interface in ScanResult, and get rid of that trait here.
+pub(crate) fn parse_result<O>(
+    options: &O,
     scan_result: &ScanResult,
-) -> Result<ParseResult, RuwiError> {
+) -> Result<ParseResult, RuwiError> 
+where O: Global + LinuxNetworkingInterface {
     let st = scan_result.scan_type.clone();
     // let TODO = "detangle scan type wifi etc?";
     let res = match &st {
@@ -27,11 +30,12 @@ pub(crate) fn parse_result(
     res
 }
 
-fn parse_iw_scan(
-    options: &WifiConnectOptions,
+fn parse_iw_scan<O>(
+    options: &O,
     output: &str,
     scan_type: ScanType,
-) -> Result<ParseResult, RuwiError> {
+) -> Result<ParseResult, RuwiError> 
+where O: Global + LinuxNetworkingInterface {
     let network_chunks = break_iw_output_into_chunks_per_network(options, output)?;
     let mut seen_networks = vec![];
     let mut line_parse_errors = vec![];
@@ -49,10 +53,11 @@ fn parse_iw_scan(
     })
 }
 
-fn break_iw_output_into_chunks_per_network<'a>(
-    options: &WifiConnectOptions,
+fn break_iw_output_into_chunks_per_network<'a, O>(
+    options: &O,
     output: &'a str,
-) -> Result<Vec<Vec<&'a str>>, RuwiError> {
+) -> Result<Vec<Vec<&'a str>>, RuwiError> 
+where O: Global + LinuxNetworkingInterface {
     let mut lines = output.trim().lines().map(str::trim);
     let mut iw_network_line_groups = vec![];
 
@@ -136,7 +141,8 @@ fn get_iw_bss_regex() -> Regex {
     Regex::new(r"^BSS ((\w\w:){5}\w\w)").expect("Failure creating regex for iw parsing...")
 }
 
-fn err_iw_malformed_output(options: &WifiConnectOptions) -> RuwiError {
+fn err_iw_malformed_output<O>(options: &O) -> RuwiError 
+where O: Global + LinuxNetworkingInterface {
     rerr!(
         RuwiErrorKind::MalformedIWOutput,
         format!(
@@ -146,7 +152,8 @@ fn err_iw_malformed_output(options: &WifiConnectOptions) -> RuwiError {
     )
 }
 
-fn err_iw_no_networks_seen(options: &WifiConnectOptions) -> RuwiError {
+fn err_iw_no_networks_seen<O>(options: &O) -> RuwiError 
+where O: Global + LinuxNetworkingInterface {
     rerr!(
         RuwiErrorKind::NoNetworksSeenWithIWScanDump,
         format!("No networks seen by `sudo iw {} scan dump`. Are you near wireless networks? Try running `sudo iw {} scan`.", 
@@ -154,11 +161,12 @@ fn err_iw_no_networks_seen(options: &WifiConnectOptions) -> RuwiError {
             options.get_interface()))
 }
 
-fn parse_wpa_cli_scan(
-    _options: &WifiConnectOptions,
+fn parse_wpa_cli_scan<O>(
+    _options: &O,
     output: &str,
     scan_type: ScanType,
-) -> Result<ParseResult, RuwiError> {
+) -> Result<ParseResult, RuwiError> 
+where O: Global {
     let mut lines = output.trim().lines().map(ToString::to_string);
     let mut networks = vec![];
     let mut line_parse_errors = vec![];
@@ -236,13 +244,14 @@ fn parse_wpa_line_into_network(line: &str) -> Result<WirelessNetwork, Individual
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::options::structs::WifiConnectOptions;
 
     fn compare_parsed_result_to_expected_result(options: &WifiConnectOptions, 
         scan_result: &ScanResult,
         expected_parse_result: &Result<ParseResult, RuwiError>,
     ) {
 
-        let actual_parse_result = parse_result(&options, &scan_result);
+        let actual_parse_result = parse_result(options, &scan_result);
 
         dbg!(&expected_parse_result);
         dbg!(&actual_parse_result);

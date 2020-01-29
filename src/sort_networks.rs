@@ -1,3 +1,4 @@
+use crate::options::interfaces::*;
 use crate::structs::*;
 use std::cmp::Ordering;
 use std::collections::HashSet;
@@ -18,10 +19,10 @@ impl PartialOrd for AnnotatedWirelessNetwork {
     }
 }
 
-pub(crate) fn sort_and_filter_networks(
-    options: &WifiConnectOptions,
+pub(crate) fn sort_and_filter_networks<O>(
+    options: &O,
     annotated_networks: AnnotatedNetworks,
-) -> SortedUniqueNetworks {
+) -> SortedUniqueNetworks where O: Global {
     let mut sorted_networks = annotated_networks.networks;
     put_best_networks_first(&mut sorted_networks);
 
@@ -55,6 +56,7 @@ pub(crate) fn put_best_networks_first(networks: &mut Vec<AnnotatedWirelessNetwor
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::options::structs::WifiConnectOptions;
 
     fn compare_order(
         should_be_first: AnnotatedWirelessNetwork,

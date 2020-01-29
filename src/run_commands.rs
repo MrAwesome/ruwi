@@ -1,27 +1,27 @@
 use crate::rerr;
+use crate::options::interfaces::*;
 use crate::structs::*;
 use std::error::Error;
-use std::fmt::Debug;
 use std::io;
 #[cfg(not(test))]
 use std::io::Write;
 use std::process::Output;
 use std::process::{Command, ExitStatus, Stdio};
 
-// TODO: don't run commands in dryrun mode
+// TODO: find a way to namespace O for modules like this
 
-pub(crate) fn run_command_pass<T>(
-    opts: &T,
+pub(crate) fn run_command_pass<O>(
+    opts: &O,
     cmd_name: &str,
     args: &[&str],
     err_kind: RuwiErrorKind,
     err_msg: &str,
 ) -> Result<(), RuwiError>
 where
-    T: Global + Debug,
+    O: Global,
 {
     if opts.d() {
-        dbg!(&opts, &cmd_name, &args, &err_kind, &err_msg);
+        dbg!(&cmd_name, &args, &err_kind, &err_msg);
     }
 
     // TODO: allow the err_msg to be or contain stderr somehow, esp for netctl switch-to
@@ -34,18 +34,18 @@ where
     Err(rerr!(err_kind, err_msg))
 }
 
-pub(crate) fn run_command_pass_stdout<T>(
-    opts: &T,
+pub(crate) fn run_command_pass_stdout<O>(
+    opts: &O,
     cmd_name: &str,
     args: &[&str],
     err_kind: RuwiErrorKind,
     err_msg: &str,
 ) -> Result<String, RuwiError>
 where
-    T: Global + Debug,
+    O: Global,
 {
     if opts.d() {
-        dbg!(opts, &cmd_name, &args, &err_kind, &err_msg);
+        dbg!(&cmd_name, &args, &err_kind, &err_msg);
     }
 
     // TODO: allow the err_msg to be or contain stderr somehow, esp for netctl switch-to
@@ -58,13 +58,13 @@ where
     Err(rerr!(err_kind, err_msg))
 }
 
-pub(crate) fn run_command_output<T>(
-    opts: &T,
+pub(crate) fn run_command_output<O>(
+    opts: &O,
     cmd_name: &str,
     args: &[&str],
 ) -> Result<Output, RuwiError>
 where
-    T: Global + Debug,
+    O: Global,
 {
     if opts.d() {
         dbg!(&cmd_name, &args);
@@ -75,9 +75,9 @@ where
         .map_err(|e| rerr!(RuwiErrorKind::FailedToRunCommand, e.description()))
 }
 
-pub(crate) fn run_command_status_dumb<T>(opts: &T, cmd_name: &str, args: &[&str]) -> bool
+pub(crate) fn run_command_status_dumb<O>(opts: &O, cmd_name: &str, args: &[&str]) -> bool
 where
-    T: Global + Debug,
+    O: Global,
 {
     if opts.d() {
         dbg!(&cmd_name, &args);
@@ -92,17 +92,17 @@ where
     }
 }
 
-fn run_command_impl<T>(opts: &T, cmd_name: &str, args: &[&str]) -> io::Result<Output>
+fn run_command_impl<O>(opts: &O, cmd_name: &str, args: &[&str]) -> io::Result<Output>
 where
-    T: Global + Debug,
+    O: Global,
 {
     let mut cmd = get_output_command(opts, cmd_name, args);
     spawn_and_await_output_command(opts, &mut cmd)
 }
 
-fn get_output_command<T>(opts: &T, cmd_name: &str, args: &[&str]) -> Command
+fn get_output_command<O>(opts: &O, cmd_name: &str, args: &[&str]) -> Command
 where
-    T: Global + Debug,
+    O: Global,
 {
     let cmd = if opts.get_dry_run() {
         empty_command_dryrun(cmd_name, args)
@@ -119,13 +119,13 @@ where
     cmd
 }
 
-fn spawn_and_await_output_command<T>(opts: &T, cmd: &mut Command) -> io::Result<Output>
+fn spawn_and_await_output_command<O>(opts: &O, cmd: &mut Command) -> io::Result<Output>
 where
-    T: Global + Debug,
+    O: Global,
 {
     #[cfg(test)]
     {
-        dbg!(&opts, &cmd);
+        dbg!(&cmd);
         panic!("Prevented command usage in test!");
     }
 
@@ -147,17 +147,17 @@ where
     }
 }
 
-fn run_command_silent_impl<T>(opts: &T, cmd_name: &str, args: &[&str]) -> io::Result<ExitStatus>
+fn run_command_silent_impl<O>(opts: &O, cmd_name: &str, args: &[&str]) -> io::Result<ExitStatus>
 where
-    T: Global + Debug,
+    O: Global,
 {
     let mut cmd = get_silent_command(opts, cmd_name, args);
     spawn_and_await_silent_command(opts, &mut cmd)
 }
 
-fn get_silent_command<T>(opts: &T, cmd_name: &str, args: &[&str]) -> Command
+fn get_silent_command<O>(opts: &O, cmd_name: &str, args: &[&str]) -> Command
 where
-    T: Global + Debug,
+    O: Global,
 {
     let cmd = if opts.get_dry_run() {
         empty_command_dryrun(cmd_name, args)
@@ -177,13 +177,13 @@ where
     cmd
 }
 
-fn spawn_and_await_silent_command<T>(opts: &T, cmd: &mut Command) -> io::Result<ExitStatus>
+fn spawn_and_await_silent_command<O>(opts: &O, cmd: &mut Command) -> io::Result<ExitStatus>
 where
-    T: Global + Debug,
+    O: Global,
 {
     #[cfg(test)]
     {
-        dbg!(&opts, &cmd);
+        dbg!(&cmd);
         panic!("Prevented command usage in test!");
     }
 
@@ -206,14 +206,14 @@ where
 }
 
 // Special runner for fzf, dmenu, etc
-pub(crate) fn run_prompt_cmd<T>(
-    opts: &T,
+pub(crate) fn run_prompt_cmd<O>(
+    opts: &O,
     cmd_name: &str,
     args: &[&str],
     elements: &[String],
 ) -> Result<String, RuwiError>
 where
-    T: Global + Debug,
+    O: Global,
 {
     if opts.d() {
         dbg!(&cmd_name, &args, &elements);
@@ -241,22 +241,22 @@ where
     }
 }
 
-fn run_prompt_cmd_system_impl<T>(
-    opts: &T,
+fn run_prompt_cmd_system_impl<O>(
+    opts: &O,
     cmd_name: &str,
     args: &[&str],
     elements: &[String],
 ) -> io::Result<Output>
 where
-    T: Global + Debug,
+    O: Global,
 {
     let mut cmd = get_prompt_command(opts, cmd_name, args);
     spawn_and_await_prompt_command(opts, &mut cmd, elements)
 }
 
-fn get_prompt_command<T>(opts: &T, cmd_name: &str, args: &[&str]) -> Command
+fn get_prompt_command<O>(opts: &O, cmd_name: &str, args: &[&str]) -> Command
 where
-    T: Global + Debug,
+    O: Global,
 {
     // NOTE: prompt commands are run in dryrun mode, as they should have 
     //       no effect on the external state of the system, and should be 
@@ -275,17 +275,17 @@ where
     cmd
 }
 
-fn spawn_and_await_prompt_command<T>(
-    opts: &T,
+fn spawn_and_await_prompt_command<O>(
+    opts: &O,
     cmd: &mut Command,
     elements: &[String],
 ) -> io::Result<Output>
 where
-    T: Global + Debug,
+    O: Global,
 {
     #[cfg(test)]
     {
-        dbg!(&opts, &cmd, &elements);
+        dbg!(&cmd, &elements);
         panic!("Prevented prompt command usage in test!");
     }
 
@@ -316,9 +316,9 @@ where
     }
 }
 
-fn is_cmd_installed<T>(opts: &T, cmd_name: &str) -> Result<(), RuwiError>
+fn is_cmd_installed<O>(opts: &O, cmd_name: &str) -> Result<(), RuwiError>
 where
-    T: Global + Debug,
+    O: Global,
 {
     if opts.get_dry_run() {
         return Ok(());
@@ -352,6 +352,7 @@ fn empty_command_dryrun(cmd_name: &str, args: &[&str]) -> Command {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::options::structs::GlobalOptions;
 
     #[test]
     #[should_panic = "Prevented command usage in test!"]

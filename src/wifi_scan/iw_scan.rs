@@ -1,4 +1,5 @@
 use crate::interface_management::bring_interface_up;
+use crate::options::interfaces::*;
 use crate::rerr;
 use crate::run_commands::*;
 use crate::structs::*;
@@ -27,19 +28,27 @@ static IW_SCAN_SYNC_ERR_MSG: &str = concat!(
     "or you can manually specify an essid with -e.",
 );
 
-pub(crate) fn run_iw_scan(options: &WifiConnectOptions, scan_type: ScanType) -> Result<ScanResult, RuwiError> {
+pub(crate) fn run_iw_scan<O>(
+    options: &O,
+    scan_type: ScanType,
+    synchronous_rescan: Option<SynchronousRescanType>,
+) -> Result<ScanResult, RuwiError>
+where
+    O: Global + Wifi + LinuxNetworkingInterface,
+{
     bring_interface_up(options)?;
-    let scan_output = if options.get_force_synchronous_scan() || options.get_synchronous_retry().is_some() {
-        run_iw_scan_synchronous(options)?
-    } else {
-        let mut scan_output = run_iw_scan_dump(options)?;
-        if scan_output.is_empty() {
-            scan_output = run_iw_scan_synchronous(options)?;
+    let scan_output =
+        if options.get_force_synchronous_scan() || synchronous_rescan.is_some() {
+            run_iw_scan_synchronous(options)?
         } else {
-            run_iw_scan_trigger(options).ok();
-        }
-        scan_output
-    };
+            let mut scan_output = run_iw_scan_dump(options)?;
+            if scan_output.is_empty() {
+                scan_output = run_iw_scan_synchronous(options)?;
+            } else {
+                run_iw_scan_trigger(options).ok();
+            }
+            scan_output
+        };
 
     Ok(ScanResult {
         scan_type,
@@ -47,19 +56,23 @@ pub(crate) fn run_iw_scan(options: &WifiConnectOptions, scan_type: ScanType) -> 
     })
 }
 
-fn run_iw_scan_synchronous(options: &WifiConnectOptions) -> Result<String, RuwiError> {
+fn run_iw_scan_synchronous<O>(options: &O) -> Result<String, RuwiError>
+where
+    O: Global + Wifi + LinuxNetworkingInterface,
+{
     run_iw_scan_synchronous_impl(options, run_iw_scan_synchronous_cmd)
 }
 
-fn run_iw_scan_synchronous_impl<F>(
-    options: &WifiConnectOptions,
+fn run_iw_scan_synchronous_impl<O, F>(
+    options: &O,
     mut synchronous_scan_func: F,
 ) -> Result<String, RuwiError>
 where
-    F: FnMut(&WifiConnectOptions) -> Result<Output, RuwiError>,
+    O: Global + Wifi + LinuxNetworkingInterface,
+    F: FnMut(&O) -> Result<Output, RuwiError>,
 {
     #[cfg(not(test))]
-    abort_ongoing_iw_scan(&options).ok();
+    abort_ongoing_iw_scan(options).ok();
 
     let mut retries = ALLOWED_SYNCHRONOUS_RETRIES;
     loop {
@@ -90,11 +103,17 @@ where
     }
 }
 
-fn run_iw_scan_synchronous_cmd(options: &WifiConnectOptions) -> Result<Output, RuwiError> {
+fn run_iw_scan_synchronous_cmd<O>(options: &O) -> Result<Output, RuwiError>
+where
+    O: Global + LinuxNetworkingInterface,
+{
     run_command_output(options, "iw", &[&options.get_interface(), "scan"])
 }
 
-fn run_iw_scan_dump(options: &WifiConnectOptions) -> Result<String, RuwiError> {
+fn run_iw_scan_dump<O>(options: &O) -> Result<String, RuwiError>
+where
+    O: Global + LinuxNetworkingInterface,
+{
     run_command_pass_stdout(
         options,
         "iw",
@@ -104,7 +123,10 @@ fn run_iw_scan_dump(options: &WifiConnectOptions) -> Result<String, RuwiError> {
     )
 }
 
-fn run_iw_scan_trigger(options: &WifiConnectOptions) -> Result<String, RuwiError> {
+fn run_iw_scan_trigger<O>(options: &O) -> Result<String, RuwiError>
+where
+    O: Global + LinuxNetworkingInterface,
+{
     // Initiate a rescan. This command should return instantaneously.
     run_command_pass_stdout(
         options,
@@ -116,7 +138,10 @@ fn run_iw_scan_trigger(options: &WifiConnectOptions) -> Result<String, RuwiError
 }
 
 #[cfg(not(test))]
-fn abort_ongoing_iw_scan(options: &WifiConnectOptions) -> Result<String, RuwiError> {
+fn abort_ongoing_iw_scan<O>(options: &O) -> Result<String, RuwiError>
+where
+    O: Global + LinuxNetworkingInterface,
+{
     run_command_pass_stdout(
         options,
         "iw",
@@ -129,6 +154,7 @@ fn abort_ongoing_iw_scan(options: &WifiConnectOptions) -> Result<String, RuwiErr
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::options::structs::WifiConnectOptions;
     use crate::wifi_scan::tests::*;
 
     #[test]

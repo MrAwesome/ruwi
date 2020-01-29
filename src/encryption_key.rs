@@ -1,20 +1,25 @@
+use crate::options::interfaces::*;
 use crate::select_utils::*;
 use crate::structs::*;
 
-pub(crate) fn possibly_get_encryption_key(
-    options: &WifiConnectOptions,
+pub(crate) fn possibly_get_encryption_key<O>(
+    options: &O,
     selected_network: &AnnotatedWirelessNetwork,
-) -> Result<Option<String>, RuwiError> {
+) -> Result<Option<String>, RuwiError>
+where
+    O: Global + Wifi + WifiConnect,
+{
     possibly_get_encryption_key_impl(options, selected_network, prompt_for_encryption_key)
 }
 
-fn possibly_get_encryption_key_impl<F>(
-    options: &WifiConnectOptions,
+fn possibly_get_encryption_key_impl<O, F>(
+    options: &O,
     selected_network: &AnnotatedWirelessNetwork,
     prompt_func: F,
 ) -> Result<Option<String>, RuwiError>
 where
-    F: Fn(&WifiConnectOptions, &str) -> Result<String, RuwiError>,
+    O: Global + Wifi + WifiConnect,
+    F: Fn(&O, &str) -> Result<String, RuwiError>,
 {
     // Don't bother asking for a password if:
     // * a password was given on the command line
@@ -44,22 +49,24 @@ where
     Ok(pw)
 }
 
-fn prompt_for_encryption_key(options: &WifiConnectOptions, network_name: &str) -> Result<String, RuwiError> {
+fn prompt_for_encryption_key<O>(options: &O, network_name: &str) -> Result<String, RuwiError>
+where
+    O: Global,
+{
     match options.get_selection_method() {
         SelectionMethod::Dmenu => {
             run_dmenu(options, &format!("Password for {}: ", network_name), &[])
         }
-        SelectionMethod::Fzf => run_stdin_prompt_single_line(
-            options,
-            &format!("Password for {}: ", network_name),
-            &[],
-        ),
+        SelectionMethod::Fzf => {
+            run_stdin_prompt_single_line(options, &format!("Password for {}: ", network_name), &[])
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::options::structs::WifiConnectOptions;
 
     fn should_not_run(_opt: &WifiConnectOptions, _nw: &str) -> Result<String, RuwiError> {
         panic!("Should not run.")

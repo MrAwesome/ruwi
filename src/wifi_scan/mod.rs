@@ -7,6 +7,7 @@ use nmcli_scan::run_nmcli_scan;
 use crate::rerr;
 use crate::run_commands::*;
 use crate::structs::*;
+use crate::options::interfaces::*;
 use crate::service_management::GetService;
 
 use std::fs::File;
@@ -18,24 +19,24 @@ pub(crate) static SYNCHRONOUS_RETRY_DELAY_SECS: f64 = 0.3;
 
 pub(crate) static DEVICE_OR_RESOURCE_BUSY_EXIT_CODE: i32 = 240;
 
-pub(crate) fn wifi_scan(options: &WifiConnectOptions) -> Result<ScanResult, RuwiError> {
+pub(crate) fn wifi_scan<O>(options: &O, synchronous_rescan: Option<SynchronousRescanType>) -> Result<ScanResult, RuwiError> where O: Global + Wifi + LinuxNetworkingInterface {
     let sm = options.get_scan_method().clone();
     let st = options.get_scan_type().clone();
     st.get_service().start(options)?;
 
     let res = match sm {
         ScanMethod::ByRunning => match &st {
-            ScanType::Wifi(WifiScanType::Nmcli) => run_nmcli_scan(&options, st),
-            ScanType::Wifi(WifiScanType::WpaCli) => run_wpa_cli_scan(&options, st),
-            ScanType::Wifi(WifiScanType::IW) => run_iw_scan(&options, st),
+            ScanType::Wifi(WifiScanType::Nmcli) => run_nmcli_scan(options, st, synchronous_rescan),
+            ScanType::Wifi(WifiScanType::WpaCli) => run_wpa_cli_scan(options, st),
+            ScanType::Wifi(WifiScanType::IW) => run_iw_scan(options, st, synchronous_rescan),
             ScanType::Wifi(WifiScanType::RuwiJSON) => 
                 Err(rerr!(
                     RuwiErrorKind::InvalidScanTypeAndMethod,
                     "There is currently no binary for providing JSON results, you must format them yourself and pass in via stdin or from a file.",
                 ))
         },
-        ScanMethod::FromFile(filename) => get_scan_contents_from_file(&options, st, &filename),
-        ScanMethod::FromStdin => get_scan_contents_from_stdin(&options, st),
+        ScanMethod::FromFile(filename) => get_scan_contents_from_file(options, st, &filename),
+        ScanMethod::FromStdin => get_scan_contents_from_stdin(options, st),
     };
 
     if options.d() {
@@ -44,10 +45,10 @@ pub(crate) fn wifi_scan(options: &WifiConnectOptions) -> Result<ScanResult, Ruwi
     res
 }
 
-fn get_scan_contents_from_stdin(
-    _options: &WifiConnectOptions,
+fn get_scan_contents_from_stdin<O>(
+    _options: &O,
     scan_type: ScanType,
-) -> Result<ScanResult, RuwiError> {
+) -> Result<ScanResult, RuwiError> where O: Global {
     let mut stdin_contents = "".into();
     io::stdin().read_to_end(&mut stdin_contents).map_err(|_e| {
         rerr!(
@@ -64,11 +65,11 @@ fn get_scan_contents_from_stdin(
     })
 }
 
-fn get_scan_contents_from_file(
-    _options: &WifiConnectOptions,
+fn get_scan_contents_from_file<O>(
+    _options: &O,
     scan_type: ScanType,
     filename: &str,
-) -> Result<ScanResult, RuwiError> {
+) -> Result<ScanResult, RuwiError> where O: Global {
     let file_read_err = |_e: io::Error| {
         rerr!(
             RuwiErrorKind::FailedToReadScanResultsFromFile,
@@ -89,7 +90,7 @@ fn get_scan_contents_from_file(
     })
 }
 
-fn run_wpa_cli_scan(options: &WifiConnectOptions, scan_type: ScanType) -> Result<ScanResult, RuwiError> {
+fn run_wpa_cli_scan<O>(options: &O, scan_type: ScanType) -> Result<ScanResult, RuwiError> where O: Global {
     let err_msg = concat!(
         "Failed to scan with `wpa_cli scan_results`. ",
         "Is wpa_supplicant running? Is it installed? ",
@@ -131,17 +132,17 @@ mod tests {
             .unwrap()
     }
 
-    pub(crate) fn command_fail_with_exitcode_1(_options: &WifiConnectOptions) -> Result<Output, RuwiError> {
+    pub(crate) fn command_fail_with_exitcode_1<O>(_options: &O) -> Result<Output, RuwiError> where O: Global {
         Ok(command_fail_with_exitcode(1))
     }
 
-    pub(crate) fn command_fail_with_device_or_resource_busy(_options: &WifiConnectOptions) -> Result<Output, RuwiError> {
+    pub(crate) fn command_fail_with_device_or_resource_busy<O>(_options: &O) -> Result<Output, RuwiError> where O: Global {
         Ok(command_fail_with_exitcode(
             DEVICE_OR_RESOURCE_BUSY_EXIT_CODE,
         ))
     }
 
-    pub(crate) fn command_pass(_opts: &WifiConnectOptions) -> Result<Output, RuwiError> {
+    pub(crate) fn command_pass<O>(_opts: &O) -> Result<Output, RuwiError> where O: Global {
         Ok(Command::new("/bin/echo")
             .arg(FAKE_OUTPUT)
             .stdout(Stdio::piped())

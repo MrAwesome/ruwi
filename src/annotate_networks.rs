@@ -1,11 +1,13 @@
+use crate::options::interfaces::Global;
 use crate::structs::*;
 
 // TODO: unit test that networks passed in equal networks passed out
-pub(crate) fn annotate_networks(
-    options: &WifiConnectOptions,
+pub(crate) fn annotate_networks<O>(
+    options: &O,
     networks: &[WirelessNetwork],
     known_network_names: &KnownNetworkNames,
-) -> AnnotatedNetworks {
+) -> AnnotatedNetworks 
+where O: Global {
     let networks = networks
         .iter()
         .map(|nw| {
@@ -24,6 +26,7 @@ pub(crate) fn annotate_networks(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::options::structs::WifiConnectOptions;
 
     #[test]
     fn test_default_network_not_known() {

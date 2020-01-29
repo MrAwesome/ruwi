@@ -2,6 +2,9 @@ use crate::get_default_interface::get_default_interface;
 use crate::rerr;
 use crate::structs::*;
 use crate::strum_utils::*;
+use crate::options::interfaces::*;
+use crate::options::structs::*;
+
 use clap::{App, Arg, ArgMatches, SubCommand};
 use strum::AsStaticRef;
 use std::fmt::Debug;
@@ -287,8 +290,8 @@ fn get_scan_method(m: &ArgMatches) -> ScanMethod {
     scanmethod
 }
 
-fn get_wifi_interface<T>(m: &ArgMatches, opts: &T) -> Result<String, RuwiError> 
-where T: Global + Debug
+fn get_wifi_interface<O>(m: &ArgMatches, opts: &O) -> Result<String, RuwiError> 
+where O: Global + Debug
 {
     Ok(match m.value_of("interface") {
         Some(val) => String::from(val),

@@ -1,3 +1,4 @@
+use crate::options::interfaces::*;
 use crate::rerr;
 use crate::structs::*;
 use std::error::Error;
@@ -5,11 +6,11 @@ use std::fs::File;
 use std::io;
 use std::io::Write;
 
-pub(crate) fn netctl_config_write(
-    options: &WifiConnectOptions,
+pub(crate) fn netctl_config_write<O>(
+    options: &O,
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
-) -> Result<ConfigResult, RuwiError> {
+) -> Result<ConfigResult, RuwiError> where O: Global + LinuxNetworkingInterface {
     let contents = get_netctl_config_contents(options, network, encryption_key);
 
     let netctl_file_name = get_netctl_file_name(&network.essid);
@@ -45,11 +46,11 @@ pub(crate) fn get_netctl_file_name(essid: &str) -> String {
     essid.replace(" ", "_")
 }
 
-pub(crate) fn get_netctl_config_contents(
-    options: &WifiConnectOptions,
+pub(crate) fn get_netctl_config_contents<O>(
+    options: &O,
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
-) -> String {
+) -> String where O: Global + LinuxNetworkingInterface {
     let wpa_line = if network.is_encrypted {
         format!(
             "Key='{}'",
