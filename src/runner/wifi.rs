@@ -50,13 +50,19 @@ pub(crate) enum WifiStep {
     ConnectionSuccessful,
 }
 
-impl<O: Global + Wifi + WifiConnect + LinuxNetworkingInterface + Clone + Send + Sync> RuwiStep<O> for WifiStep {
+impl<O: Global + Wifi + WifiConnect + LinuxNetworkingInterface + Clone + Send + Sync> RuwiStep<O>
+    for WifiStep
+{
     fn exec(self, command: &RuwiCommand, options: &'static O) -> Result<Self, RuwiError> {
         wifi_exec(self, command, options)
     }
 }
 
-fn wifi_exec<O>(step: WifiStep, _command: &RuwiCommand, options: &'static O) -> Result<WifiStep, RuwiError>
+fn wifi_exec<O>(
+    step: WifiStep,
+    _command: &RuwiCommand,
+    options: &'static O,
+) -> Result<WifiStep, RuwiError>
 where
     O: Global + Wifi + WifiConnect + LinuxNetworkingInterface + Clone + Send + Sync,
 {
@@ -100,7 +106,8 @@ where
         }
 
         WifiStep::SynchronousRescan { rescan_type } => {
-            let (known_network_names, scan_result) = gather_wifi_network_data(options, Some(rescan_type))?;
+            let (known_network_names, scan_result) =
+                gather_wifi_network_data(options, Some(rescan_type))?;
             Ok(WifiStep::NetworkParserAndAnnotator {
                 scan_result,
                 known_network_names,
@@ -186,12 +193,15 @@ where
     ))
 }
 
-fn gather_wifi_network_data<O>(options: &'static O, synchronous_rescan: Option<SynchronousRescanType>) -> Result<(KnownNetworkNames, ScanResult), RuwiError>
+fn gather_wifi_network_data<O>(
+    options: &'static O,
+    synchronous_rescan: Option<SynchronousRescanType>,
+) -> Result<(KnownNetworkNames, ScanResult), RuwiError>
 where
     O: Global + Wifi + WifiConnect + LinuxNetworkingInterface + Clone + Send + Sync,
 {
     let get_nw_names = thread::spawn(move || find_known_network_names(options));
-    let get_scan_results = thread::spawn(move || wifi_scan(options, synchronous_rescan));
+    let get_scan_results = thread::spawn(move || wifi_scan(options, &synchronous_rescan));
 
     let known_network_names = await_thread(get_nw_names)??;
     let scan_result = await_thread(get_scan_results)??;

@@ -31,24 +31,23 @@ static IW_SCAN_SYNC_ERR_MSG: &str = concat!(
 pub(crate) fn run_iw_scan<O>(
     options: &O,
     scan_type: ScanType,
-    synchronous_rescan: Option<SynchronousRescanType>,
+    synchronous_rescan: &Option<SynchronousRescanType>,
 ) -> Result<ScanResult, RuwiError>
 where
     O: Global + Wifi + LinuxNetworkingInterface,
 {
     bring_interface_up(options)?;
-    let scan_output =
-        if options.get_force_synchronous_scan() || synchronous_rescan.is_some() {
-            run_iw_scan_synchronous(options)?
+    let scan_output = if options.get_force_synchronous_scan() || synchronous_rescan.is_some() {
+        run_iw_scan_synchronous(options)?
+    } else {
+        let mut scan_output = run_iw_scan_dump(options)?;
+        if scan_output.is_empty() {
+            scan_output = run_iw_scan_synchronous(options)?;
         } else {
-            let mut scan_output = run_iw_scan_dump(options)?;
-            if scan_output.is_empty() {
-                scan_output = run_iw_scan_synchronous(options)?;
-            } else {
-                run_iw_scan_trigger(options).ok();
-            }
-            scan_output
-        };
+            run_iw_scan_trigger(options).ok();
+        }
+        scan_output
+    };
 
     Ok(ScanResult {
         scan_type,
@@ -74,6 +73,7 @@ where
     #[cfg(not(test))]
     abort_ongoing_iw_scan(options).ok();
 
+    let mut have_given_busy_notice = false;
     let mut retries = ALLOWED_SYNCHRONOUS_RETRIES;
     loop {
         let synchronous_run_output = synchronous_scan_func(options)?;
@@ -83,15 +83,24 @@ where
         } else if synchronous_run_output.status.code() == Some(DEVICE_OR_RESOURCE_BUSY_EXIT_CODE) {
             retries -= 1;
             if retries > 0 {
+                if !have_given_busy_notice {
+                    eprintln!("[NOTE]: Wifi interface is busy, waiting for results...");
+                    have_given_busy_notice = true;
+                }
+
                 #[cfg(not(test))]
                 thread::sleep(Duration::from_secs_f64(SYNCHRONOUS_RETRY_DELAY_SECS));
                 #[cfg(test)]
                 dbg!(SYNCHRONOUS_RETRY_DELAY_SECS);
+
                 continue;
             } else {
                 return Err(rerr!(
                     RuwiErrorKind::IWSynchronousScanRanOutOfRetries,
-                    IW_SCAN_SYNC_ERR_MSG
+                    format!(
+                        "Ran out of retries waiting for {} to become available for scanning with `iw`. Is NetworkManager or another service running?", 
+                        options.get_interface()
+                        ),
                 ));
             }
         } else {
