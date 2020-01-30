@@ -4,7 +4,6 @@
 #![allow(clippy::similar_names)]
 
 extern crate clap;
-extern crate regex;
 extern crate strum;
 extern crate strum_macros;
 extern crate typed_builder;

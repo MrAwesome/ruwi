@@ -5,7 +5,6 @@ use crate::rerr;
 use crate::structs::*;
 use crate::options::interfaces::*;
 
-use regex::Regex;
 use unescape::unescape;
 
 // TODO: you can include the interface in ScanResult, and get rid of that trait here.
@@ -58,16 +57,14 @@ fn break_iw_output_into_chunks_per_network<'a, O>(
     output: &'a str,
 ) -> Result<Vec<Vec<&'a str>>, RuwiError> 
 where O: Global + LinuxNetworkingInterface {
-    let mut lines = output.trim().lines().map(str::trim);
+    let mut untrimmed_lines = output.trim().lines();
     let mut iw_network_line_groups = vec![];
-
-    let bss_re = get_iw_bss_regex();
 
     let mut network = vec![];
 
-    if let Some(line) = lines.next() {
-        if bss_re.is_match(&line) {
-            network.push(line);
+    if let Some(untrimmed_line) = untrimmed_lines.next() {
+        if is_first_line_of_iw_network(&untrimmed_line) {
+            network.push(untrimmed_line.trim());
         } else {
             return Err(err_iw_malformed_output(options));
         }
@@ -76,13 +73,13 @@ where O: Global + LinuxNetworkingInterface {
     }
 
     loop {
-        if let Some(line) = lines.next() {
-            if bss_re.is_match(&line) {
+        if let Some(untrimmed_line) = untrimmed_lines.next() {
+            if is_first_line_of_iw_network(&untrimmed_line) {
                 iw_network_line_groups.push(network);
                 network = vec![];
             }
 
-            network.push(line);
+            network.push(untrimmed_line.trim());
         } else {
             iw_network_line_groups.push(network);
             break;
@@ -137,8 +134,8 @@ fn parse_iw_chunk_into_network(chunk: &[&str]) -> Result<WirelessNetwork, Indivi
     })
 }
 
-fn get_iw_bss_regex() -> Regex {
-    Regex::new(r"^BSS ((\w\w:){5}\w\w)").expect("Failure creating regex for iw parsing...")
+fn is_first_line_of_iw_network(line: &str) -> bool {
+    line.starts_with("BSS ") && line.ends_with(")")
 }
 
 fn err_iw_malformed_output<O>(options: &O) -> RuwiError 
