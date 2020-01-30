@@ -1,4 +1,9 @@
+// It seems very reasonable for options to be named ...Options
 #![allow(clippy::module_name_repetitions)]
+
+// For strum macros:
+#![allow(clippy::default_trait_access)]
+#![allow(clippy::used_underscore_binding)]
 
 use crate::options::interfaces::*;
 use crate::structs::*;
@@ -114,11 +119,8 @@ impl Default for GlobalOptions {
 pub struct BluetoothCommandOptions {
 }
 
-// TODO: use TypedBuilder for this, make globals and other fields private
 #[derive(Debug, Clone, TypedBuilder)]
 pub struct WifiOptions {
-    // TODO: REMOVE GLOBALS FROM HERE?
-    globals: GlobalOptions,
     #[builder(default)]
     scan_type: ScanType,
     #[builder(default)]
@@ -134,7 +136,6 @@ pub struct WifiOptions {
 impl Default for WifiOptions {
     fn default() -> Self {
         Self {
-            globals: GlobalOptions::default(),
             scan_type: ScanType::default(),
             scan_method: ScanMethod::default(),
             interface: "wlan0".to_string(),

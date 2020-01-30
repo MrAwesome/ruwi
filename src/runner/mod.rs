@@ -25,6 +25,8 @@ pub fn run_ruwi_using_state_machine(command: RuwiCommand) -> Result<(), RuwiErro
     }
     //      RuwiCommand::BluetoothPair => {}
     //      RuwiCommand::WifiSelect => {}
+    //      RuwiCommand::WifiEditNetwork => {}
+    //      RuwiCommand::WifiDeleteNetwork => {}
     //      RuwiCommand::List => {}
     //      RuwiCommand::DumpJSON => {}
     //      RuwiCommand::Disconnect => {}

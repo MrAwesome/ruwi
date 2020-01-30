@@ -1,13 +1,13 @@
 use crate::get_default_interface::get_default_interface;
+use crate::options::interfaces::*;
+use crate::options::structs::*;
 use crate::rerr;
 use crate::structs::*;
 use crate::strum_utils::*;
-use crate::options::interfaces::*;
-use crate::options::structs::*;
 
 use clap::{App, Arg, ArgMatches, SubCommand};
-use strum::AsStaticRef;
 use std::fmt::Debug;
+use strum::AsStaticRef;
 
 // TODO: respect force_ask_password
 // TODO: fail if not run as root
@@ -131,13 +131,13 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
 }
 
 // TODO: rename to getcommand
-pub(crate) fn get_options() -> Result<RuwiCommand, RuwiError> {
+pub(crate) fn get_command() -> Result<RuwiCommand, RuwiError> {
     let m = get_arg_app().get_matches();
-    get_options_impl(&m)
+    get_command_impl(&m)
 }
 
 // TODO: return an enum of options/commands types
-fn get_options_impl(m: &ArgMatches) -> Result<RuwiCommand, RuwiError> {
+fn get_command_impl(m: &ArgMatches) -> Result<RuwiCommand, RuwiError> {
     let debug = m.is_present("debug");
     let selection_method = get_val_as_enum::<SelectionMethod>(&m, "selection_method");
 
@@ -158,7 +158,7 @@ fn get_options_impl(m: &ArgMatches) -> Result<RuwiCommand, RuwiError> {
             if subc_name == RuwiCommand::Wifi(RuwiWifiCommand::default()).to_string()
                 || subc_name == "" =>
         {
-            get_wifi_opts(globals, maybe_sub_m)
+            RuwiCommand::Wifi(get_wifi_cmd(globals, maybe_sub_m)?)
         }
 
         // (subc_name, Some(sub_m)) if subc_name == RuwiCommand::Wired(Default::default()).to_string() => {}
@@ -167,7 +167,7 @@ fn get_options_impl(m: &ArgMatches) -> Result<RuwiCommand, RuwiError> {
             dbg!(subc_name);
             todo!("Non-wifi commands are not yet implemented.");
         }
-    }?;
+    };
 
     if debug {
         dbg![&opts];
@@ -175,48 +175,47 @@ fn get_options_impl(m: &ArgMatches) -> Result<RuwiCommand, RuwiError> {
     Ok(opts)
 }
 
-fn get_wifi_opts(
+fn get_wifi_cmd(
     globals: GlobalOptions,
     maybe_sub_m: Option<&ArgMatches>,
-) -> Result<RuwiCommand, RuwiError> {
+) -> Result<RuwiWifiCommand, RuwiError> {
     let sub_m = if let Some(sub_m) = maybe_sub_m {
         sub_m
     } else {
-        return Ok(RuwiCommand::Wifi(RuwiWifiCommand::Connect(
+        return Ok(RuwiWifiCommand::Connect(
             WifiConnectOptions::builder()
-                .globals(globals.clone())
                 .wifi(
                     WifiOptions::builder()
                         // TODO: this feels like a nasty hack, and doesn't belong here? Just store
                         // None if none given, and calculate the default later? It is nice to have
                         // the default show up in --help, but it still feels off.
                         .interface(get_default_interface(&globals)?)
-                        .globals(globals)
                         .build(),
                 )
+                .globals(globals)
                 .build(),
-        )));
+        ));
     };
 
     match sub_m.subcommand() {
-        (subc_name, _) if subc_name == "" => Ok(RuwiCommand::Wifi(RuwiWifiCommand::Connect(
+        (subc_name, _) if subc_name == "" => Ok(RuwiWifiCommand::Connect(
             WifiConnectOptions::builder()
-                .globals(globals.clone())
                 .wifi(get_wifi_opts_impl(&globals, sub_m, None)?)
+                .globals(globals)
                 .build(),
-        ))),
+        )),
         // TODO: ew @ this string thing
         (subc_name, Some(sub_sub_m))
             if subc_name
                 == RuwiWifiCommand::Connect(WifiConnectOptions::builder().build()).to_string() =>
         {
-            Ok(RuwiCommand::Wifi(RuwiWifiCommand::Connect(
-                get_wifi_connect_opts(
-                    &globals,
-                    get_wifi_opts_impl(&globals, sub_m, Some(sub_sub_m))?,
-                    sub_sub_m,
-                )?,
-            )))
+            let wifi_opts = 
+                get_wifi_opts_impl(&globals, sub_m, Some(sub_sub_m))?;
+            Ok(RuwiWifiCommand::Connect(get_wifi_connect_opts(
+                globals,
+                wifi_opts,
+                sub_sub_m,
+            )?))
         }
 
         _ => todo!("other command types"),
@@ -224,11 +223,10 @@ fn get_wifi_opts(
 }
 
 fn get_wifi_connect_opts(
-    globals: &GlobalOptions,
+    globals: GlobalOptions,
     wifi_opts: WifiOptions,
     sub_sub_m: &ArgMatches,
 ) -> Result<WifiConnectOptions, RuwiError> {
-    // CONNECT options
     let force_ask_password = sub_sub_m.is_present("force_ask_password");
     let given_essid = sub_sub_m.value_of("essid").map(String::from);
     let given_encryption_key = sub_sub_m.value_of("password").map(String::from);
@@ -242,7 +240,7 @@ fn get_wifi_connect_opts(
     let connect_via = get_val_as_enum::<WifiConnectionType>(&sub_sub_m, "connect_via");
 
     let opts = WifiConnectOptions::builder()
-        .globals(globals.clone())
+        .globals(globals)
         .wifi(wifi_opts)
         .connect_via(connect_via)
         .given_essid(given_essid)
@@ -266,8 +264,6 @@ fn get_wifi_opts_impl(
     validate_scan_method_and_type(&scan_method, &scan_type)?;
 
     let wifi_opts = WifiOptions::builder()
-        // TODO: remove this
-        .globals(globals.clone())
         .scan_type(scan_type)
         .scan_method(scan_method)
         .interface(interface)
@@ -290,8 +286,9 @@ fn get_scan_method(m: &ArgMatches) -> ScanMethod {
     scanmethod
 }
 
-fn get_wifi_interface<O>(m: &ArgMatches, opts: &O) -> Result<String, RuwiError> 
-where O: Global + Debug
+fn get_wifi_interface<O>(m: &ArgMatches, opts: &O) -> Result<String, RuwiError>
+where
+    O: Global + Debug,
 {
     Ok(match m.value_of("interface") {
         Some(val) => String::from(val),
@@ -340,14 +337,14 @@ mod tests {
 
     // TODO: fix to return something more generic, aka ruwicommand
     fn getopts(args: &[&str]) -> WifiConnectOptions {
-        get_options_impl(&get_matches(args))
+        get_command_impl(&get_matches(args))
             .unwrap()
             .get_options()
             .clone()
     }
 
     fn getopts_safe(args: &[&str]) -> Result<WifiConnectOptions, RuwiError> {
-        get_options_impl(&get_matches_safe(args).map_err(|e| {
+        get_command_impl(&get_matches_safe(args).map_err(|e| {
             rerr!(
                 RuwiErrorKind::TestCmdLineOptParserSafeFailed,
                 e.description()

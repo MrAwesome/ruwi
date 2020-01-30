@@ -62,7 +62,7 @@ use structs::*;
 // TODO(think): make -a the default?
 
 pub fn run_ruwi() -> Result<(), RuwiError> {
-    let command = get_options()?;
+    let command = get_command()?;
     run_ruwi_using_state_machine(command)
 }
 
