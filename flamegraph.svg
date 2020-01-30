@@ -1,0 +1,300 @@
+<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg version="1.1" width="1200" height="486" onload="init(evt)" viewBox="0 0 1200 486" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><!--Flame graph stack visualization. See https://github.com/brendangregg/FlameGraph for latest version, and http://www.brendangregg.com/flamegraphs.html for examples.--><defs><linearGradient id="background" y1="0" y2="1" x1="0" x2="0"><stop stop-color="#eeeeee" offset="5%"/><stop stop-color="#eeeeb0" offset="95%"/></linearGradient></defs><style type="text/css">.func_g:hover { stroke:black; stroke-width:0.5; cursor:pointer; }</style><script type="text/ecmascript"><![CDATA[var nametype = 'Function:';
+var fontsize = 12;
+var fontwidth = 0.59;
+var xpad = 10;
+var inverted = false;
+var searchcolor = 'rgb(230,0,230)';]]><![CDATA[var details, searchbtn, matchedtxt, svg;
+function init(evt) {
+    details = document.getElementById("details").firstChild;
+    searchbtn = document.getElementById("search");
+    matchedtxt = document.getElementById("matched");
+    svg = document.getElementsByTagName("svg")[0];
+    searching = 0;
+}
+// mouse-over for info
+function s(node) {		// show
+    info = g_to_text(node);
+    details.nodeValue = nametype + " " + info;
+}
+function c() {			// clear
+    details.nodeValue = ' ';
+}
+// ctrl-F for search
+window.addEventListener("keydown",function (e) {
+    if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+        e.preventDefault();
+        search_prompt();
+    }
+})
+// functions
+function find_child(parent, name, attr) {
+    var children = parent.childNodes;
+    for (var i=0; i<children.length;i++) {
+        if (children[i].tagName == name)
+            return (attr != undefined) ? children[i].attributes[attr].value : children[i];
+    }
+    return;
+}
+function orig_save(e, attr, val) {
+    if (e.attributes["_orig_"+attr] != undefined) return;
+    if (e.attributes[attr] == undefined) return;
+    if (val == undefined) val = e.attributes[attr].value;
+    e.setAttribute("_orig_"+attr, val);
+}
+function orig_load(e, attr) {
+    if (e.attributes["_orig_"+attr] == undefined) return;
+    e.attributes[attr].value = e.attributes["_orig_"+attr].value;
+    e.removeAttribute("_orig_"+attr);
+}
+function g_to_text(e) {
+    var text = find_child(e, "title").firstChild.nodeValue;
+    return (text)
+}
+function g_to_func(e) {
+    var func = g_to_text(e);
+    // if there's any manipulation we want to do to the function
+    // name before it's searched, do it here before returning.
+    return (func);
+}
+function update_text(e) {
+    var r = find_child(e, "rect");
+    var t = find_child(e, "text");
+    var w = parseFloat(r.attributes["width"].value) -3;
+    var txt = find_child(e, "title").textContent.replace(/\\([^(]*\\)\$/,"");
+    t.attributes["x"].value = parseFloat(r.attributes["x"].value) +3;
+    // Smaller than this size won't fit anything
+    if (w < 2*fontsize*fontwidth) {
+        t.textContent = "";
+        return;
+    }
+    t.textContent = txt;
+    // Fit in full text width
+    if (/^ *\$/.test(txt) || t.getSubStringLength(0, txt.length) < w)
+        return;
+    for (var x=txt.length-2; x>0; x--) {
+        if (t.getSubStringLength(0, x+2) <= w) {
+            t.textContent = txt.substring(0,x) + "..";
+            return;
+        }
+    }
+    t.textContent = "";
+}
+// zoom
+function zoom_reset(e) {
+    if (e.attributes != undefined) {
+        orig_load(e, "x");
+        orig_load(e, "width");
+    }
+    if (e.childNodes == undefined) return;
+    for(var i=0, c=e.childNodes; i<c.length; i++) {
+        zoom_reset(c[i]);
+    }
+}
+function zoom_child(e, x, ratio) {
+    if (e.attributes != undefined) {
+        if (e.attributes["x"] != undefined) {
+            orig_save(e, "x");
+            e.attributes["x"].value = (parseFloat(e.attributes["x"].value) - x - xpad) * ratio + xpad;
+            if(e.tagName == "text") e.attributes["x"].value = find_child(e.parentNode, "rect", "x") + 3;
+        }
+        if (e.attributes["width"] != undefined) {
+            orig_save(e, "width");
+            e.attributes["width"].value = parseFloat(e.attributes["width"].value) * ratio;
+        }
+    }
+    if (e.childNodes == undefined) return;
+    for(var i=0, c=e.childNodes; i<c.length; i++) {
+        zoom_child(c[i], x-xpad, ratio);
+    }
+}
+function zoom_parent(e) {
+    if (e.attributes) {
+        if (e.attributes["x"] != undefined) {
+            orig_save(e, "x");
+            e.attributes["x"].value = xpad;
+        }
+        if (e.attributes["width"] != undefined) {
+            orig_save(e, "width");
+            e.attributes["width"].value = parseInt(svg.width.baseVal.value) - (xpad*2);
+        }
+    }
+    if (e.childNodes == undefined) return;
+    for(var i=0, c=e.childNodes; i<c.length; i++) {
+        zoom_parent(c[i]);
+    }
+}
+function zoom(node) {
+    var attr = find_child(node, "rect").attributes;
+    var width = parseFloat(attr["width"].value);
+    var xmin = parseFloat(attr["x"].value);
+    var xmax = parseFloat(xmin + width);
+    var ymin = parseFloat(attr["y"].value);
+    var ratio = (svg.width.baseVal.value - 2*xpad) / width;
+    // XXX: Workaround for JavaScript float issues (fix me)
+    var fudge = 0.0001;
+    var unzoombtn = document.getElementById("unzoom");
+    unzoombtn.style["opacity"] = "1.0";
+    var el = document.getElementsByTagName("g");
+    for(var i=0;i<el.length;i++){
+        var e = el[i];
+        var a = find_child(e, "rect").attributes;
+        var ex = parseFloat(a["x"].value);
+        var ew = parseFloat(a["width"].value);
+        // Is it an ancestor
+        if (!inverted) {
+            var upstack = parseFloat(a["y"].value) > ymin;
+        } else {
+            var upstack = parseFloat(a["y"].value) < ymin;
+        }
+        if (upstack) {
+            // Direct ancestor
+            if (ex <= xmin && (ex+ew+fudge) >= xmax) {
+                e.style["opacity"] = "0.5";
+                zoom_parent(e);
+                e.onclick = function(e){unzoom(); zoom(this);};
+                update_text(e);
+            }
+            // not in current path
+            else
+                e.style["display"] = "none";
+        }
+        // Children maybe
+        else {
+            // no common path
+            if (ex < xmin || ex + fudge >= xmax) {
+                e.style["display"] = "none";
+            }
+            else {
+                zoom_child(e, xmin, ratio);
+                e.onclick = function(e){zoom(this);};
+                update_text(e);
+            }
+        }
+    }
+}
+function unzoom() {
+    var unzoombtn = document.getElementById("unzoom");
+    unzoombtn.style["opacity"] = "0.0";
+    var el = document.getElementsByTagName("g");
+    for(i=0;i<el.length;i++) {
+        el[i].style["display"] = "block";
+        el[i].style["opacity"] = "1";
+        zoom_reset(el[i]);
+        update_text(el[i]);
+    }
+}
+// search
+function reset_search() {
+    var el = document.getElementsByTagName("rect");
+    for (var i=0; i < el.length; i++) {
+        orig_load(el[i], "fill")
+    }
+}
+function search_prompt() {
+    if (!searching) {
+        var term = prompt("Enter a search term (regexp " +
+            "allowed, eg: ^ext4_)", "");
+        if (term != null) {
+            search(term)
+        }
+    } else {
+        reset_search();
+        searching = 0;
+        searchbtn.style["opacity"] = "0.1";
+        searchbtn.firstChild.nodeValue = "Search"
+        matchedtxt.style["opacity"] = "0.0";
+        matchedtxt.firstChild.nodeValue = ""
+    }
+}
+function search(term) {
+    var re = new RegExp(term);
+    var el = document.getElementsByTagName("g");
+    var matches = new Object();
+    var maxwidth = 0;
+    for (var i = 0; i < el.length; i++) {
+        var e = el[i];
+        if (e.attributes["class"].value != "func_g")
+            continue;
+        var func = g_to_func(e);
+        var rect = find_child(e, "rect");
+        if (rect == null) {
+            // the rect might be wrapped in an anchor
+            // if nameattr href is being used
+            if (rect = find_child(e, "a")) {
+                rect = find_child(r, "rect");
+            }
+        }
+        if (func == null || rect == null)
+            continue;
+        // Save max width. Only works as we have a root frame
+        var w = parseFloat(rect.attributes["width"].value);
+        if (w > maxwidth)
+            maxwidth = w;
+        if (func.match(re)) {
+            // highlight
+            var x = parseFloat(rect.attributes["x"].value);
+            orig_save(rect, "fill");
+            rect.attributes["fill"].value = searchcolor;
+            // remember matches
+            if (matches[x] == undefined) {
+                matches[x] = w;
+            } else {
+                if (w > matches[x]) {
+                    // overwrite with parent
+                    matches[x] = w;
+                }
+            }
+            searching = 1;
+        }
+    }
+    if (!searching)
+        return;
+    searchbtn.style["opacity"] = "1.0";
+    searchbtn.firstChild.nodeValue = "Reset Search"
+    // calculate percent matched, excluding vertical overlap
+    var count = 0;
+    var lastx = -1;
+    var lastw = 0;
+    var keys = Array();
+    for (k in matches) {
+        if (matches.hasOwnProperty(k))
+            keys.push(k);
+    }
+    // sort the matched frames by their x location
+    // ascending, then width descending
+    keys.sort(function(a, b){
+        return a - b;
+    });
+    // Step through frames saving only the biggest bottom-up frames
+    // thanks to the sort order. This relies on the tree property
+    // where children are always smaller than their parents.
+    var fudge = 0.0001;	// JavaScript floating point
+    for (var k in keys) {
+        var x = parseFloat(keys[k]);
+        var w = matches[keys[k]];
+        if (x >= lastx + lastw - fudge) {
+            count += w;
+            lastx = x;
+            lastw = w;
+        }
+    }
+    // display matched percent
+    matchedtxt.style["opacity"] = "1.0";
+    pct = 100 * count / maxwidth;
+    if (pct == 100)
+        pct = "100"
+    else
+        pct = pct.toFixed(1)
+    matchedtxt.firstChild.nodeValue = "Matched: " + pct + "%";
+}
+function searchover(e) {
+    searchbtn.style["opacity"] = "1.0";
+}
+function searchout(e) {
+    if (searching) {
+        searchbtn.style["opacity"] = "1.0";
+    } else {
+        searchbtn.style["opacity"] = "0.1";
+    }
+}
+]]></script><rect x="0" y="0" width="1200" height="486" fill="url(#background)"/><text text-anchor="middle" x="600.00" y="24.00" font-size="17" font-family="Verdana" fill="rgb(0, 0, 0)">Flame Graph</text><text id="details" text-anchor="left" x="10.00" y="469.00" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)"> </text><text id="unzoom" onclick="unzoom()" style="opacity:0.0;cursor:pointer" text-anchor="left" x="10.00" y="24.00" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">Reset Zoom</text><text id="search" onmouseover="searchover()" onmouseout="searchout()" onclick="search_prompt()" style="opacity:0.1;cursor:pointer" text-anchor="left" x="1090.00" y="24.00" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">Search</text><text id="matched" text-anchor="left" x="1090.00" y="469.00" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)"> </text><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::c (1 samples, 4.55%)</title><rect x="10" y="389" width="53" height="15" fill="rgb(228,224,25)"/><text text-anchor="left" x="13.00" y="399.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::c_capture (1 samples, 4.55%)</title><rect x="10" y="373" width="53" height="15" fill="rgb(232,144,12)"/><text text-anchor="left" x="13.00" y="383.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::c (1 samples, 4.55%)</title><rect x="10" y="357" width="53" height="15" fill="rgb(206,126,25)"/><text text-anchor="left" x="13.00" y="367.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::c_concat (1 samples, 4.55%)</title><rect x="10" y="341" width="53" height="15" fill="rgb(238,138,32)"/><text text-anchor="left" x="13.00" y="351.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::c (1 samples, 4.55%)</title><rect x="10" y="325" width="53" height="15" fill="rgb(217,98,35)"/><text text-anchor="left" x="13.00" y="335.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::c_class (1 samples, 4.55%)</title><rect x="10" y="309" width="53" height="15" fill="rgb(247,146,15)"/><text text-anchor="left" x="13.00" y="319.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::CompileClass::compile (1 samples, 4.55%)</title><rect x="10" y="293" width="53" height="15" fill="rgb(252,162,11)"/><text text-anchor="left" x="13.00" y="303.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;core::iter::adapters::Peekable&lt;I&gt; as core::iter::traits::iterator::Iterator&gt;::next (1 samples, 4.55%)</title><rect x="10" y="277" width="53" height="15" fill="rgb(223,28,10)"/><text text-anchor="left" x="13.00" y="287.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;core..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;&amp;mut I as core::iter::traits::iterator::Iterator&gt;::next (1 samples, 4.55%)</title><rect x="10" y="261" width="53" height="15" fill="rgb(219,196,30)"/><text text-anchor="left" x="13.00" y="271.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;&amp;mut..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;regex_syntax::utf8::Utf8Sequences as core::iter::traits::iterator::Iterator&gt;::next (1 samples, 4.55%)</title><rect x="10" y="245" width="53" height="15" fill="rgb(212,187,52)"/><text text-anchor="left" x="13.00" y="255.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;rege..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex_syntax::utf8::ScalarRange::encode (1 samples, 4.55%)</title><rect x="10" y="229" width="53" height="15" fill="rgb(237,161,13)"/><text text-anchor="left" x="13.00" y="239.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::char::methods::&lt;impl char&gt;::encode_utf8 (1 samples, 4.55%)</title><rect x="10" y="213" width="53" height="15" fill="rgb(245,180,26)"/><text text-anchor="left" x="13.00" y="223.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;usize as core::iter::range::Step&gt;::add_usize (1 samples, 4.55%)</title><rect x="63" y="197" width="54" height="15" fill="rgb(222,88,0)"/><text text-anchor="left" x="66.00" y="207.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;usiz..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::num::&lt;impl usize&gt;::checked_add (1 samples, 4.55%)</title><rect x="63" y="181" width="54" height="15" fill="rgb(212,65,10)"/><text text-anchor="left" x="66.00" y="191.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::num::&lt;impl usize&gt;::overflowing_add (1 samples, 4.55%)</title><rect x="63" y="165" width="54" height="15" fill="rgb(226,115,7)"/><text text-anchor="left" x="66.00" y="175.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::cmp::impls::&lt;impl core::cmp::PartialOrd for usize&gt;::lt (1 samples, 4.55%)</title><rect x="117" y="197" width="53" height="15" fill="rgb(226,55,51)"/><text text-anchor="left" x="120.00" y="207.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::intrinsics::copy_nonoverlapping (1 samples, 4.55%)</title><rect x="170" y="165" width="54" height="15" fill="rgb(214,96,44)"/><text text-anchor="left" x="173.00" y="175.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>__memcpy_sse2_unaligned_erms (1 samples, 4.55%)</title><rect x="170" y="149" width="54" height="15" fill="rgb(226,128,46)"/><text text-anchor="left" x="173.00" y="159.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">__mem..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::iter::range::&lt;impl core::iter::traits::iterator::Iterator for core::ops::range::Range&lt;A&gt;&gt;::next (4 samples, 18.18%)</title><rect x="63" y="213" width="215" height="15" fill="rgb(242,114,16)"/><text text-anchor="left" x="66.00" y="223.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core::iter::range::&lt;impl cor..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::mem::swap (2 samples, 9.09%)</title><rect x="170" y="197" width="108" height="15" fill="rgb(218,178,24)"/><text text-anchor="left" x="173.00" y="207.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core::mem::sw..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::ptr::swap_nonoverlapping_one (2 samples, 9.09%)</title><rect x="170" y="181" width="108" height="15" fill="rgb(250,163,22)"/><text text-anchor="left" x="173.00" y="191.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core::ptr::sw..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::ptr::read (1 samples, 4.55%)</title><rect x="224" y="165" width="54" height="15" fill="rgb(222,154,11)"/><text text-anchor="left" x="227.00" y="175.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;core::iter::adapters::Peekable&lt;I&gt; as core::iter::traits::iterator::Iterator&gt;::next (5 samples, 22.73%)</title><rect x="63" y="261" width="268" height="15" fill="rgb(215,75,38)"/><text text-anchor="left" x="66.00" y="271.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;core::iter::adapters::Peekable&lt;I&gt; ..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;&amp;mut I as core::iter::traits::iterator::Iterator&gt;::next (5 samples, 22.73%)</title><rect x="63" y="245" width="268" height="15" fill="rgb(230,29,44)"/><text text-anchor="left" x="66.00" y="255.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;&amp;mut I as core::iter::traits::iter..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;regex_syntax::utf8::Utf8Sequences as core::iter::traits::iterator::Iterator&gt;::next (5 samples, 22.73%)</title><rect x="63" y="229" width="268" height="15" fill="rgb(219,214,3)"/><text text-anchor="left" x="66.00" y="239.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;regex_syntax::utf8::Utf8Sequences ..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex_syntax::utf8::max_scalar_value (1 samples, 4.55%)</title><rect x="278" y="213" width="53" height="15" fill="rgb(253,229,46)"/><text text-anchor="left" x="281.00" y="223.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::push_compiled (1 samples, 4.55%)</title><rect x="331" y="229" width="54" height="15" fill="rgb(233,106,51)"/><text text-anchor="left" x="334.00" y="239.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>alloc::vec::Vec&lt;T&gt;::push (1 samples, 4.55%)</title><rect x="331" y="213" width="54" height="15" fill="rgb(248,141,0)"/><text text-anchor="left" x="334.00" y="223.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">alloc..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::ptr::write (1 samples, 4.55%)</title><rect x="331" y="197" width="54" height="15" fill="rgb(249,206,46)"/><text text-anchor="left" x="334.00" y="207.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::c_concat (7 samples, 31.82%)</title><rect x="63" y="389" width="376" height="15" fill="rgb(215,14,53)"/><text text-anchor="left" x="66.00" y="399.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::compile::Compiler::c_concat</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::c (7 samples, 31.82%)</title><rect x="63" y="373" width="376" height="15" fill="rgb(213,108,17)"/><text text-anchor="left" x="66.00" y="383.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::compile::Compiler::c</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::c_capture (7 samples, 31.82%)</title><rect x="63" y="357" width="376" height="15" fill="rgb(220,55,40)"/><text text-anchor="left" x="66.00" y="367.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::compile::Compiler::c_capture</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::c (7 samples, 31.82%)</title><rect x="63" y="341" width="376" height="15" fill="rgb(230,162,41)"/><text text-anchor="left" x="66.00" y="351.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::compile::Compiler::c</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::c_concat (7 samples, 31.82%)</title><rect x="63" y="325" width="376" height="15" fill="rgb(239,210,42)"/><text text-anchor="left" x="66.00" y="335.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::compile::Compiler::c_concat</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::c (7 samples, 31.82%)</title><rect x="63" y="309" width="376" height="15" fill="rgb(247,206,9)"/><text text-anchor="left" x="66.00" y="319.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::compile::Compiler::c</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::c_class (7 samples, 31.82%)</title><rect x="63" y="293" width="376" height="15" fill="rgb(220,5,25)"/><text text-anchor="left" x="66.00" y="303.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::compile::Compiler::c_class</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::CompileClass::compile (7 samples, 31.82%)</title><rect x="63" y="277" width="376" height="15" fill="rgb(210,224,19)"/><text text-anchor="left" x="66.00" y="287.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::compile::CompileClass::compile</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::CompileClass::c_utf8_seq (2 samples, 9.09%)</title><rect x="331" y="261" width="108" height="15" fill="rgb(237,63,6)"/><text text-anchor="left" x="334.00" y="271.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::compil..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::CompileClass::c_utf8_seq_ (2 samples, 9.09%)</title><rect x="331" y="245" width="108" height="15" fill="rgb(219,119,50)"/><text text-anchor="left" x="334.00" y="255.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::compil..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::SuffixCache::get (1 samples, 4.55%)</title><rect x="385" y="229" width="54" height="15" fill="rgb(238,116,17)"/><text text-anchor="left" x="388.00" y="239.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>alloc::vec::Vec&lt;T&gt;::push (1 samples, 4.55%)</title><rect x="385" y="213" width="54" height="15" fill="rgb(226,185,34)"/><text text-anchor="left" x="388.00" y="223.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">alloc..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>alloc::vec::Vec&lt;T&gt;::as_mut_ptr (1 samples, 4.55%)</title><rect x="385" y="197" width="54" height="15" fill="rgb(248,106,6)"/><text text-anchor="left" x="388.00" y="207.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">alloc..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::ptr::&lt;impl *mut T&gt;::is_null (1 samples, 4.55%)</title><rect x="385" y="181" width="54" height="15" fill="rgb(227,8,40)"/><text text-anchor="left" x="388.00" y="191.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::exec::ExecBuilder::build (1 samples, 4.55%)</title><rect x="439" y="389" width="53" height="15" fill="rgb(247,43,38)"/><text text-anchor="left" x="442.00" y="399.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::compile (1 samples, 4.55%)</title><rect x="439" y="373" width="53" height="15" fill="rgb(226,227,25)"/><text text-anchor="left" x="442.00" y="383.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::compile_one (1 samples, 4.55%)</title><rect x="439" y="357" width="53" height="15" fill="rgb(249,166,23)"/><text text-anchor="left" x="442.00" y="367.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::compile_finish (1 samples, 4.55%)</title><rect x="439" y="341" width="53" height="15" fill="rgb(224,218,9)"/><text text-anchor="left" x="442.00" y="351.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::iter::traits::iterator::Iterator::collect (1 samples, 4.55%)</title><rect x="439" y="325" width="53" height="15" fill="rgb(228,31,34)"/><text text-anchor="left" x="442.00" y="335.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;alloc::vec::Vec&lt;T&gt; as core::iter::traits::collect::FromIterator&lt;T&gt;&gt;::from_iter (1 samples, 4.55%)</title><rect x="439" y="309" width="53" height="15" fill="rgb(214,137,33)"/><text text-anchor="left" x="442.00" y="319.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;allo..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;alloc::vec::Vec&lt;T&gt; as alloc::vec::SpecExtend&lt;T,I&gt;&gt;::from_iter (1 samples, 4.55%)</title><rect x="439" y="293" width="53" height="15" fill="rgb(249,179,27)"/><text text-anchor="left" x="442.00" y="303.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;allo..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;alloc::vec::Vec&lt;T&gt; as alloc::vec::SpecExtend&lt;T,I&gt;&gt;::spec_extend (1 samples, 4.55%)</title><rect x="439" y="277" width="53" height="15" fill="rgb(233,40,33)"/><text text-anchor="left" x="442.00" y="287.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;allo..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::iter::traits::iterator::Iterator::for_each (1 samples, 4.55%)</title><rect x="439" y="261" width="53" height="15" fill="rgb(222,82,43)"/><text text-anchor="left" x="442.00" y="271.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;core::iter::adapters::Map&lt;I,F&gt; as core::iter::traits::iterator::Iterator&gt;::fold (1 samples, 4.55%)</title><rect x="439" y="245" width="53" height="15" fill="rgb(214,5,18)"/><text text-anchor="left" x="442.00" y="255.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;core..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::iter::traits::iterator::Iterator::fold (1 samples, 4.55%)</title><rect x="439" y="229" width="53" height="15" fill="rgb(213,191,9)"/><text text-anchor="left" x="442.00" y="239.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::iter::traits::iterator::Iterator::try_fold (1 samples, 4.55%)</title><rect x="439" y="213" width="53" height="15" fill="rgb(226,174,8)"/><text text-anchor="left" x="442.00" y="223.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::iter::traits::iterator::Iterator::fold::ok::_$u7b$$u7b$closure$u7d$$u7d$::ha97cb74cf59b2a11 (1 samples, 4.55%)</title><rect x="439" y="197" width="53" height="15" fill="rgb(250,40,17)"/><text text-anchor="left" x="442.00" y="207.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::iter::adapters::map_fold::_$u7b$$u7b$closure$u7d$$u7d$::h30807fd3d1b96442 (1 samples, 4.55%)</title><rect x="439" y="181" width="53" height="15" fill="rgb(217,76,30)"/><text text-anchor="left" x="442.00" y="191.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::Compiler::compile_finish::_$u7b$$u7b$closure$u7d$$u7d$::h200867d97f9b0d56 (1 samples, 4.55%)</title><rect x="439" y="165" width="53" height="15" fill="rgb(233,178,21)"/><text text-anchor="left" x="442.00" y="175.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::compile::MaybeInst::unwrap (1 samples, 4.55%)</title><rect x="439" y="149" width="53" height="15" fill="rgb(217,154,24)"/><text text-anchor="left" x="442.00" y="159.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>__memcpy_sse2_unaligned_erms (1 samples, 4.55%)</title><rect x="439" y="133" width="53" height="15" fill="rgb(213,204,3)"/><text text-anchor="left" x="442.00" y="143.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">__mem..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;regex::dfa::InstPtrs as core::iter::traits::iterator::Iterator&gt;::next (1 samples, 4.55%)</title><rect x="492" y="261" width="54" height="15" fill="rgb(238,156,11)"/><text text-anchor="left" x="495.00" y="271.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;rege..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::re_unicode::Regex::shortest_match_at (2 samples, 9.09%)</title><rect x="492" y="389" width="108" height="15" fill="rgb(242,95,2)"/><text text-anchor="left" x="495.00" y="399.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::re_uni..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;regex::exec::ExecNoSyncStr as regex::re_trait::RegularExpression&gt;::shortest_match_at (2 samples, 9.09%)</title><rect x="492" y="373" width="108" height="15" fill="rgb(234,98,48)"/><text text-anchor="left" x="495.00" y="383.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;regex::exec:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;regex::exec::ExecNoSync as regex::re_trait::RegularExpression&gt;::shortest_match_at (2 samples, 9.09%)</title><rect x="492" y="357" width="108" height="15" fill="rgb(229,98,39)"/><text text-anchor="left" x="495.00" y="367.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;regex::exec:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::exec::ExecNoSync::shortest_dfa (2 samples, 9.09%)</title><rect x="492" y="341" width="108" height="15" fill="rgb(218,133,54)"/><text text-anchor="left" x="495.00" y="351.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::exec::..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::dfa::Fsm::forward (2 samples, 9.09%)</title><rect x="492" y="325" width="108" height="15" fill="rgb(207,40,15)"/><text text-anchor="left" x="495.00" y="335.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::dfa::F..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::dfa::Fsm::exec_at (2 samples, 9.09%)</title><rect x="492" y="309" width="108" height="15" fill="rgb(227,124,43)"/><text text-anchor="left" x="495.00" y="319.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::dfa::F..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::dfa::Fsm::next_state (2 samples, 9.09%)</title><rect x="492" y="293" width="108" height="15" fill="rgb(253,164,13)"/><text text-anchor="left" x="495.00" y="303.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::dfa::F..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::dfa::Fsm::exec_byte (2 samples, 9.09%)</title><rect x="492" y="277" width="108" height="15" fill="rgb(238,225,9)"/><text text-anchor="left" x="495.00" y="287.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex::dfa::F..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>regex::dfa::Fsm::follow_epsilons (1 samples, 4.55%)</title><rect x="546" y="261" width="54" height="15" fill="rgb(238,203,9)"/><text text-anchor="left" x="549.00" y="271.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">regex..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>alloc::vec::Vec&lt;T&gt;::pop (1 samples, 4.55%)</title><rect x="546" y="245" width="54" height="15" fill="rgb(245,24,40)"/><text text-anchor="left" x="549.00" y="255.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">alloc..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>[unknown] (12 samples, 54.55%)</title><rect x="10" y="405" width="643" height="15" fill="rgb(239,138,3)"/><text text-anchor="left" x="13.00" y="415.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">[unknown]</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>ruwi::runner::wifi::wifi_exec (1 samples, 4.55%)</title><rect x="600" y="389" width="53" height="15" fill="rgb(217,74,9)"/><text text-anchor="left" x="603.00" y="399.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">ruwi:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>ruwi::parse::parse_result (1 samples, 4.55%)</title><rect x="600" y="373" width="53" height="15" fill="rgb(225,222,51)"/><text text-anchor="left" x="603.00" y="383.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">ruwi:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>ruwi::parse::parse_iw_scan (1 samples, 4.55%)</title><rect x="600" y="357" width="53" height="15" fill="rgb(205,34,16)"/><text text-anchor="left" x="603.00" y="367.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">ruwi:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>ruwi::parse::parse_iw_chunk_into_network (1 samples, 4.55%)</title><rect x="600" y="341" width="53" height="15" fill="rgb(211,189,42)"/><text text-anchor="left" x="603.00" y="351.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">ruwi:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::iter::traits::iterator::Iterator::find_map (1 samples, 4.55%)</title><rect x="600" y="325" width="53" height="15" fill="rgb(229,78,47)"/><text text-anchor="left" x="603.00" y="335.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::iter::traits::iterator::Iterator::try_fold (1 samples, 4.55%)</title><rect x="600" y="309" width="53" height="15" fill="rgb(236,43,28)"/><text text-anchor="left" x="603.00" y="319.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;core::slice::Iter&lt;T&gt; as core::iter::traits::iterator::Iterator&gt;::next (1 samples, 4.55%)</title><rect x="600" y="293" width="53" height="15" fill="rgb(253,24,45)"/><text text-anchor="left" x="603.00" y="303.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;core..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::slice::Iter&lt;T&gt;::post_inc_start (1 samples, 4.55%)</title><rect x="600" y="277" width="53" height="15" fill="rgb(246,29,41)"/><text text-anchor="left" x="603.00" y="287.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::ptr::&lt;impl *const T&gt;::offset (1 samples, 4.55%)</title><rect x="600" y="261" width="53" height="15" fill="rgb(207,205,27)"/><text text-anchor="left" x="603.00" y="271.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>__GI___clone (6 samples, 27.27%)</title><rect x="653" y="405" width="322" height="15" fill="rgb(229,77,50)"/><text text-anchor="left" x="656.00" y="415.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">__GI___clone</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>start_thread (1 samples, 4.55%)</title><rect x="921" y="389" width="54" height="15" fill="rgb(209,70,42)"/><text text-anchor="left" x="924.00" y="399.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">start..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>std::sys::unix::thread::Thread::new::thread_start (1 samples, 4.55%)</title><rect x="921" y="373" width="54" height="15" fill="rgb(247,150,37)"/><text text-anchor="left" x="924.00" y="383.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">std::..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>std::sys_common::thread::start_thread (1 samples, 4.55%)</title><rect x="921" y="357" width="54" height="15" fill="rgb(253,13,36)"/><text text-anchor="left" x="924.00" y="367.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">std::..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;alloc::boxed::Box&lt;F&gt; as core::ops::function::FnOnce&lt;A&gt;&gt;::call_once (1 samples, 4.55%)</title><rect x="921" y="341" width="54" height="15" fill="rgb(248,181,26)"/><text text-anchor="left" x="924.00" y="351.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;allo..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;alloc::boxed::Box&lt;F&gt; as core::ops::function::FnOnce&lt;A&gt;&gt;::call_once (1 samples, 4.55%)</title><rect x="921" y="325" width="54" height="15" fill="rgb(233,80,25)"/><text text-anchor="left" x="924.00" y="335.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;allo..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h138d0af6645e6318 (1 samples, 4.55%)</title><rect x="921" y="309" width="54" height="15" fill="rgb(249,153,4)"/><text text-anchor="left" x="924.00" y="319.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">core:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>std::thread::Builder::spawn_unchecked::_$u7b$$u7b$closure$u7d$$u7d$::h12a1071a16576d7d (1 samples, 4.55%)</title><rect x="921" y="293" width="54" height="15" fill="rgb(249,97,46)"/><text text-anchor="left" x="924.00" y="303.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">std::..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>std::panic::catch_unwind (1 samples, 4.55%)</title><rect x="921" y="277" width="54" height="15" fill="rgb(223,119,34)"/><text text-anchor="left" x="924.00" y="287.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">std::..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>std::panicking::try (1 samples, 4.55%)</title><rect x="921" y="261" width="54" height="15" fill="rgb(243,6,5)"/><text text-anchor="left" x="924.00" y="271.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">std::..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>__rust_maybe_catch_panic (1 samples, 4.55%)</title><rect x="921" y="245" width="54" height="15" fill="rgb(215,35,13)"/><text text-anchor="left" x="924.00" y="255.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">__rus..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>std::panicking::try::do_call (1 samples, 4.55%)</title><rect x="921" y="229" width="54" height="15" fill="rgb(206,148,5)"/><text text-anchor="left" x="924.00" y="239.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">std::..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>&lt;std::panic::AssertUnwindSafe&lt;F&gt; as core::ops::function::FnOnce&lt; (1 samples, 4.55%)</title><rect x="921" y="213" width="54" height="15" fill="rgb(215,132,16)"/><text text-anchor="left" x="924.00" y="223.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">&lt;std:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>std::thread::Builder::spawn_unchecked::_$u7b$$u7b$closure$u7d$$u7d$::_$u7b$$u7b$closure$u7d$$u7d$::hc7f636f8041d1190 (1 samples, 4.55%)</title><rect x="921" y="197" width="54" height="15" fill="rgb(254,79,23)"/><text text-anchor="left" x="924.00" y="207.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">std::..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>std::sys_common::backtrace::__rust_begin_short_backtrace (1 samples, 4.55%)</title><rect x="921" y="181" width="54" height="15" fill="rgb(217,153,47)"/><text text-anchor="left" x="924.00" y="191.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">std::..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>ruwi::runner::wifi::gather_wifi_network_data::_$u7b$$u7b$closure$u7d$$u7d$::hd2ed42cc2c3d62cf (1 samples, 4.55%)</title><rect x="921" y="165" width="54" height="15" fill="rgb(247,199,8)"/><text text-anchor="left" x="924.00" y="175.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">ruwi:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>ruwi::wifi_scan::wifi_scan (1 samples, 4.55%)</title><rect x="921" y="149" width="54" height="15" fill="rgb(240,163,27)"/><text text-anchor="left" x="924.00" y="159.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">ruwi:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>ruwi::wifi_scan::get_scan_contents_from_file (1 samples, 4.55%)</title><rect x="921" y="133" width="54" height="15" fill="rgb(228,118,43)"/><text text-anchor="left" x="924.00" y="143.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">ruwi:..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>std::io::Read::read_to_end (1 samples, 4.55%)</title><rect x="921" y="117" width="54" height="15" fill="rgb(206,168,28)"/><text text-anchor="left" x="924.00" y="127.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">std::..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>std::io::read_to_end (1 samples, 4.55%)</title><rect x="921" y="101" width="54" height="15" fill="rgb(225,109,51)"/><text text-anchor="left" x="924.00" y="111.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">std::..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>std::io::read_to_end_with_reservation (1 samples, 4.55%)</title><rect x="921" y="85" width="54" height="15" fill="rgb(252,161,0)"/><text text-anchor="left" x="924.00" y="95.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">std::..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>alloc::vec::Vec&lt;T&gt;::reserve (1 samples, 4.55%)</title><rect x="921" y="69" width="54" height="15" fill="rgb(251,185,44)"/><text text-anchor="left" x="924.00" y="79.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">alloc..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>alloc::raw_vec::RawVec&lt;T,A&gt;::reserve (1 samples, 4.55%)</title><rect x="921" y="53" width="54" height="15" fill="rgb(240,203,28)"/><text text-anchor="left" x="924.00" y="63.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">alloc..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>alloc::raw_vec::RawVec&lt;T,A&gt;::reserve_internal (1 samples, 4.55%)</title><rect x="921" y="37" width="54" height="15" fill="rgb(253,20,44)"/><text text-anchor="left" x="924.00" y="47.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">alloc..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>all (22 samples, 100%)</title><rect x="10" y="437" width="1180" height="15" fill="rgb(250,32,4)"/><text text-anchor="left" x="13.00" y="447.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)"></text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>ruwi (22 samples, 100.00%)</title><rect x="10" y="421" width="1180" height="15" fill="rgb(248,199,29)"/><text text-anchor="left" x="13.00" y="431.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">ruwi</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>_start (4 samples, 18.18%)</title><rect x="975" y="405" width="215" height="15" fill="rgb(251,115,15)"/><text text-anchor="left" x="978.00" y="415.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">_start</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>_dl_start (3 samples, 13.64%)</title><rect x="1029" y="389" width="161" height="15" fill="rgb(229,18,26)"/><text text-anchor="left" x="1032.00" y="399.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">_dl_start</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>_dl_sysdep_start (3 samples, 13.64%)</title><rect x="1029" y="373" width="161" height="15" fill="rgb(225,169,11)"/><text text-anchor="left" x="1032.00" y="383.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">_dl_sysdep_start</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>dl_main (2 samples, 9.09%)</title><rect x="1082" y="357" width="108" height="15" fill="rgb(223,56,13)"/><text text-anchor="left" x="1085.00" y="367.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">dl_main</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>_dl_map_object_deps (1 samples, 4.55%)</title><rect x="1136" y="341" width="54" height="15" fill="rgb(249,82,49)"/><text text-anchor="left" x="1139.00" y="351.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">_dl_m..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>_dl_catch_exception (1 samples, 4.55%)</title><rect x="1136" y="325" width="54" height="15" fill="rgb(218,63,44)"/><text text-anchor="left" x="1139.00" y="335.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">_dl_c..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>openaux (1 samples, 4.55%)</title><rect x="1136" y="309" width="54" height="15" fill="rgb(210,159,33)"/><text text-anchor="left" x="1139.00" y="319.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">opena..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>_dl_map_object (1 samples, 4.55%)</title><rect x="1136" y="293" width="54" height="15" fill="rgb(234,51,49)"/><text text-anchor="left" x="1139.00" y="303.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">_dl_m..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>_dl_map_object_from_fd (1 samples, 4.55%)</title><rect x="1136" y="277" width="54" height="15" fill="rgb(250,138,50)"/><text text-anchor="left" x="1139.00" y="287.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">_dl_m..</text></g><g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)"><title>_dl_setup_hash (1 samples, 4.55%)</title><rect x="1136" y="261" width="54" height="15" fill="rgb(207,66,8)"/><text text-anchor="left" x="1139.00" y="271.50" font-size="12" font-family="Verdana" fill="rgb(0, 0, 0)">_dl_s..</text></g></svg>

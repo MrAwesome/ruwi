@@ -282,7 +282,6 @@ fn get_scan_method(m: &ArgMatches) -> ScanMethod {
     } else {
         ScanMethod::ByRunning
     };
-    dbg!(&scanmethod);
     scanmethod
 }
 
