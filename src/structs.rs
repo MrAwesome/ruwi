@@ -296,11 +296,6 @@ impl KnownNetworkNames {
     pub fn contains(&self, target: &str) -> bool {
         self.networks.contains(target)
     }
-
-    pub fn insert(&mut self, target: String) -> bool {
-        self.networks.insert(target)
-    }
-
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]

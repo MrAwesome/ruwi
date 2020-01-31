@@ -42,8 +42,7 @@ mod tests {
             essid: essid.clone(),
             ..WirelessNetwork::default()
         };
-        let mut known_networks = KnownNetworkNames::default();
-        known_networks.insert(essid);
+        let known_networks = KnownNetworkNames::new(vec![nw.essid.clone()]);
         let annotated_networks = annotate_networks(
             &WifiConnectOptions::builder().build(),
             &vec![nw],
