@@ -349,7 +349,7 @@ fn empty_command_dryrun(cmd_name: &str, args: &[&str]) -> Command {
         cmd_name,
         args.join(" ")
     );
-    return Command::new("true");
+    Command::new("true")
 }
 
 #[cfg(test)]

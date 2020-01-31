@@ -1,9 +1,12 @@
+// For strum macros:
+#![allow(clippy::default_trait_access)]
+#![allow(clippy::used_underscore_binding)]
+
 use crate::rerr;
 use std::collections::HashSet;
 use std::error::Error;
 use std::fmt;
 use std::fmt::Debug;
-use std::ops::{Deref, DerefMut};
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
 // NOTE: instead of strum, you can use arg_enum! from the clap crate, to cut down on compile times
@@ -97,7 +100,7 @@ impl Default for ScanMethod {
 #[strum(serialize_all = "snake_case")]
 #[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
 pub enum ScanType {
-    Wifi(WifiScanType)
+    Wifi(WifiScanType),
 }
 
 impl Default for ScanType {
@@ -271,25 +274,31 @@ impl Default for AnnotatedWirelessNetwork {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct KnownNetworkNames(pub HashSet<String>);
+pub struct KnownNetworkNames {
+    networks: HashSet<String>,
+}
 
 impl Default for KnownNetworkNames {
     fn default() -> Self {
-        Self(HashSet::new())
+        Self {
+            networks: HashSet::new(),
+        }
     }
 }
 
-impl Deref for KnownNetworkNames {
-    type Target = HashSet<String>;
-    fn deref(&self) -> &HashSet<String> {
-        &self.0
+impl KnownNetworkNames {
+    pub fn new(networks: HashSet<String>) -> Self {
+        Self { networks }
     }
-}
 
-impl DerefMut for KnownNetworkNames {
-    fn deref_mut(&mut self) -> &mut HashSet<String> {
-        &mut self.0
+    pub fn contains(&self, target: &str) -> bool {
+        self.networks.contains(target)
     }
+
+    pub fn insert(&mut self, target: String) -> bool {
+        self.networks.insert(target)
+    }
+
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]

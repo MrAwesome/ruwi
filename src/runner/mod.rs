@@ -5,7 +5,7 @@ use crate::options::structs::*;
 use crate::structs::*;
 
 mod wifi;
-use wifi::WifiStep;
+use wifi::RunStart;
 
 const SANITY_LOOP_CAP: u32 = 1000;
 
@@ -13,13 +13,8 @@ pub fn run_ruwi_using_state_machine(command: RuwiCommand) -> Result<(), RuwiErro
     let sanity_loop_cap = SANITY_LOOP_CAP;
 
     match &command {
-        RuwiCommand::Wifi(RuwiWifiCommand::Connect(options)) => step_runner(
-            command.clone(),
-            options.clone(),
-            sanity_loop_cap,
-            WifiStep::ConnectionInit,
-            WifiStep::ConnectionSuccessful,
-        ),
+        RuwiCommand::Wifi(RuwiWifiCommand::Connect(options)) => options.run(),
+
         RuwiCommand::Wired(RuwiWiredCommand::Connect) => unimplemented!(),
         RuwiCommand::Bluetooth(RuwiBluetoothCommand::Pair) => unimplemented!(),
     }

@@ -53,7 +53,7 @@ fn find_known_networkmanager_networks<O>(options: &O) -> Result<KnownNetworkName
         .lines()
         .map(|x| x.into())
         .collect::<HashSet<String>>();
-    Ok(KnownNetworkNames(known_names))
+    Ok(KnownNetworkNames::new(known_names))
 }
 
 #[cfg(test)]
@@ -78,7 +78,7 @@ fn find_known_netctl_networks() -> io::Result<KnownNetworkNames> {
             // TODO: unit test that unescape happens
             .collect::<HashSet<String>>();
 
-        Ok(KnownNetworkNames(known_essids))
+        Ok(KnownNetworkNames::new(known_essids))
     } else {
         Ok(KnownNetworkNames::default())
     }

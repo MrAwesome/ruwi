@@ -6,8 +6,10 @@ pub(crate) fn annotate_networks<O>(
     options: &O,
     networks: &[WirelessNetwork],
     known_network_names: &KnownNetworkNames,
-) -> AnnotatedNetworks 
-where O: Global {
+) -> AnnotatedNetworks
+where
+    O: Global,
+{
     let networks = networks
         .iter()
         .map(|nw| {
@@ -38,11 +40,15 @@ mod tests {
         let essid = "hahahahahahahahaha".to_string();
         let nw = WirelessNetwork {
             essid: essid.clone(),
-            ..Default::default()
+            ..WirelessNetwork::default()
         };
         let mut known_networks = KnownNetworkNames::default();
         known_networks.insert(essid);
-        let annotated_networks = annotate_networks(&WifiConnectOptions::builder().build(), &vec![nw], &known_networks);
+        let annotated_networks = annotate_networks(
+            &WifiConnectOptions::builder().build(),
+            &vec![nw],
+            &known_networks,
+        );
 
         let resulting_nw = annotated_networks.networks.first().unwrap();
         assert![resulting_nw.known];
@@ -53,10 +59,14 @@ mod tests {
         let essid = "wheeeeeeeeeeeeeeee".to_string();
         let nw = WirelessNetwork {
             essid,
-            ..Default::default()
+            ..WirelessNetwork::default()
         };
-        let known_networks = Default::default();
-        let annotated_networks = annotate_networks(&WifiConnectOptions::builder().build(), &vec![nw], &known_networks);
+        let known_networks = KnownNetworkNames::default();
+        let annotated_networks = annotate_networks(
+            &WifiConnectOptions::builder().build(),
+            &vec![nw],
+            &known_networks,
+        );
 
         let resulting_nw = annotated_networks.networks.first().unwrap();
         assert![!resulting_nw.known];
@@ -67,10 +77,14 @@ mod tests {
         let essid = "aaaaaaaaaaaaaaaaaah".to_string();
         let nw = WirelessNetwork {
             essid: essid.clone(),
-            ..Default::default()
+            ..WirelessNetwork::default()
         };
-        let known_networks = Default::default();
-        let annotated_networks = annotate_networks(&WifiConnectOptions::builder().build(), &vec![nw], &known_networks);
+        let known_networks = KnownNetworkNames::default();
+        let annotated_networks = annotate_networks(
+            &WifiConnectOptions::builder().build(),
+            &vec![nw],
+            &known_networks,
+        );
 
         let resulting_nw = annotated_networks.networks.first().unwrap();
         assert_eq![essid, resulting_nw.essid];
@@ -81,10 +95,14 @@ mod tests {
         let essid = "guuuuuuuuuuuuuuuuuuh".to_string();
         let nw = WirelessNetwork {
             essid: essid.clone(),
-            ..Default::default()
+            ..WirelessNetwork::default()
         };
-        let known_networks = Default::default();
-        let annotated_networks = annotate_networks(&WifiConnectOptions::builder().build(), &vec![nw], &known_networks);
+        let known_networks = KnownNetworkNames::default();
+        let annotated_networks = annotate_networks(
+            &WifiConnectOptions::builder().build(),
+            &vec![nw],
+            &known_networks,
+        );
 
         let resulting_nw = annotated_networks.networks.first().unwrap();
         assert![!resulting_nw.known];

@@ -275,14 +275,13 @@ fn get_wifi_opts_impl(
 }
 
 fn get_scan_method(m: &ArgMatches) -> ScanMethod {
-    let scanmethod = if let Some(filename) = m.value_of("input_file").map(String::from) {
+    if let Some(filename) = m.value_of("input_file").map(String::from) {
         ScanMethod::FromFile(filename)
     } else if m.is_present("input_stdin") {
         ScanMethod::FromStdin
     } else {
         ScanMethod::ByRunning
-    };
-    scanmethod
+    }
 }
 
 fn get_wifi_interface<O>(m: &ArgMatches, opts: &O) -> Result<String, RuwiError>

@@ -135,7 +135,7 @@ fn parse_iw_chunk_into_network(chunk: &[&str]) -> Result<WirelessNetwork, Indivi
 }
 
 fn is_first_line_of_iw_network(line: &str) -> bool {
-    line.starts_with("BSS ") && line.ends_with(")")
+    line.starts_with("BSS ") && line.ends_with(')')
 }
 
 fn err_iw_malformed_output<O>(options: &O) -> RuwiError 
