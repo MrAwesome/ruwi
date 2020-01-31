@@ -8,6 +8,7 @@ use std::error::Error;
 use std::fmt;
 use std::fmt::Debug;
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
+use std::iter::FromIterator;
 
 // NOTE: instead of strum, you can use arg_enum! from the clap crate, to cut down on compile times
 
@@ -287,8 +288,9 @@ impl Default for KnownNetworkNames {
 }
 
 impl KnownNetworkNames {
-    pub fn new(networks: HashSet<String>) -> Self {
-        Self { networks }
+    pub fn new(seen_networks: Vec<String>) -> Self {
+        let unique_networks = HashSet::from_iter(seen_networks);
+        Self { networks: unique_networks }
     }
 
     pub fn contains(&self, target: &str) -> bool {
