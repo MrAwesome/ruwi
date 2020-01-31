@@ -2,6 +2,7 @@ use crate::interface_management::bring_interface_up;
 use crate::options::interfaces::*;
 use crate::rerr;
 use crate::run_commands::*;
+use crate::errors::*;
 use crate::structs::*;
 use std::process::Output;
 

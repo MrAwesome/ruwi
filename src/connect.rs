@@ -3,6 +3,7 @@ use crate::interface_management::bring_interface_down;
 use crate::netctl_config_writer::get_netctl_file_name;
 use crate::rerr;
 use crate::run_commands::*;
+use crate::errors::*;
 use crate::structs::*;
 use crate::service_management::GetService;
 

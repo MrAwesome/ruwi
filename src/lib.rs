@@ -14,6 +14,7 @@ pub(crate) mod configure_network;
 pub(crate) mod connect;
 pub(crate) mod display_network_for_selection;
 pub(crate) mod encryption_key;
+pub(crate) mod errors;
 pub(crate) mod find_known_network_names;
 pub(crate) mod get_default_interface;
 pub(crate) mod interface_management;
@@ -35,8 +36,9 @@ pub(crate) mod strum_utils;
 pub(crate) mod wpa_cli_initialize;
 
 use cmdline_parser::*;
-use runner::run_ruwi_using_state_machine;
-use structs::*;
+use errors::*;
+use runner::Runner;
+use options::structs::*;
 
 // TODO(high): implement speed/connection/dns test - `nmcli networking connectivity` for networkmanager mode
 // TODO(high): stop/start the relevant services (in particular, stop networkmanager if it's running before trying to do netctl things) - - pkill wpa_supplicant, systemctl stop NetworkManager, etc etc etc (add "conflicting services" to src/service_management.rs )
@@ -62,7 +64,19 @@ use structs::*;
 
 pub fn run_ruwi() -> Result<(), RuwiError> {
     let command = get_command()?;
-    run_ruwi_using_state_machine(command)
+    match command {
+        RuwiCommand::Wifi(RuwiWifiCommand::Connect(options)) => options.run(),
+
+        RuwiCommand::Wired(RuwiWiredCommand::Connect) => unimplemented!(),
+        RuwiCommand::Bluetooth(RuwiBluetoothCommand::Pair) => unimplemented!(),
+    }
+    //      RuwiCommand::BluetoothPair => {}
+    //      RuwiCommand::WifiSelect => {}
+    //      RuwiCommand::WifiEditNetwork => {}
+    //      RuwiCommand::WifiDeleteNetwork => {}
+    //      RuwiCommand::List => {}
+    //      RuwiCommand::DumpJSON => {}
+    //      RuwiCommand::Disconnect => {}
 }
 
 #[cfg(test)]

@@ -1,5 +1,6 @@
 use crate::options::interfaces::*;
 use crate::netctl_config_writer::*;
+use crate::errors::*;
 use crate::structs::*;
 
 pub(crate) fn possibly_configure_network<O>(

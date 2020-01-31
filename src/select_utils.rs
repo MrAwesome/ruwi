@@ -1,7 +1,7 @@
 use crate::options::interfaces::*;
 use crate::rerr;
 use crate::run_commands::*;
-use crate::structs::*;
+use crate::errors::*;
 use std::error::Error;
 
 use std::io;

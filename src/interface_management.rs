@@ -1,7 +1,7 @@
 use crate::options::interfaces::*;
 use crate::options::structs::PROG_NAME;
 use crate::run_commands::*;
-use crate::structs::*;
+use crate::errors::*;
 
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 

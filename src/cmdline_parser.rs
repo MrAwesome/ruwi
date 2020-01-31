@@ -2,6 +2,7 @@ use crate::get_default_interface::get_default_interface;
 use crate::options::interfaces::*;
 use crate::options::structs::*;
 use crate::rerr;
+use crate::errors::*;
 use crate::structs::*;
 use crate::strum_utils::*;
 

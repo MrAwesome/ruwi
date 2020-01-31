@@ -1,6 +1,7 @@
 use crate::options::interfaces::*;
 use crate::run_commands::run_command_pass;
 use crate::wpa_cli_initialize::initialize_wpa_supplicant;
+use crate::errors::*;
 use crate::structs::*;
 
 // TODO: implement service killing for when switching between services?

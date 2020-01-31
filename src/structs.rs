@@ -2,89 +2,12 @@
 #![allow(clippy::default_trait_access)]
 #![allow(clippy::used_underscore_binding)]
 
-use crate::rerr;
 use std::collections::HashSet;
-use std::error::Error;
-use std::fmt;
 use std::fmt::Debug;
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 use std::iter::FromIterator;
 
 // NOTE: instead of strum, you can use arg_enum! from the clap crate, to cut down on compile times
-
-// TODO: set to pub(crate) temporarily to find unused values
-#[derive(Debug, PartialEq, Eq)]
-pub enum RuwiErrorKind {
-    CommandNotInstalled,
-    InvalidScanTypeAndMethod,
-    FailedToListKnownNetworksWithNetworkManager,
-    FailedToBringInterfaceDown,
-    FailedToBringInterfaceUp,
-    FailedToConnectViaNetctl,
-    FailedToConnectViaNetworkManager,
-    FailedToConnectViaWPACli,
-    FailedToParseSelectedLine,
-    FailedToReadScanResultsFromStdin,
-    FailedToReadScanResultsFromFile,
-    FailedToRunCommand,
-    FailedToRunIWDev,
-    FailedToRunIWScanAbort,
-    FailedToRunIWScanDump,
-    FailedToRunIWScanTrigger,
-    FailedToRunNmcliScan,
-    FailedToRunNmcliScanSynchronous,
-    FailedToScanWithWPACli,
-    FailedToSpawnThread,
-    FailedToStartNetctl,
-    FailedToStartNetworkManager,
-    FailedToWriteNetctlConfig,
-    IWSynchronousScanFailed,
-    IWSynchronousScanRanOutOfRetries,
-    KnownNetworksFetchError,
-    MalformedIWOutput,
-    NoInterfacesFoundWithIW,
-    NoKnownNetworksFound,
-    NoNetworksFoundMatchingSelectionResult,
-    NoNetworksSeenWithIWScanDump,
-    NoNetworksSeenWithWPACliScanResults,
-    NotImplementedError,
-    PromptCommandFailed,
-    PromptCommandSpawnFailed,
-    RefreshRequested,
-    RetryWithSynchronousScan,
-    SingleLinePromptFailed,
-    StepRunnerLoopPreventionCapExceeded,
-    TestCmdLineOptParserSafeFailed,
-    TestDeliberatelyFailedToFindNetworks,
-    TestNoNetworksFoundWhenLookingForFirst,
-    TestNoRefreshOptionFound,
-    TestNoNetworksFoundWhenLookingForLast,
-    TestShouldNeverBeSeen,
-    TestUsedAutoNoAskWhenNotExpected,
-    TestUsedAutoWhenNotExpected,
-    TestUsedManualWhenNotExpected,
-    UsedTerminalStep,
-    WPACliHeaderMalformedOrMissing,
-}
-
-#[derive(Debug)]
-pub struct RuwiError {
-    pub kind: RuwiErrorKind,
-    pub desc: String,
-}
-
-impl Error for RuwiError {
-    fn description(&self) -> &str {
-        self.desc.as_ref()
-    }
-}
-
-impl fmt::Display for RuwiError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(&self.description(), f)
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ScanMethod {
     ByRunning,
@@ -325,7 +248,6 @@ pub struct ConfigResult {
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ConfigData {
     pub config_path: Option<String>,
-    //command_run: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -336,9 +258,3 @@ pub struct ConnectionResult {
     //ipv6_addr: Option<String>,
 }
 
-pub(crate) fn nie<T: Debug>(prog: T) -> RuwiError {
-    rerr!(
-        RuwiErrorKind::NotImplementedError,
-        format!("Functionality not implemented: {:?}", prog)
-    )
-}

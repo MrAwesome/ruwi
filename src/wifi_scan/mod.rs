@@ -6,6 +6,7 @@ use nmcli_scan::run_nmcli_scan;
 
 use crate::rerr;
 use crate::run_commands::*;
+use crate::errors::*;
 use crate::structs::*;
 use crate::options::interfaces::*;
 use crate::service_management::GetService;

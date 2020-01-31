@@ -2,6 +2,7 @@ mod nmcli;
 use nmcli::parse_nmcli_scan;
 
 use crate::rerr;
+use crate::errors::*;
 use crate::structs::*;
 use crate::options::interfaces::*;
 

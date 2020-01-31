@@ -1,5 +1,6 @@
 use crate::options::interfaces::*;
 use crate::rerr;
+use crate::errors::*;
 use crate::structs::*;
 use std::error::Error;
 use std::fs::File;

@@ -2,7 +2,7 @@ use crate::options::interfaces::*;
 use crate::rerr;
 #[cfg(not(test))]
 use crate::run_commands::*;
-use crate::structs::*;
+use crate::errors::*;
 use std::fmt::Debug;
 
 // TODO: make interface a struct of some sort?

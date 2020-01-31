@@ -10,17 +10,16 @@ use crate::parse::parse_result;
 use crate::rerr;
 use crate::select_network::select_network;
 use crate::sort_networks::sort_and_filter_networks;
+use crate::errors::*;
 use crate::structs::*;
 use crate::synchronous_retry_logic::should_retry_with_synchronous_scan;
 use crate::wifi_scan::wifi_scan;
 
+use crate::runner::Runner;
+
 use crate::options::structs::WifiConnectOptions;
 
-pub trait RunStart {
-    fn run(&self) -> Result<(), RuwiError>;
-}
-
-impl RunStart for WifiConnectOptions {
+impl Runner for WifiConnectOptions {
     fn run(&self) -> Result<(), RuwiError> {
         self.connection_init()
     }
@@ -30,7 +29,7 @@ impl WifiConnectOptions {
         fn connection_init(&self) -> Result<(), RuwiError> {
             if let Some(essid) = self.get_given_essid() {
                 let selected_network = get_network_from_given_essid(self, &essid)?;
-                self.password_asker(selected_network)
+                self.password_asker(&selected_network)
             } else {
                 self.data_gatherer()
             }
@@ -43,12 +42,12 @@ impl WifiConnectOptions {
         //       run that as needed whenever a service might be needed.
         fn data_gatherer(&self) -> Result<(), RuwiError> {
             let (known_network_names, scan_result) = gather_wifi_network_data(self, None)?;
-            self.network_parser_and_annotator(known_network_names, scan_result)
+            self.network_parser_and_annotator(&known_network_names, &scan_result)
         }
 
         fn network_parser_and_annotator(&self,
-            known_network_names: KnownNetworkNames,
-            scan_result: ScanResult,
+            known_network_names: &KnownNetworkNames,
+            scan_result: &ScanResult,
         ) -> Result<(), RuwiError> {
             let parse_results = parse_result(self, &scan_result)?;
             let annotated_networks =
@@ -63,17 +62,17 @@ impl WifiConnectOptions {
         fn synchronous_rescan(&self, rescan_type: SynchronousRescanType) -> Result<(), RuwiError> {
             let (known_network_names, scan_result) =
                 gather_wifi_network_data(self, Some(rescan_type))?;
-            self.network_parser_and_annotator(known_network_names, scan_result)
+            self.network_parser_and_annotator(&known_network_names, &scan_result)
         }
 
         fn network_sorter(&self, annotated_networks: AnnotatedNetworks) -> Result<(), RuwiError> {
             let sorted_networks = sort_and_filter_networks(self, annotated_networks);
-            self.network_selector(sorted_networks)
+            self.network_selector(&sorted_networks)
         }
 
-        fn network_selector(&self, sorted_networks: SortedUniqueNetworks) -> Result<(), RuwiError> {
-            match select_network(self, &sorted_networks) {
-                Ok(selected_network) => self.password_asker(selected_network),
+        fn network_selector(&self, sorted_networks: &SortedUniqueNetworks) -> Result<(), RuwiError> {
+            match select_network(self, sorted_networks) {
+                Ok(selected_network) => self.password_asker(&selected_network),
                 Err(err) => match &err.kind {
                     RuwiErrorKind::RefreshRequested => 
                         self.synchronous_rescan(SynchronousRescanType::ManuallyRequested),
@@ -82,15 +81,15 @@ impl WifiConnectOptions {
             }
         }
 
-        fn password_asker(&self, selected_network: AnnotatedWirelessNetwork ) -> Result<(), RuwiError> {
-            let maybe_key = possibly_get_encryption_key(self, &selected_network)?;
+        fn password_asker(&self, selected_network: &AnnotatedWirelessNetwork ) -> Result<(), RuwiError> {
+            let maybe_key = possibly_get_encryption_key(self, selected_network)?;
             self.network_configurator_and_connector(
-                selected_network,
-                maybe_key,
+                &selected_network,
+                &maybe_key,
             )
         }
 
-        fn network_configurator_and_connector(&self, selected_network: AnnotatedWirelessNetwork, maybe_key: Option<String> ) -> Result<(), RuwiError> {
+        fn network_configurator_and_connector(&self, selected_network: &AnnotatedWirelessNetwork, maybe_key: &Option<String> ) -> Result<(), RuwiError> {
             possibly_configure_network(self, &selected_network, &maybe_key)?;
             connect_to_network(self, &selected_network, &maybe_key)?;
             // TODO: Test connection here

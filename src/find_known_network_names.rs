@@ -2,6 +2,7 @@ use crate::options::interfaces::*;
 use crate::rerr;
 #[cfg(not(test))]
 use crate::run_commands::*;
+use crate::errors::*;
 use crate::structs::*;
 #[cfg(not(test))]
 use std::fs::{read_dir, DirEntry, File};

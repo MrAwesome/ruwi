@@ -1,4 +1,5 @@
 use crate::options::interfaces::*;
+use crate::errors::*;
 use crate::structs::*;
 
 pub(crate) fn parse_nmcli_scan<O>(

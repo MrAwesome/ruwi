@@ -2,6 +2,7 @@
 use crate::rerr;
 use crate::options::interfaces::*;
 use crate::select_utils::*;
+use crate::errors::*;
 use crate::structs::*;
 
 use crate::strum_utils::possible_vals;
