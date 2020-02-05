@@ -164,7 +164,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::options::structs::WifiConnectOptions;
+    use crate::options::wifi::connect::WifiConnectOptions;
     use crate::wifi_scan::tests::*;
 
     #[test]

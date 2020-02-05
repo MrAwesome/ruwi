@@ -67,7 +67,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::options::structs::WifiConnectOptions;
+    use crate::options::wifi::connect::WifiConnectOptions;
 
     fn should_not_run(_opt: &WifiConnectOptions, _nw: &str) -> Result<String, RuwiError> {
         panic!("Should not run.")

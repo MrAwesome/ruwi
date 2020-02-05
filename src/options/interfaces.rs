@@ -22,8 +22,11 @@ pub trait Wifi {
     fn get_force_synchronous_scan(&self) -> bool;
 }
 
-pub trait WifiConnect {
+pub trait AutoSelect {
     fn get_auto_mode(&self) -> &AutoMode;
+}
+
+pub trait WifiConnect {
     fn get_force_ask_password(&self) -> bool;
     fn get_given_essid(&self) -> &Option<String>;
     fn get_given_encryption_key(&self) -> &Option<String>;

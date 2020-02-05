@@ -1,5 +1,5 @@
 use crate::options::interfaces::*;
-use crate::options::structs::PROG_NAME;
+use crate::options::PROG_NAME;
 use crate::run_commands::*;
 use crate::errors::*;
 

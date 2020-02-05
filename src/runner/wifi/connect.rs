@@ -17,7 +17,7 @@ use crate::wifi_scan::wifi_scan;
 
 use crate::runner::Runner;
 
-use crate::options::structs::WifiConnectOptions;
+use crate::options::wifi::connect::WifiConnectOptions;
 
 impl Runner for WifiConnectOptions {
     fn run(&self) -> Result<(), RuwiError> {

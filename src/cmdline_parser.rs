@@ -1,6 +1,8 @@
 use crate::get_default_interface::get_default_interface;
 use crate::options::interfaces::*;
-use crate::options::structs::*;
+use crate::options::*;
+use crate::options::wifi::*;
+use crate::options::wifi::connect::*;
 use crate::rerr;
 use crate::errors::*;
 use crate::structs::*;
@@ -9,6 +11,7 @@ use crate::strum_utils::*;
 use clap::{App, Arg, ArgMatches, SubCommand};
 use std::fmt::Debug;
 use strum::AsStaticRef;
+
 
 // TODO: respect force_ask_password
 // TODO: fail if not run as root

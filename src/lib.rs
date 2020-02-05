@@ -38,7 +38,7 @@ pub(crate) mod wpa_cli_initialize;
 use cmdline_parser::*;
 use errors::*;
 use runner::Runner;
-use options::structs::*;
+use options::*;
 
 // TODO(high): implement speed/connection/dns test - `nmcli networking connectivity` for networkmanager mode
 // TODO(high): stop/start the relevant services (in particular, stop networkmanager if it's running before trying to do netctl things) - - pkill wpa_supplicant, systemctl stop NetworkManager, etc etc etc (add "conflicting services" to src/service_management.rs )

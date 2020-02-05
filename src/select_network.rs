@@ -35,7 +35,7 @@ impl SortedUniqueNetworks {
 pub(crate) fn select_network<O>(
     options: &O,
     networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global + WifiConnect {
+) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global + AutoSelect {
     select_network_impl(options, networks, prompt_user_for_selection)
 }
 
@@ -153,7 +153,7 @@ fn select_network_impl<'a, 'b, O, F>(
     manual_selector: F,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError>
 where
-    O: Global + WifiConnect,
+    O: Global + AutoSelect,
     F: FnOnce(&'a O, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, RuwiError>,
 {
     let selected_network_res = match options.get_auto_mode() {
@@ -186,7 +186,7 @@ where
 mod tests {
     use super::*;
     use crate::strum::AsStaticRef;
-    use crate::options::structs::WifiConnectOptions;
+    use crate::options::wifi::connect::WifiConnectOptions;
 
     static FIRST_NW_NAME: &str = "FIRSTNWLOL";
     static SECND_NW_NAME: &str = "SECNDNWWUT";

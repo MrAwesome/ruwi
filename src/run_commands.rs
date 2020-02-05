@@ -355,7 +355,7 @@ fn empty_command_dryrun(cmd_name: &str, args: &[&str]) -> Command {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::options::structs::GlobalOptions;
+    use crate::options::GlobalOptions;
 
     #[test]
     #[should_panic = "Prevented command usage in test!"]

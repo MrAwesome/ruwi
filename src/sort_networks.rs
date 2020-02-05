@@ -56,7 +56,7 @@ pub(crate) fn put_best_networks_first(networks: &mut Vec<AnnotatedWirelessNetwor
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::options::structs::WifiConnectOptions;
+    use crate::options::wifi::connect::WifiConnectOptions;
 
     fn compare_order(
         should_be_first: AnnotatedWirelessNetwork,

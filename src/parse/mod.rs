@@ -242,7 +242,7 @@ fn parse_wpa_line_into_network(line: &str) -> Result<WirelessNetwork, Individual
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::options::structs::WifiConnectOptions;
+    use crate::options::wifi::connect::WifiConnectOptions;
 
     fn compare_parsed_result_to_expected_result(options: &WifiConnectOptions, 
         scan_result: &ScanResult,
