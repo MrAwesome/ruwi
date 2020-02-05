@@ -10,6 +10,7 @@ pub(crate) mod wifi;
 
 use crate::options::interfaces::*;
 use crate::options::wifi::connect::WifiConnectOptions;
+use crate::options::wifi::select::WifiSelectOptions;
 use crate::structs::*;
 
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString, AsRefStr};
@@ -34,7 +35,7 @@ impl Default for RuwiCommand {
 #[derive(Debug, Clone, EnumString, EnumIter, Display, AsStaticStr, AsRefStr)]
 pub enum RuwiWifiCommand {
     Connect(WifiConnectOptions),
-    //Select(WifiSelectOptions)
+    Select(WifiSelectOptions)
     // Select
     // JSON
 }

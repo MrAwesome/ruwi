@@ -2,7 +2,8 @@ use crate::get_default_interface::get_default_interface;
 use crate::options::interfaces::*;
 use crate::options::*;
 use crate::options::wifi::*;
-use crate::options::wifi::connect::*;
+use crate::options::wifi::connect::WifiConnectOptions;
+use crate::options::wifi::select::WifiSelectOptions;
 use crate::rerr;
 use crate::errors::*;
 use crate::structs::*;
@@ -125,13 +126,17 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
             .arg(wifi_interface)
             .arg(wifi_scan_type)
             .subcommand(SubCommand::with_name("connect")
-                .arg(auto)
-                .arg(auto_mode)
+                .arg(auto.clone())
+                .arg(auto_mode.clone())
                 .arg(connect_via)
                 .arg(essid)
                 .arg(force_ask_password)
-                .arg(password)
-        ))
+                .arg(password))
+            .subcommand(SubCommand::with_name("select")
+                .arg(auto)
+                .arg(auto_mode)
+            )
+        )
 }
 
 pub(crate) fn get_command() -> Result<RuwiCommand, RuwiError> {
@@ -223,6 +228,19 @@ fn get_wifi_cmd(
             )?))
         }
 
+        (subc_name, Some(sub_sub_m))
+            if subc_name
+                == RuwiWifiCommand::Select(WifiSelectOptions::builder().build()).to_string() =>
+        {
+            let wifi_opts = 
+                get_wifi_opts_impl(&globals, sub_m, Some(sub_sub_m))?;
+            Ok(RuwiWifiCommand::Select(get_wifi_select_opts(
+                globals,
+                wifi_opts,
+                sub_sub_m,
+            )?))
+        }
+
         _ => todo!("other command types"),
     }
 }
@@ -252,6 +270,26 @@ fn get_wifi_connect_opts(
         .given_encryption_key(given_encryption_key)
         .auto_mode(auto_mode)
         .force_ask_password(force_ask_password)
+        .build();
+    Ok(opts)
+}
+
+
+fn get_wifi_select_opts(
+    globals: GlobalOptions,
+    wifi_opts: WifiOptions,
+    sub_sub_m: &ArgMatches,
+) -> Result<WifiSelectOptions, RuwiError> {
+    let auto_mode = if sub_sub_m.is_present("auto") {
+        AutoMode::KnownOrAsk
+    } else {
+        get_val_as_enum::<AutoMode>(&sub_sub_m, "auto_mode")
+    };
+
+    let opts = WifiSelectOptions::builder()
+        .globals(globals)
+        .wifi(wifi_opts)
+        .auto_mode(auto_mode)
         .build();
     Ok(opts)
 }

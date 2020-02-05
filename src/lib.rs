@@ -66,7 +66,7 @@ pub fn run_ruwi() -> Result<(), RuwiError> {
     let command = get_command()?;
     match command {
         RuwiCommand::Wifi(RuwiWifiCommand::Connect(options)) => options.run(),
-
+        RuwiCommand::Wifi(RuwiWifiCommand::Select(options)) => options.run(),
         RuwiCommand::Wired(RuwiWiredCommand::Connect) => unimplemented!(),
         RuwiCommand::Bluetooth(RuwiBluetoothCommand::Pair) => unimplemented!(),
     }

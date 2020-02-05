@@ -43,3 +43,14 @@ fn test_print_given_essid() -> Result<()> {
     p.exp_string("FUCKAHOL")?;
     Ok(())
 }
+
+#[test]
+fn test_iw_first_network_from_file_with_select() -> Result<()> {
+    let mut p = spawn(
+        "./target/debug/ruwi -D wifi -F src/parse/samples/iw_two_different_networks.txt -s iw select -A first",
+        Some(200),
+    )?;
+    p.exp_string("[NOTE]: Selected network: \"Valparaiso_Guest_House 2\"")?;
+    p.exp_regex("Valparaiso_Guest_House 2")?;
+    Ok(())
+}
