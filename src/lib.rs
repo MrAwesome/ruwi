@@ -50,10 +50,10 @@ use options::structs::*;
 // TODO(mid): kill, or suggest killing, wpa_supplicant if netctl fails to connect
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
 // TODO(low): flag to disable looking for known networks
+// TODO(low): mark as linux-only
 // TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
 // TODO(wishlist): implement json scan output mode
 // TODO(wishlist): find a generalized way to do x notifications, for dmenu mode, use to surface failures
-// TODO(wishlist): determine whether to use dmenu/fzf/etc based on terminal/X
 // TODO(wishlist): connection/scan type: wicd-cli
 // TODO(wishlist): fzf keyboard shortcuts for getting more info about a network?
 // TODO(wishlist): containers which emulate systems on which ruwi should act a particular way (interface name, etc)

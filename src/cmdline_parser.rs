@@ -131,8 +131,8 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         ))
 }
 
-// TODO: rename to getcommand
 pub(crate) fn get_command() -> Result<RuwiCommand, RuwiError> {
+
     let m = get_arg_app().get_matches();
     get_command_impl(&m)
 }
@@ -163,6 +163,7 @@ fn get_command_impl(m: &ArgMatches) -> Result<RuwiCommand, RuwiError> {
         }
 
         // (subc_name, Some(sub_m)) if subc_name == RuwiCommand::Wired(Default::default()).to_string() => {}
+        //    RuwiCommand::Wired(get_wired_cmd(globals, maybe_sub_m)?)
         // (subc_name, Some(sub_m)) if subc_name == RuwiCommand::Bluetooth(Default::default()).to_string() => {}
         (subc_name, _) => {
             dbg!(subc_name);
@@ -335,50 +336,54 @@ mod tests {
     }
 
     // TODO: fix to return something more generic, aka ruwicommand
-    fn getopts(args: &[&str]) -> WifiConnectOptions {
-        get_command_impl(&get_matches(args))
-            .unwrap()
-            .get_options()
-            .clone()
+    fn getopts(args: &[&str]) -> RuwiCommand {
+        get_command_impl(&get_matches(args)).unwrap()
     }
 
-    fn getopts_safe(args: &[&str]) -> Result<WifiConnectOptions, RuwiError> {
+    fn expect_wifi_connect_opts(cmd: RuwiCommand) -> WifiConnectOptions {
+        if let RuwiCommand::Wifi(RuwiWifiCommand::Connect(opts)) = cmd {
+            opts
+        } else {
+            panic!("Expected command to be wifi connect, but got: {:?}", cmd);
+        }
+    }
+
+    fn getopts_safe(args: &[&str]) -> Result<RuwiCommand, RuwiError> {
         get_command_impl(&get_matches_safe(args).map_err(|e| {
             rerr!(
                 RuwiErrorKind::TestCmdLineOptParserSafeFailed,
                 e.description()
             )
         })?)
-        .map(|o| o.get_options().clone())
     }
 
     #[test]
     fn test_debug() {
-        let opts = getopts(&[]);
+        let opts = expect_wifi_connect_opts(getopts(&[]));
         assert![!opts.d()];
-        let opts = getopts(&["-d"]);
+        let opts = expect_wifi_connect_opts(getopts(&["-d"]));
         assert![opts.d()];
-        let opts = getopts(&["-d", "wifi"]);
+        let opts = expect_wifi_connect_opts(getopts(&["-d", "wifi"]));
         assert![opts.d()];
-        let opts = getopts(&["-d", "wifi", "connect"]);
+        let opts = expect_wifi_connect_opts(getopts(&["-d", "wifi", "connect"]));
         assert![opts.d()];
-        let opts = getopts(&["--debug"]);
+        let opts = expect_wifi_connect_opts(getopts(&["--debug"]));
         assert![opts.d()];
     }
 
     #[test]
     fn test_interface() {
-        let opts = getopts(&["wifi", "-i", "BFUGG"]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "-i", "BFUGG"]));
         assert_eq![opts.get_interface(), "BFUGG"];
-        let opts = getopts(&["wifi", "--interface", "BLEEBLOO"]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "--interface", "BLEEBLOO"]));
         assert_eq![opts.get_interface(), "BLEEBLOO"];
     }
 
     #[test]
     fn test_ignore_known() {
-        let opts = getopts(&["wifi"]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi"]));
         assert![!opts.get_ignore_known()];
-        let opts = getopts(&["wifi", "--ignore-known"]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "--ignore-known"]));
         assert![opts.get_ignore_known()];
     }
 
@@ -386,12 +391,12 @@ mod tests {
     fn test_scan_type() {
         let wifi_type = WifiScanType::WpaCli;
         let expected = ScanType::Wifi(wifi_type.clone());
-        let opts = getopts(&["wifi", "-s", wifi_type.to_string().as_ref()]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "-s", wifi_type.to_string().as_ref()]));
         assert_eq![opts.get_scan_type(), &expected];
 
         let wifi_type = WifiScanType::IW;
         let expected = ScanType::Wifi(wifi_type.clone());
-        let opts = getopts(&["wifi", "--scan-type", wifi_type.to_string().as_ref()]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "--scan-type", wifi_type.to_string().as_ref()]));
         assert_eq![opts.get_scan_type(), &expected];
     }
 
@@ -399,7 +404,7 @@ mod tests {
     fn test_scan_method_default() {
         let scan_type = ScanType::default();
         let scan_method = ScanMethod::default();
-        let opts = getopts(&[]);
+        let opts = expect_wifi_connect_opts(getopts(&[]));
         assert_eq![opts.get_scan_method(), &scan_method];
         assert_eq![opts.get_scan_type(), &scan_type];
     }
@@ -408,14 +413,14 @@ mod tests {
     fn test_scan_method_stdin() {
         let scan_type = ScanType::default();
         let scan_method = ScanMethod::FromStdin;
-        let opts = getopts(&["wifi", "-I"]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "-I"]));
         assert_eq![opts.get_scan_method(), &scan_method];
         assert_eq![opts.get_scan_type(), &scan_type];
 
         let wifi_scan_type = WifiScanType::WpaCli;
         let scan_type = ScanType::Wifi(wifi_scan_type.clone());
         let scan_method = ScanMethod::FromStdin;
-        let opts = getopts(&["wifi", "-I", "-s", wifi_scan_type.to_string().as_ref()]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "-I", "-s", wifi_scan_type.to_string().as_ref()]));
         assert_eq![opts.get_scan_method(), &scan_method];
         assert_eq![opts.get_scan_type(), &scan_type];
     }
@@ -430,92 +435,92 @@ mod tests {
     #[test]
     fn test_selection_method() {
         let expected = SelectionMethod::Fzf;
-        let opts = getopts(&["-m", expected.to_string().as_ref()]);
+        let opts = expect_wifi_connect_opts(getopts(&["-m", expected.to_string().as_ref()]));
         assert_eq![opts.get_selection_method(), &expected];
 
         let expected = SelectionMethod::Dmenu;
-        let opts = getopts(&["--selection-method", expected.to_string().as_ref()]);
+        let opts = expect_wifi_connect_opts(getopts(&["--selection-method", expected.to_string().as_ref()]));
         assert_eq![opts.get_selection_method(), &expected];
     }
 
     #[test]
     fn test_give_password() {
         let pw = "fakepasswordddd";
-        let opts = getopts(&["wifi", "connect", "-p", pw]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "connect", "-p", pw]));
         assert_eq![opts.get_given_encryption_key().clone().unwrap(), pw];
 
         let pw2 = "FAKEP_SSS_A_W_W_W_W";
-        let opts = getopts(&["wifi", "connect", "--password", pw2]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "connect", "--password", pw2]));
         assert_eq![opts.get_given_encryption_key().clone().unwrap(), pw2];
     }
 
     #[test]
     fn test_force_ask_password() {
-        let opts = getopts(&["wifi", "connect"]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "connect"]));
         assert![!opts.get_force_ask_password()];
 
-        let opts = getopts(&["wifi", "connect", "-P"]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "connect", "-P"]));
         assert![opts.get_force_ask_password()];
 
-        let opts = getopts(&["wifi", "connect", "--force-ask-password"]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "connect", "--force-ask-password"]));
         assert![opts.get_force_ask_password()];
     }
 
     #[test]
     fn test_auto_mode() {
-        let opts = getopts(&["wifi", "connect"]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "connect"]));
         assert_eq![opts.get_auto_mode(), &AutoMode::default()];
 
-        let opts = getopts(&["wifi", "connect", "-a"]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "connect", "-a"]));
         assert_eq![opts.get_auto_mode(), &AutoMode::KnownOrAsk];
 
-        let opts = getopts(&["wifi", "connect", "--auto"]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "connect", "--auto"]));
         assert_eq![opts.get_auto_mode(), &AutoMode::KnownOrAsk];
 
-        let opts = getopts(&[
+        let opts = expect_wifi_connect_opts(getopts(&[
             "wifi",
             "connect",
             "-A",
             AutoMode::KnownOrFail.to_string().as_ref(),
-        ]);
+        ]));
         assert_eq![opts.get_auto_mode(), &AutoMode::KnownOrFail];
 
-        let opts = getopts(&[
+        let opts = expect_wifi_connect_opts(getopts(&[
             "wifi",
             "connect",
             "-A",
             AutoMode::First.to_string().as_ref(),
-        ]);
+        ]));
         assert_eq![opts.get_auto_mode(), &AutoMode::First];
 
-        let opts = getopts(&[
+        let opts = expect_wifi_connect_opts(getopts(&[
             "wifi",
             "connect",
             "--auto-mode",
             AutoMode::KnownOrAsk.to_string().as_ref(),
-        ]);
+        ]));
         assert_eq![opts.get_auto_mode(), &AutoMode::KnownOrAsk];
     }
 
     #[test]
     fn test_dry_run_in_tests() {
-        let opts = getopts(&[]);
+        let opts = expect_wifi_connect_opts(getopts(&[]));
         assert![!opts.get_dry_run()];
-        let opts = getopts(&["-D"]);
+        let opts = expect_wifi_connect_opts(getopts(&["-D"]));
         assert![opts.get_dry_run()];
-        let opts = getopts(&["--dry-run"]);
+        let opts = expect_wifi_connect_opts(getopts(&["--dry-run"]));
         assert![opts.get_dry_run()];
     }
 
     #[test]
     fn test_force_synchronous_scan() {
-        let opts = getopts(&["wifi"]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi"]));
         assert![!opts.get_force_synchronous_scan()];
 
-        let opts = getopts(&["wifi", "-f"]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "-f"]));
         assert![opts.get_force_synchronous_scan()];
 
-        let opts = getopts(&["wifi", "--force-sync"]);
+        let opts = expect_wifi_connect_opts(getopts(&["wifi", "--force-sync"]));
         assert![opts.get_force_synchronous_scan()];
     }
 

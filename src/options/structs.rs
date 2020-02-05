@@ -12,25 +12,12 @@ use strum_macros::{AsStaticStr, Display, EnumIter, EnumString, AsRefStr};
 use typed_builder::TypedBuilder;
 pub static PROG_NAME: &str = "ruwi";
 
-// TODO: refactor this to not expose the raw struct. What should the interface look like?
 #[strum(serialize_all = "snake_case")]
 #[derive(Debug, Clone, EnumString, EnumIter, Display, AsStaticStr, AsRefStr)]
 pub enum RuwiCommand {
     Wifi(RuwiWifiCommand),
     Wired(RuwiWiredCommand),
     Bluetooth(RuwiBluetoothCommand),
-}
-
-impl RuwiCommand {
-    // TODO: Obviously, this should return some trait?
-    #[cfg(test)]
-    pub fn get_options(&self) -> &WifiConnectOptions {
-        if let Self::Wifi(RuwiWifiCommand::Connect(opts)) = self {
-            opts
-        } else {
-            todo!("Get rid of this");
-        }
-    }
 }
 
 impl Default for RuwiCommand {
