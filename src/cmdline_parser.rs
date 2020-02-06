@@ -192,17 +192,18 @@ fn get_wifi_cmd(
     let sub_m = if let Some(sub_m) = maybe_sub_m {
         sub_m
     } else {
+        // TODO: this feels like a nasty hack, and doesn't belong here? Just store
+        // None if none given, and calculate the default later? It is nice to have
+        // the default show up in --help, but it still feels off.
+        let interface = get_default_interface(&globals)?;
         return Ok(RuwiWifiCommand::Connect(
             WifiConnectOptions::builder()
                 .wifi(
                     WifiOptions::builder()
-                        // TODO: this feels like a nasty hack, and doesn't belong here? Just store
-                        // None if none given, and calculate the default later? It is nice to have
-                        // the default show up in --help, but it still feels off.
-                        .interface(get_default_interface(&globals)?)
+                        .globals(globals)
+                        .interface(interface)
                         .build(),
                 )
-                .globals(globals)
                 .build(),
         ));
     };
@@ -210,8 +211,7 @@ fn get_wifi_cmd(
     match sub_m.subcommand() {
         (subc_name, _) if subc_name == "" => Ok(RuwiWifiCommand::Connect(
             WifiConnectOptions::builder()
-                .wifi(get_wifi_opts_impl(&globals, sub_m, None)?)
-                .globals(globals)
+                .wifi(get_wifi_opts_impl(globals, sub_m, None)?)
                 .build(),
         )),
         // TODO: ew @ this string thing
@@ -219,10 +219,8 @@ fn get_wifi_cmd(
             if subc_name
                 == RuwiWifiCommand::Connect(WifiConnectOptions::builder().build()).to_string() =>
         {
-            let wifi_opts = 
-                get_wifi_opts_impl(&globals, sub_m, Some(sub_sub_m))?;
+            let wifi_opts = get_wifi_opts_impl(globals, sub_m, Some(sub_sub_m))?;
             Ok(RuwiWifiCommand::Connect(get_wifi_connect_opts(
-                globals,
                 wifi_opts,
                 sub_sub_m,
             )?))
@@ -232,10 +230,8 @@ fn get_wifi_cmd(
             if subc_name
                 == RuwiWifiCommand::Select(WifiSelectOptions::builder().build()).to_string() =>
         {
-            let wifi_opts = 
-                get_wifi_opts_impl(&globals, sub_m, Some(sub_sub_m))?;
+            let wifi_opts = get_wifi_opts_impl(globals, sub_m, Some(sub_sub_m))?;
             Ok(RuwiWifiCommand::Select(get_wifi_select_opts(
-                globals,
                 wifi_opts,
                 sub_sub_m,
             )?))
@@ -246,7 +242,6 @@ fn get_wifi_cmd(
 }
 
 fn get_wifi_connect_opts(
-    globals: GlobalOptions,
     wifi_opts: WifiOptions,
     sub_sub_m: &ArgMatches,
 ) -> Result<WifiConnectOptions, RuwiError> {
@@ -263,7 +258,6 @@ fn get_wifi_connect_opts(
     let connect_via = get_val_as_enum::<WifiConnectionType>(&sub_sub_m, "connect_via");
 
     let opts = WifiConnectOptions::builder()
-        .globals(globals)
         .wifi(wifi_opts)
         .connect_via(connect_via)
         .given_essid(given_essid)
@@ -276,7 +270,6 @@ fn get_wifi_connect_opts(
 
 
 fn get_wifi_select_opts(
-    globals: GlobalOptions,
     wifi_opts: WifiOptions,
     sub_sub_m: &ArgMatches,
 ) -> Result<WifiSelectOptions, RuwiError> {
@@ -287,7 +280,6 @@ fn get_wifi_select_opts(
     };
 
     let opts = WifiSelectOptions::builder()
-        .globals(globals)
         .wifi(wifi_opts)
         .auto_mode(auto_mode)
         .build();
@@ -295,18 +287,19 @@ fn get_wifi_select_opts(
 }
 
 fn get_wifi_opts_impl(
-    globals: &GlobalOptions,
+    globals: GlobalOptions,
     sub_m: &ArgMatches,
     _sub_sub_m: Option<&ArgMatches>,
 ) -> Result<WifiOptions, RuwiError> {
     let scan_method = get_scan_method(sub_m);
     let force_synchronous_scan = sub_m.is_present("force_synchronous_scan");
     let ignore_known = sub_m.is_present("ignore_known");
-    let interface = get_wifi_interface(sub_m, globals)?;
+    let interface = get_wifi_interface(sub_m, &globals)?;
     let scan_type = ScanType::Wifi(get_val_as_enum::<WifiScanType>(&sub_m, "scan_type"));
     validate_scan_method_and_type(&scan_method, &scan_type)?;
 
     let wifi_opts = WifiOptions::builder()
+        .globals(globals)
         .scan_type(scan_type)
         .scan_method(scan_method)
         .interface(interface)
@@ -378,6 +371,7 @@ mod tests {
 
     // TODO: fix to return something more generic, aka ruwicommand
     fn getopts(args: &[&str]) -> RuwiCommand {
+        dbg!(args);
         get_command_impl(&get_matches(args)).unwrap()
     }
 
@@ -390,6 +384,7 @@ mod tests {
     }
 
     fn getopts_safe(args: &[&str]) -> Result<RuwiCommand, RuwiError> {
+        dbg!(args);
         get_command_impl(&get_matches_safe(args).map_err(|e| {
             rerr!(
                 RuwiErrorKind::TestCmdLineOptParserSafeFailed,
@@ -415,9 +410,9 @@ mod tests {
     #[test]
     fn test_interface() {
         let opts = expect_wifi_connect_opts(getopts(&["wifi", "-i", "BFUGG"]));
-        assert_eq![opts.get_interface(), "BFUGG"];
+        assert_eq![opts.get_interface_name(), "BFUGG"];
         let opts = expect_wifi_connect_opts(getopts(&["wifi", "--interface", "BLEEBLOO"]));
-        assert_eq![opts.get_interface(), "BLEEBLOO"];
+        assert_eq![opts.get_interface_name(), "BLEEBLOO"];
     }
 
     #[test]

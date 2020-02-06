@@ -1,5 +1,5 @@
 use crate::structs::*;
-
+use crate::errors::*;
 
 // TODO: make more usages look like this
 // impl<O> NetworkingService where O: Global {
@@ -12,7 +12,9 @@ pub trait Global {
 }
 
 pub trait LinuxNetworkingInterface {
-    fn get_interface(&self) -> &str;
+    fn get_interface_name(&self) -> &str;
+    fn bring_interface_up(&self) -> Result<(), RuwiError>;
+    fn bring_interface_down(&self) -> Result<(), RuwiError>;
 }
 
 pub trait Wifi {

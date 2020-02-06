@@ -2,13 +2,11 @@ use typed_builder::TypedBuilder;
 
 use crate::options::interfaces::*;
 use crate::structs::*;
+use crate::errors::*;
 use crate::options::wifi::WifiOptions;
-use crate::options::GlobalOptions;
 
 #[derive(Debug, Clone, TypedBuilder)]
 pub struct WifiSelectOptions {
-    #[builder(default)]
-    globals: GlobalOptions,
     #[builder(default)]
     wifi: WifiOptions,
     #[builder(default)]
@@ -18,7 +16,6 @@ pub struct WifiSelectOptions {
 impl Default for WifiSelectOptions {
     fn default() -> Self {
         Self {
-            globals: GlobalOptions::default(),
             wifi: WifiOptions::default(),
             auto_mode: AutoMode::default(),
         }
@@ -30,19 +27,25 @@ impl Global for WifiSelectOptions {
         self.get_debug()
     }
     fn get_debug(&self) -> bool {
-        self.globals.get_debug()
+        self.wifi.get_debug()
     }
     fn get_dry_run(&self) -> bool {
-        self.globals.get_dry_run()
+        self.wifi.get_dry_run()
     }
     fn get_selection_method(&self) -> &SelectionMethod {
-        self.globals.get_selection_method()
+        self.wifi.get_selection_method()
     }
 }
 
 impl LinuxNetworkingInterface for WifiSelectOptions {
-    fn get_interface(&self) -> &str {
-        self.wifi.get_interface()
+    fn get_interface_name(&self) -> &str {
+        self.wifi.get_interface_name()
+    }
+    fn bring_interface_up(&self) -> Result<(), RuwiError> {
+        self.wifi.bring_interface_up()
+    }
+    fn bring_interface_down(&self) -> Result<(), RuwiError> {
+        self.wifi.bring_interface_down()
     }
 }
 

@@ -1,5 +1,4 @@
 use crate::options::interfaces::*;
-use crate::interface_management::bring_interface_down;
 use crate::netctl_config_writer::get_netctl_file_name;
 use crate::rerr;
 use crate::run_commands::*;
@@ -85,7 +84,7 @@ fn connect_via_netctl<O>(
             connection_type: WifiConnectionType::Netctl,
         });
     }
-    bring_interface_down(options)?;
+    options.bring_interface_down()?;
 
     // TODO: don't lock so hard into filename?
     let netctl_file_name = get_netctl_file_name(&selected_network.essid);

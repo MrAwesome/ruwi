@@ -1,7 +1,7 @@
+use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::options::PROG_NAME;
 use crate::run_commands::*;
-use crate::errors::*;
 
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
@@ -12,17 +12,24 @@ enum InterfaceState {
     DOWN,
 }
 
-
 // TODO: make this work for wired, wifi, and possibly bluetooth (if needed)
 fn bring_interface<O>(
     options: &O,
+    interface_name: &str,
     interface_state: &InterfaceState,
     err_kind: RuwiErrorKind,
-) -> Result<(), RuwiError> where O: Global + LinuxNetworkingInterface {
-    let if_name = &options.get_interface();
-    let if_state = interface_state.to_string();
+) -> Result<(), RuwiError>
+where
+    O: Global,
+{
     let cmd = "ip";
-    let cmd_args = &["link", "set", "dev", if_name, &if_state];
+    let cmd_args = &[
+        "link",
+        "set",
+        "dev",
+        interface_name,
+        &interface_state.to_string(),
+    ];
     if !options.get_dry_run() {
         run_command_pass_stdout(
             options,
@@ -31,8 +38,8 @@ fn bring_interface<O>(
             err_kind,
             &format!(
                 "Failed to bring interface {} {} with `{} {}`. Try running {} with `sudo`.",
-                if_name,
-                if_state,
+                interface_name,
+                interface_state,
                 cmd,
                 cmd_args.join(" "),
                 PROG_NAME
@@ -43,18 +50,32 @@ fn bring_interface<O>(
     Ok(())
 }
 
-pub(crate) fn bring_interface_up<O>(options: &O) -> Result<(), RuwiError> where O: Global + LinuxNetworkingInterface {
+pub(crate) fn bring_linux_networking_interface_up<O>(
+    options: &O,
+    interface_name: &str,
+) -> Result<(), RuwiError>
+where
+    O: Global,
+{
     bring_interface(
         options,
+        interface_name,
         &InterfaceState::UP,
-        RuwiErrorKind::FailedToBringInterfaceUp,
+        RuwiErrorKind::FailedToBringLinuxNetworkingInterfaceUp,
     )
 }
 
-pub(crate) fn bring_interface_down<O>(options: &O) -> Result<(), RuwiError> where O: Global + LinuxNetworkingInterface {
+pub(crate) fn bring_linux_networking_interface_down<O>(
+    options: &O,
+    interface_name: &str,
+) -> Result<(), RuwiError>
+where
+    O: Global,
+{
     bring_interface(
         options,
+        interface_name,
         &InterfaceState::DOWN,
-        RuwiErrorKind::FailedToBringInterfaceUp,
+        RuwiErrorKind::FailedToBringLinuxNetworkingInterfaceDown,
     )
 }

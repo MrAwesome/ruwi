@@ -75,7 +75,7 @@ IP=dhcp
 ",
         network.essid,
         if network.is_encrypted { "wpa" } else { "open" },
-        options.get_interface(),
+        options.get_interface_name(),
         if network.is_encrypted { "wpa" } else { "none" },
         network.essid,
         wpa_line,

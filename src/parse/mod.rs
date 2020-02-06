@@ -145,7 +145,7 @@ where O: Global + LinuxNetworkingInterface {
         RuwiErrorKind::MalformedIWOutput,
         format!(
             "Malformed output returned by `sudo iw {} scan dump`. Try running it manually.",
-            options.get_interface()
+            options.get_interface_name()
         )
     )
 }
@@ -155,8 +155,8 @@ where O: Global + LinuxNetworkingInterface {
     rerr!(
         RuwiErrorKind::NoNetworksSeenWithIWScanDump,
         format!("No networks seen by `sudo iw {} scan dump`. Are you near wireless networks? Try running `sudo iw {} scan`.", 
-            options.get_interface(), 
-            options.get_interface()))
+            options.get_interface_name(), 
+            options.get_interface_name()))
 }
 
 fn parse_wpa_cli_scan<O>(

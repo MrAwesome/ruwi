@@ -1,4 +1,3 @@
-use crate::interface_management::bring_interface_up;
 use crate::options::interfaces::*;
 use crate::run_commands::*;
 use crate::errors::*;
@@ -18,7 +17,7 @@ pub(crate) fn run_nmcli_scan<O>(
 where
     O: Global + Wifi + LinuxNetworkingInterface,
 {
-    bring_interface_up(options)?;
+    options.bring_interface_up()?;
     let scan_output = if options.get_force_synchronous_scan() || synchronous_rescan.is_some() {
         run_nmcli_scan_cmd_synchronous(options)?
     } else {

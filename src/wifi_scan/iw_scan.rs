@@ -1,4 +1,3 @@
-use crate::interface_management::bring_interface_up;
 use crate::options::interfaces::*;
 use crate::rerr;
 use crate::run_commands::*;
@@ -37,7 +36,7 @@ pub(crate) fn run_iw_scan<O>(
 where
     O: Global + Wifi + LinuxNetworkingInterface,
 {
-    bring_interface_up(options)?;
+    options.bring_interface_up()?;
     let scan_output = if options.get_force_synchronous_scan() || synchronous_rescan.is_some() {
         run_iw_scan_synchronous(options)?
     } else {
@@ -100,7 +99,7 @@ where
                     RuwiErrorKind::IWSynchronousScanRanOutOfRetries,
                     format!(
                         "Ran out of retries waiting for {} to become available for scanning with `iw`. Is NetworkManager or another service running?", 
-                        options.get_interface()
+                        options.get_interface_name()
                         ),
                 ));
             }
@@ -117,7 +116,7 @@ fn run_iw_scan_synchronous_cmd<O>(options: &O) -> Result<Output, RuwiError>
 where
     O: Global + LinuxNetworkingInterface,
 {
-    run_command_output(options, "iw", &[&options.get_interface(), "scan"])
+    run_command_output(options, "iw", &[&options.get_interface_name(), "scan"])
 }
 
 fn run_iw_scan_dump<O>(options: &O) -> Result<String, RuwiError>
@@ -127,7 +126,7 @@ where
     run_command_pass_stdout(
         options,
         "iw",
-        &[&options.get_interface(), "scan", "dump"],
+        &[&options.get_interface_name(), "scan", "dump"],
         RuwiErrorKind::FailedToRunIWScanDump,
         IW_SCAN_DUMP_ERR_MSG,
     )
@@ -141,7 +140,7 @@ where
     run_command_pass_stdout(
         options,
         "iw",
-        &[&options.get_interface(), "scan", "trigger"],
+        &[&options.get_interface_name(), "scan", "trigger"],
         RuwiErrorKind::FailedToRunIWScanTrigger,
         "Triggering scan with iw failed. This should be ignored.",
     )
@@ -155,7 +154,7 @@ where
     run_command_pass_stdout(
         options,
         "iw",
-        &[&options.get_interface(), "scan", "abort"],
+        &[&options.get_interface_name(), "scan", "abort"],
         RuwiErrorKind::FailedToRunIWScanAbort,
         "Aborting iw scan iw failed. This should be ignored.",
     )
