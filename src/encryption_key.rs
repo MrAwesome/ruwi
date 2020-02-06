@@ -67,6 +67,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::options::wifi::WifiOptions;
     use crate::options::wifi::connect::WifiConnectOptions;
 
     fn should_not_run(_opt: &WifiConnectOptions, _nw: &str) -> Result<String, RuwiError> {
@@ -75,7 +76,7 @@ mod tests {
 
     #[test]
     fn test_no_ask_on_open_network() -> Result<(), RuwiError> {
-        let options = WifiConnectOptions::builder().build();
+        let options = WifiConnectOptions::default();
         let nw = AnnotatedWirelessNetwork::default();
         let output = possibly_get_encryption_key_impl(&options, &nw, should_not_run)?;
         if let Some(_pw) = output {
@@ -86,7 +87,7 @@ mod tests {
 
     #[test]
     fn test_no_ask_on_known_closed_network() -> Result<(), RuwiError> {
-        let options = WifiConnectOptions::builder().build();
+        let options = WifiConnectOptions::default();
         let nw = AnnotatedWirelessNetwork {
             is_encrypted: true,
             known: true,
@@ -101,7 +102,7 @@ mod tests {
 
     #[test]
     fn test_ask_on_unknown_closed_network() -> Result<(), RuwiError> {
-        let options = WifiConnectOptions::builder().build();
+        let options = WifiConnectOptions::default();
         let nw = AnnotatedWirelessNetwork {
             is_encrypted: true,
             ..AnnotatedWirelessNetwork::default()
@@ -117,6 +118,7 @@ mod tests {
     fn test_use_given_pw() -> Result<(), RuwiError> {
         let given_essid = "YEETU";
         let options = WifiConnectOptions::builder()
+            .wifi(WifiOptions::default())
             .given_encryption_key(Some("YEETU".into()))
             .build();
         let nw = AnnotatedWirelessNetwork::default();
@@ -128,6 +130,7 @@ mod tests {
     #[test]
     fn test_force_ask_password() -> Result<(), RuwiError> {
         let options = WifiConnectOptions::builder()
+            .wifi(WifiOptions::default())
             .force_ask_password(true)
             .build();
 
@@ -142,6 +145,7 @@ mod tests {
     #[test]
     fn test_do_not_ask_for_pw_on_print() -> Result<(), RuwiError> {
         let options = WifiConnectOptions::builder()
+            .wifi(WifiOptions::default())
             .connect_via(WifiConnectionType::Print)
             .build();
 

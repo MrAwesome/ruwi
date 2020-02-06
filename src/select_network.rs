@@ -186,6 +186,7 @@ where
 mod tests {
     use super::*;
     use crate::strum::AsStaticRef;
+    use crate::options::wifi::WifiOptions;
     use crate::options::wifi::connect::WifiConnectOptions;
 
     static FIRST_NW_NAME: &str = "FIRSTNWLOL";
@@ -282,6 +283,7 @@ mod tests {
     #[test]
     fn test_auto_first_known() -> Result<(), RuwiError> {
         let options = WifiConnectOptions::builder()
+            .wifi(WifiOptions::default())
             .auto_mode(AutoMode::KnownOrFail)
             .build();
         let networks = get_3_networks_last_known();
@@ -293,6 +295,7 @@ mod tests {
     #[test]
     fn test_auto_no_ask_first_known() -> Result<(), RuwiError> {
         let options = WifiConnectOptions::builder()
+            .wifi(WifiOptions::default())
             .auto_mode(AutoMode::KnownOrFail)
             .build();
         let networks = get_3_networks_first_known();
@@ -304,6 +307,7 @@ mod tests {
     #[test]
     fn test_auto_no_ask_first_known2() -> Result<(), RuwiError> {
         let options = WifiConnectOptions::builder()
+            .wifi(WifiOptions::default())
             .auto_mode(AutoMode::KnownOrFail)
             .build();
         let networks = get_3_networks_last_known();
@@ -315,6 +319,7 @@ mod tests {
     #[test]
     fn test_auto_fallback() -> Result<(), RuwiError> {
         let options = WifiConnectOptions::builder()
+            .wifi(WifiOptions::default())
             .auto_mode(AutoMode::KnownOrAsk)
             .build();
         let networks = get_3_unknown_networks();
@@ -325,7 +330,7 @@ mod tests {
 
     #[test]
     fn test_manually_refresh() {
-        let options = WifiConnectOptions::builder().build();
+        let options = WifiConnectOptions::default();
         assert_eq![options.get_auto_mode(), &AutoMode::Ask];
         let networks = get_3_unknown_networks();
         assert![networks
@@ -337,7 +342,7 @@ mod tests {
 
     #[test]
     fn test_manual_selector_output() {
-        let opts = WifiConnectOptions::builder().build();
+        let opts = WifiConnectOptions::default();
         let networks = get_3_unknown_networks();
 
         let run_without_whitespace = run_manual_selector_impl(&opts, &networks, |_opts, names| {

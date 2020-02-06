@@ -7,7 +7,6 @@ use crate::errors::*;
 
 #[derive(Debug, Clone, TypedBuilder)]
 pub struct WifiConnectOptions {
-    #[builder(default)]
     wifi: WifiOptions,
     #[builder(default)]
     auto_mode: AutoMode,

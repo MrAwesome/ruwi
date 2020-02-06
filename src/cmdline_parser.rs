@@ -1,11 +1,11 @@
-use crate::get_default_interface::get_default_interface;
+use crate::errors::*;
+use crate::get_default_interface::get_default_wifi_interface;
 use crate::options::interfaces::*;
-use crate::options::*;
-use crate::options::wifi::*;
 use crate::options::wifi::connect::WifiConnectOptions;
 use crate::options::wifi::select::WifiSelectOptions;
+use crate::options::wifi::*;
+use crate::options::*;
 use crate::rerr;
-use crate::errors::*;
 use crate::structs::*;
 use crate::strum_utils::*;
 
@@ -13,6 +13,9 @@ use clap::{App, Arg, ArgMatches, SubCommand};
 use std::fmt::Debug;
 use strum::AsStaticRef;
 
+static WIFI_TOKEN: &str = "wifi";
+static WIFI_SELECT_TOKEN: &str = "select";
+static WIFI_CONNECT_TOKEN: &str = "connect";
 
 // TODO: respect force_ask_password
 // TODO: fail if not run as root
@@ -118,21 +121,21 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .arg(debug)
         .arg(dry_run)
         .arg(selection_method)
-        .subcommand(SubCommand::with_name("wifi")
+        .subcommand(SubCommand::with_name(WIFI_TOKEN)
             .arg(ignore_known)
             .arg(input_file)
             .arg(input_stdin)
             .arg(force_synchronous)
             .arg(wifi_interface)
             .arg(wifi_scan_type)
-            .subcommand(SubCommand::with_name("connect")
+            .subcommand(SubCommand::with_name(WIFI_CONNECT_TOKEN)
                 .arg(auto.clone())
                 .arg(auto_mode.clone())
                 .arg(connect_via)
                 .arg(essid)
                 .arg(force_ask_password)
                 .arg(password))
-            .subcommand(SubCommand::with_name("select")
+            .subcommand(SubCommand::with_name(WIFI_SELECT_TOKEN)
                 .arg(auto)
                 .arg(auto_mode)
             )
@@ -140,7 +143,6 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
 }
 
 pub(crate) fn get_command() -> Result<RuwiCommand, RuwiError> {
-
     let m = get_arg_app().get_matches();
     get_command_impl(&m)
 }
@@ -163,10 +165,7 @@ fn get_command_impl(m: &ArgMatches) -> Result<RuwiCommand, RuwiError> {
         .build();
 
     let opts = match m.subcommand() {
-        (subc_name, maybe_sub_m)
-            if subc_name == RuwiCommand::Wifi(RuwiWifiCommand::default()).to_string()
-                || subc_name == "" =>
-        {
+        (subc_name, maybe_sub_m) if subc_name == WIFI_TOKEN || subc_name == "" => {
             RuwiCommand::Wifi(get_wifi_cmd(globals, maybe_sub_m)?)
         }
 
@@ -195,7 +194,7 @@ fn get_wifi_cmd(
         // TODO: this feels like a nasty hack, and doesn't belong here? Just store
         // None if none given, and calculate the default later? It is nice to have
         // the default show up in --help, but it still feels off.
-        let interface = get_default_interface(&globals)?;
+        let interface = get_default_wifi_interface(&globals)?;
         return Ok(RuwiWifiCommand::Connect(
             WifiConnectOptions::builder()
                 .wifi(
@@ -209,35 +208,24 @@ fn get_wifi_cmd(
     };
 
     match sub_m.subcommand() {
-        (subc_name, _) if subc_name == "" => Ok(RuwiWifiCommand::Connect(
-            WifiConnectOptions::builder()
-                .wifi(get_wifi_opts_impl(globals, sub_m, None)?)
-                .build(),
-        )),
-        // TODO: ew @ this string thing
-        (subc_name, Some(sub_sub_m))
-            if subc_name
-                == RuwiWifiCommand::Connect(WifiConnectOptions::builder().build()).to_string() =>
-        {
+        (subc_name, maybe_sub_sub_m) if subc_name == "" => {
+            let wifi_opts = get_wifi_opts_impl(globals, sub_m, maybe_sub_sub_m)?;
+            let connect_opts = WifiConnectOptions::builder().wifi(wifi_opts).build();
+            Ok(RuwiWifiCommand::Connect(connect_opts))
+        }
+        (subc_name, Some(sub_sub_m)) if subc_name == WIFI_CONNECT_TOKEN => {
             let wifi_opts = get_wifi_opts_impl(globals, sub_m, Some(sub_sub_m))?;
-            Ok(RuwiWifiCommand::Connect(get_wifi_connect_opts(
-                wifi_opts,
-                sub_sub_m,
-            )?))
+            let connect_opts = get_wifi_connect_opts(wifi_opts, sub_sub_m)?;
+            Ok(RuwiWifiCommand::Connect(connect_opts))
         }
 
-        (subc_name, Some(sub_sub_m))
-            if subc_name
-                == RuwiWifiCommand::Select(WifiSelectOptions::builder().build()).to_string() =>
-        {
+        (subc_name, Some(sub_sub_m)) if subc_name == WIFI_SELECT_TOKEN => {
             let wifi_opts = get_wifi_opts_impl(globals, sub_m, Some(sub_sub_m))?;
-            Ok(RuwiWifiCommand::Select(get_wifi_select_opts(
-                wifi_opts,
-                sub_sub_m,
-            )?))
+            let select_opts = get_wifi_select_opts(wifi_opts, sub_sub_m)?;
+            Ok(RuwiWifiCommand::Select(select_opts))
         }
 
-        _ => todo!("other command types"),
+        catchall => panic!("[ERR] Error parsing command line: {:?}", catchall),
     }
 }
 
@@ -267,7 +255,6 @@ fn get_wifi_connect_opts(
         .build();
     Ok(opts)
 }
-
 
 fn get_wifi_select_opts(
     wifi_opts: WifiOptions,
@@ -326,7 +313,7 @@ where
 {
     Ok(match m.value_of("interface") {
         Some(val) => String::from(val),
-        None => get_default_interface(opts)?,
+        None => get_default_wifi_interface(opts)?,
     })
 }
 
@@ -427,12 +414,17 @@ mod tests {
     fn test_scan_type() {
         let wifi_type = WifiScanType::WpaCli;
         let expected = ScanType::Wifi(wifi_type.clone());
-        let opts = expect_wifi_connect_opts(getopts(&["wifi", "-s", wifi_type.to_string().as_ref()]));
+        let opts =
+            expect_wifi_connect_opts(getopts(&["wifi", "-s", wifi_type.to_string().as_ref()]));
         assert_eq![opts.get_scan_type(), &expected];
 
         let wifi_type = WifiScanType::IW;
         let expected = ScanType::Wifi(wifi_type.clone());
-        let opts = expect_wifi_connect_opts(getopts(&["wifi", "--scan-type", wifi_type.to_string().as_ref()]));
+        let opts = expect_wifi_connect_opts(getopts(&[
+            "wifi",
+            "--scan-type",
+            wifi_type.to_string().as_ref(),
+        ]));
         assert_eq![opts.get_scan_type(), &expected];
     }
 
@@ -456,7 +448,12 @@ mod tests {
         let wifi_scan_type = WifiScanType::WpaCli;
         let scan_type = ScanType::Wifi(wifi_scan_type.clone());
         let scan_method = ScanMethod::FromStdin;
-        let opts = expect_wifi_connect_opts(getopts(&["wifi", "-I", "-s", wifi_scan_type.to_string().as_ref()]));
+        let opts = expect_wifi_connect_opts(getopts(&[
+            "wifi",
+            "-I",
+            "-s",
+            wifi_scan_type.to_string().as_ref(),
+        ]));
         assert_eq![opts.get_scan_method(), &scan_method];
         assert_eq![opts.get_scan_type(), &scan_type];
     }
@@ -475,7 +472,10 @@ mod tests {
         assert_eq![opts.get_selection_method(), &expected];
 
         let expected = SelectionMethod::Dmenu;
-        let opts = expect_wifi_connect_opts(getopts(&["--selection-method", expected.to_string().as_ref()]));
+        let opts = expect_wifi_connect_opts(getopts(&[
+            "--selection-method",
+            expected.to_string().as_ref(),
+        ]));
         assert_eq![opts.get_selection_method(), &expected];
     }
 

@@ -6,7 +6,7 @@ use crate::errors::*;
 use std::fmt::Debug;
 
 // TODO: make interface a struct of some sort?
-pub(crate) fn get_default_interface<O>(opts: &O) -> Result<String, RuwiError> 
+pub(crate) fn get_default_wifi_interface<O>(opts: &O) -> Result<String, RuwiError> 
 where O: Global + Debug
 {
     // TODO: push this further down the stack?

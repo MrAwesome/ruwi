@@ -44,7 +44,7 @@ mod tests {
         };
         let known_networks = KnownNetworkNames::new(vec![nw.essid.clone()]);
         let annotated_networks = annotate_networks(
-            &WifiConnectOptions::builder().build(),
+            &WifiConnectOptions::default(),
             &vec![nw],
             &known_networks,
         );
@@ -62,7 +62,7 @@ mod tests {
         };
         let known_networks = KnownNetworkNames::default();
         let annotated_networks = annotate_networks(
-            &WifiConnectOptions::builder().build(),
+            &WifiConnectOptions::default(),
             &vec![nw],
             &known_networks,
         );
@@ -80,7 +80,7 @@ mod tests {
         };
         let known_networks = KnownNetworkNames::default();
         let annotated_networks = annotate_networks(
-            &WifiConnectOptions::builder().build(),
+            &WifiConnectOptions::default(),
             &vec![nw],
             &known_networks,
         );
@@ -98,7 +98,7 @@ mod tests {
         };
         let known_networks = KnownNetworkNames::default();
         let annotated_networks = annotate_networks(
-            &WifiConnectOptions::builder().build(),
+            &WifiConnectOptions::default(),
             &vec![nw],
             &known_networks,
         );

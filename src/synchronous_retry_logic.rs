@@ -16,10 +16,12 @@ pub(crate) fn should_retry_with_synchronous_scan<O>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::options::wifi::WifiOptions;
     use crate::options::wifi::connect::WifiConnectOptions;
 
     fn get_options(auto_mode: &AutoMode) -> WifiConnectOptions {
         WifiConnectOptions::builder()
+            .wifi(WifiOptions::default())
             .auto_mode(auto_mode.clone())
         .build()
     }

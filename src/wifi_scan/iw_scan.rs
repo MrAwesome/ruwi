@@ -1,7 +1,7 @@
+use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::rerr;
 use crate::run_commands::*;
-use crate::errors::*;
 use crate::structs::*;
 use std::process::Output;
 
