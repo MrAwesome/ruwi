@@ -22,6 +22,12 @@ impl Default for WifiSelectOptions {
     }
 }
 
+impl AutoSelect for WifiSelectOptions {
+    fn get_auto_mode(&self) -> &AutoMode {
+        &self.auto_mode
+    }
+}
+
 impl Global for WifiSelectOptions {
     fn d(&self) -> bool {
         self.get_debug()
@@ -63,10 +69,3 @@ impl Wifi for WifiSelectOptions {
         self.wifi.get_force_synchronous_scan()
     }
 }
-
-impl AutoSelect for WifiSelectOptions {
-    fn get_auto_mode(&self) -> &AutoMode {
-        &self.auto_mode
-    }
-}
-

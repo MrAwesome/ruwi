@@ -40,6 +40,9 @@ use errors::*;
 use runner::Runner;
 use options::*;
 
+// Arch dependencies: netctl, iw, bluetooth things?, fzf
+// Arch optional dependencies: dmenu, iwconfig, NetworkManager, 
+
 // TODO(high): implement speed/connection/dns test - `nmcli networking connectivity` for networkmanager mode
 // TODO(high): stop/start the relevant services (in particular, stop networkmanager if it's running before trying to do netctl things) - - pkill wpa_supplicant, systemctl stop NetworkManager, etc etc etc (add "conflicting services" to src/service_management.rs )
 // TODO(high): fix error messages. -F kfdjsalkf will give "ERR: entity not found"
@@ -59,7 +62,6 @@ use options::*;
 // TODO(later): make sure fzf and dmenu are listed as dependencies
 // TODO(think): instead of functions which take options, make a big struct/impl? maybe more than one?
 // TODO(think): add a -w/--wait or --verify or something to attempt to connect to google/etc?
-// TODO(think): make -a the default?
 
 pub fn run_ruwi() -> Result<(), RuwiError> {
     let command = get_command()?;

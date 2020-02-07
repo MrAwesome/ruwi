@@ -85,6 +85,7 @@ fn test_full_integration_with_archlinux_vm() -> Result<()> {
     p.exp_string("[NOTE]: Successfully connected to: \"cowardice\"")?;
     p.exp_string("@archiso")?;
     eprintln!("[TEST]: Successfully connected to cowardice with `-e` and `-p`!");
+    // TODO: test scanning with iw
 
     // fzf doesn't recognize non-control inputs sent with rexpect
     //    p.send_line("/tmp/host_shared/ruwi -i wlan2")?;
