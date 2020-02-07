@@ -56,7 +56,6 @@ use options::*;
 // TODO(wishlist): find a generalized way to do x notifications, for dmenu mode, use to surface failures
 // TODO(wishlist): connection/scan type: wicd-cli
 // TODO(wishlist): fzf keyboard shortcuts for getting more info about a network?
-// TODO(wishlist): containers which emulate systems on which ruwi should act a particular way (interface name, etc)
 // TODO(later): make sure fzf and dmenu are listed as dependencies
 // TODO(think): instead of functions which take options, make a big struct/impl? maybe more than one?
 // TODO(think): add a -w/--wait or --verify or something to attempt to connect to google/etc?

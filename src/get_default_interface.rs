@@ -5,13 +5,17 @@ use crate::run_commands::*;
 use crate::errors::*;
 use std::fmt::Debug;
 
+#[cfg(test)]
+static IW_TEST_FAKE_INTERFACE: &str = "TESTS_FAKE_INTERFACE";
+static DRY_RUN_FAKE_INTERFACE: &str = "DRY_RUN_FAKE_INTERFACE";
+
 // TODO: make interface a struct of some sort?
 pub(crate) fn get_default_wifi_interface<O>(opts: &O) -> Result<String, RuwiError> 
 where O: Global + Debug
 {
     // TODO: push this further down the stack?
     if opts.get_dry_run() {
-        return Ok("FAKE_INTERFACE".to_string());
+        return Ok(DRY_RUN_FAKE_INTERFACE.to_string());
     }
     // NOTE: Other methods of determining the interface can be added here
     // TODO: nmcli device show (look at the first two fields, find wifi (can also use for wired when that day comes)
@@ -30,7 +34,7 @@ where O: Global + Debug
     #[cfg(test)]
     {
         dbg!(&opts);
-        return Ok("FAKE_INTERFACE".to_string());
+        return Ok(IW_TEST_FAKE_INTERFACE.to_string());
     }
 
     #[cfg(not(test))]
@@ -78,6 +82,15 @@ fn get_interface_from_iw_output(iw_output: &str) -> Result<String, RuwiError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::options::GlobalOptions;
+
+    #[test]
+    fn test_get_dryrun_interface() -> Result<(), RuwiError> {
+        let opts = GlobalOptions::default();
+        let interface = get_default_wifi_interface(&opts)?;
+        assert_eq!(interface, DRY_RUN_FAKE_INTERFACE);
+        Ok(())
+    }
 
     #[test]
     fn test_get_interface_from_iw_output() -> Result<(), RuwiError> {
