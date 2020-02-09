@@ -12,7 +12,7 @@ static NMCLI_SCAN_ERR_MSG: &str = concat!(
 pub(crate) fn run_nmcli_scan<O>(
     options: &O,
     scan_type: ScanType,
-    synchronous_rescan: Option<SynchronousRescanType>,
+    synchronous_rescan: &Option<SynchronousRescanType>,
 ) -> Result<ScanResult, RuwiError>
 where
     O: Global + Wifi + LinuxNetworkingInterface,

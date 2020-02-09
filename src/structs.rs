@@ -74,9 +74,7 @@ pub enum SelectionOption {
 pub enum WifiConnectionType {
     None,
     Netctl,
-    // TODO: should actually be nmcli
-    #[strum(serialize = "networkmanager")]
-    NetworkManager,
+    Nmcli,
     Print,
     // PrintWithPassword
 }

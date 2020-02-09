@@ -22,7 +22,7 @@ pub(crate) fn connect_to_network<O>(
                 conn_type, &selected_network.essid
             );
         }
-        conn_type @ WifiConnectionType::Netctl | conn_type @ WifiConnectionType::NetworkManager => {
+        conn_type @ WifiConnectionType::Netctl | conn_type @ WifiConnectionType::Nmcli => {
             eprintln!(
                 "[NOTE]: Attempting to use {} to connect to: \"{}\"",
                 conn_type, &selected_network.essid
@@ -32,7 +32,7 @@ pub(crate) fn connect_to_network<O>(
 
     let res = match cv {
         WifiConnectionType::Netctl => connect_via_netctl(options, selected_network),
-        WifiConnectionType::NetworkManager => {
+        WifiConnectionType::Nmcli => {
             connect_via_networkmanager(options, selected_network, encryption_key)
         }
         WifiConnectionType::Print => {
@@ -63,7 +63,7 @@ pub(crate) fn connect_to_network<O>(
                 );
             }
             WifiConnectionType::Print => {}
-            WifiConnectionType::Netctl | WifiConnectionType::NetworkManager => {
+            WifiConnectionType::Netctl | WifiConnectionType::Nmcli => {
                 eprintln!(
                     "[NOTE]: Successfully connected to: \"{}\"",
                     &selected_network.essid
@@ -120,7 +120,7 @@ fn connect_via_networkmanager<O>(
 
     if options.get_dry_run() {
         return Ok(ConnectionResult {
-            connection_type: WifiConnectionType::NetworkManager,
+            connection_type: WifiConnectionType::Nmcli,
         });
     }
 
@@ -135,7 +135,7 @@ fn connect_via_networkmanager<O>(
 
     if res.status.success() {
         Ok(ConnectionResult {
-            connection_type: WifiConnectionType::NetworkManager,
+            connection_type: WifiConnectionType::Nmcli,
         })
     } else {
         Err(rerr!(

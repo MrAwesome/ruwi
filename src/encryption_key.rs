@@ -30,7 +30,7 @@ where
     let pw = match &options.get_given_encryption_key() {
         Some(pw) => Some(pw.clone()),
         None => match options.get_connect_via() {
-            WifiConnectionType::Netctl | WifiConnectionType::NetworkManager => {
+            WifiConnectionType::Netctl | WifiConnectionType::Nmcli => {
                 if options.get_force_ask_password()
                     || (!selected_network.known && selected_network.is_encrypted)
                 {

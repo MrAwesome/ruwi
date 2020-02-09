@@ -29,7 +29,7 @@ fn configure_network<O>(
     let cv = options.get_connect_via();
     match cv {
         WifiConnectionType::Netctl => netctl_config_write(options, network, encryption_key),
-        WifiConnectionType::NetworkManager | WifiConnectionType::None | WifiConnectionType::Print => {
+        WifiConnectionType::Nmcli | WifiConnectionType::None | WifiConnectionType::Print => {
             Ok(ConfigResult {
                 connection_type: cv.clone(),
                 config_data: ConfigData::default(),

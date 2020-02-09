@@ -121,7 +121,7 @@ where
     let options: &'static O = Box::leak(Box::new(options.clone()));
 
     let get_nw_names = thread::spawn(move || find_known_network_names(options));
-    let get_scan_results = thread::spawn(move || wifi_scan(options, synchronous_rescan));
+    let get_scan_results = thread::spawn(move || wifi_scan(options, &synchronous_rescan));
 
     let known_network_names = await_thread(get_nw_names)??;
     let scan_result = await_thread(get_scan_results)??;

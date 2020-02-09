@@ -20,7 +20,7 @@ pub(crate) static SYNCHRONOUS_RETRY_DELAY_SECS: f64 = 0.2;
 
 pub(crate) static DEVICE_OR_RESOURCE_BUSY_EXIT_CODE: i32 = 240;
 
-pub(crate) fn wifi_scan<O>(options: &O, synchronous_rescan: Option<SynchronousRescanType>) -> Result<ScanResult, RuwiError> where O: Global + Wifi + LinuxNetworkingInterface {
+pub(crate) fn wifi_scan<O>(options: &O, synchronous_rescan: &Option<SynchronousRescanType>) -> Result<ScanResult, RuwiError> where O: Global + Wifi + LinuxNetworkingInterface {
     let sm = options.get_scan_method().clone();
     let st = options.get_scan_type().clone();
     st.get_service().start(options)?;

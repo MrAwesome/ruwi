@@ -50,7 +50,7 @@ pub(crate) trait GetService {
 impl GetService for WifiConnectionType {
     fn get_service(&self) -> NetworkingService {
         match self {
-            Self::NetworkManager => NetworkingService::NetworkManager,
+            Self::Nmcli => NetworkingService::NetworkManager,
             Self::Netctl => NetworkingService::Netctl,
             Self::None | Self::Print => NetworkingService::None,
         }

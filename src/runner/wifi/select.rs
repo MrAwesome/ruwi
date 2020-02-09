@@ -24,7 +24,7 @@ impl WifiSelectOptions {
     //       It is probably best to have a utility function to start a given service, then
     //       run that as needed whenever a service might be needed.
     fn data_gatherer(&self) -> Result<(), RuwiError> {
-        let scan_result = wifi_scan(self, None)?;
+        let scan_result = wifi_scan(self, &None)?;
         self.network_parser_and_annotator(&KnownNetworkNames::default(), &scan_result)
     }
 
@@ -44,7 +44,7 @@ impl WifiSelectOptions {
     }
 
     fn synchronous_rescan(&self, rescan_type: SynchronousRescanType) -> Result<(), RuwiError> {
-        let scan_result = wifi_scan(self, Some(rescan_type))?;
+        let scan_result = wifi_scan(self, &Some(rescan_type))?;
         self.network_parser_and_annotator(&KnownNetworkNames::default(), &scan_result)
     }
 

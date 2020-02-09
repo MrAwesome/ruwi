@@ -23,7 +23,7 @@ pub(crate) fn find_known_network_names<O>(options: &O) -> Result<KnownNetworkNam
     let known_network_names = match options.get_connect_via() {
         WifiConnectionType::Netctl => find_known_netctl_networks()
             .map_err(|_e| rerr!(RuwiErrorKind::KnownNetworksFetchError, "Failed to fetch known network names for netctl! Does /etc/netctl/ exist? Run with `-d` for more info."))?,
-        WifiConnectionType::NetworkManager => find_known_networkmanager_networks(options)?,
+        WifiConnectionType::Nmcli => find_known_networkmanager_networks(options)?,
         WifiConnectionType::None | WifiConnectionType::Print => vec![],
     };
 

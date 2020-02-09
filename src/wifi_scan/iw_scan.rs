@@ -31,7 +31,7 @@ static IW_SCAN_SYNC_ERR_MSG: &str = concat!(
 pub(crate) fn run_iw_scan<O>(
     options: &O,
     scan_type: ScanType,
-    synchronous_rescan: Option<SynchronousRescanType>,
+    synchronous_rescan: &Option<SynchronousRescanType>,
 ) -> Result<ScanResult, RuwiError>
 where
     O: Global + Wifi + LinuxNetworkingInterface,
