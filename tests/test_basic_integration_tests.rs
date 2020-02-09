@@ -1,5 +1,5 @@
 use rexpect::errors::*;
-use rexpect::spawn;
+use rexpect::{spawn, spawn_bash};
 
 #[test]
 fn test_cli_help() -> Result<()> {
@@ -52,5 +52,16 @@ fn test_iw_first_network_from_file_with_select() -> Result<()> {
     )?;
     p.exp_string("[NOTE]: Selected network: \"Valparaiso_Guest_House 2\"")?;
     p.exp_regex("Valparaiso_Guest_House 2")?;
+    Ok(())
+}
+
+#[test]
+fn test_iw_many_networks_from_stdin_with_select() -> Result<()> {
+    let mut p = spawn_bash(Some(200))?;
+    p.execute(
+        "cat src/parse/samples/iw_many_networks.txt | ./target/debug/ruwi -D wifi -s iw -I select -A first",
+        ".NOTE.: Selected network: \"Patrician Pad\"",
+    )?;
+    p.exp_regex("Patrician Pad")?;
     Ok(())
 }
