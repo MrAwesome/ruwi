@@ -1,7 +1,6 @@
 use crate::options::interfaces::Global;
 use crate::structs::*;
 
-// TODO: unit test that networks passed in equal networks passed out
 pub(crate) fn annotate_networks<O>(
     options: &O,
     networks: &[WirelessNetwork],
