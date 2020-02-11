@@ -1,6 +1,6 @@
+use crate::rerr;
 use std::error::Error;
 use std::fmt;
-use crate::rerr;
 
 // TODO: set to pub(crate) temporarily to find unused values
 #[derive(Debug, PartialEq, Eq)]

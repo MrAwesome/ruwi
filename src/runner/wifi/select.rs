@@ -1,8 +1,9 @@
 use crate::annotate_networks::annotate_networks;
+use crate::check_known_identifiers::KnownIdentifiers;
 use crate::errors::*;
 use crate::parse::parse_result;
 use crate::select_network::select_network;
-use crate::sort_networks::sort_and_filter_networks;
+use crate::sort_networks::SortedFilteredNetworks;
 use crate::structs::*;
 use crate::synchronous_retry_logic::should_retry_with_synchronous_scan;
 use crate::wifi_scan::wifi_scan;
@@ -25,12 +26,12 @@ impl WifiSelectOptions {
     //       run that as needed whenever a service might be needed.
     fn data_gatherer(&self) -> Result<(), RuwiError> {
         let scan_result = wifi_scan(self, &None)?;
-        self.network_parser_and_annotator(&KnownNetworkNames::default(), &scan_result)
+        self.network_parser_and_annotator(&KnownIdentifiers::default(), &scan_result)
     }
 
     fn network_parser_and_annotator(
         &self,
-        known_network_names: &KnownNetworkNames,
+        known_network_names: &KnownIdentifiers,
         scan_result: &ScanResult,
     ) -> Result<(), RuwiError> {
         let parse_results = parse_result(self, &scan_result)?;
@@ -45,15 +46,15 @@ impl WifiSelectOptions {
 
     fn synchronous_rescan(&self, rescan_type: SynchronousRescanType) -> Result<(), RuwiError> {
         let scan_result = wifi_scan(self, &Some(rescan_type))?;
-        self.network_parser_and_annotator(&KnownNetworkNames::default(), &scan_result)
+        self.network_parser_and_annotator(&KnownIdentifiers::default(), &scan_result)
     }
 
-    fn network_sorter(&self, annotated_networks: AnnotatedNetworks) -> Result<(), RuwiError> {
-        let sorted_networks = sort_and_filter_networks(self, annotated_networks);
+    fn network_sorter(&self, annotated_networks: Vec<AnnotatedWirelessNetwork>) -> Result<(), RuwiError> {
+        let sorted_networks = SortedFilteredNetworks::new(&annotated_networks);
         self.network_selector(&sorted_networks)
     }
 
-    fn network_selector(&self, sorted_networks: &SortedUniqueNetworks) -> Result<(), RuwiError> {
+    fn network_selector(&self, sorted_networks: &SortedFilteredNetworks<AnnotatedWirelessNetwork>) -> Result<(), RuwiError> {
         match select_network(self, sorted_networks) {
             Ok(selected_network) => print_network(&selected_network),
             Err(err) => match &err.kind {

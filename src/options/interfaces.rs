@@ -35,3 +35,11 @@ pub trait WifiConnect {
     fn get_connect_via(&self) -> &WifiConnectionType;
 }
 
+pub trait Identifiable {
+    fn get_identifier(&self) -> &str;
+}
+
+pub trait Annotated<T> {
+    fn from(orignal_type: T, is_known: bool) -> Self;
+    fn is_known(&self) -> bool;
+}

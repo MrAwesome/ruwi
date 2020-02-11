@@ -1,8 +1,8 @@
+use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::rerr;
 #[cfg(not(test))]
 use crate::run_commands::*;
-use crate::errors::*;
 use crate::structs::*;
 #[cfg(not(test))]
 use std::fs::{read_dir, DirEntry, File};
@@ -14,10 +14,17 @@ use std::path::Path;
 #[cfg(not(test))]
 use unescape::unescape;
 
+use crate::check_known_identifiers::KnownIdentifiers;
+
 // TODO: unit test the logic in this function
-pub(crate) fn find_known_network_names<O>(options: &O) -> Result<KnownNetworkNames, RuwiError> where O: Global + Wifi + WifiConnect {
+pub(crate) fn find_known_network_names<O>(
+    options: &O,
+) -> Result<KnownIdentifiers, RuwiError>
+where
+    O: Global + Wifi + WifiConnect,
+{
     if options.get_dry_run() || options.get_ignore_known() {
-        return Ok(KnownNetworkNames::default());
+        return Ok(KnownIdentifiers::default());
     }
 
     let known_network_names = match options.get_connect_via() {
@@ -31,18 +38,22 @@ pub(crate) fn find_known_network_names<O>(options: &O) -> Result<KnownNetworkNam
         dbg![&known_network_names];
     }
 
-    Ok(KnownNetworkNames::new(
-     known_network_names
-            ))
+    Ok(KnownIdentifiers::new(known_network_names))
 }
 
 #[cfg(test)]
-fn find_known_networkmanager_networks<O>(_options: &O) -> Result<Vec<String>, RuwiError> where O: Global {
+fn find_known_networkmanager_networks<O>(_options: &O) -> Result<Vec<String>, RuwiError>
+where
+    O: Global,
+{
     Ok(vec![])
 }
 
 #[cfg(not(test))]
-fn find_known_networkmanager_networks<O>(options: &O) -> Result<Vec<String>, RuwiError> where O: Global {
+fn find_known_networkmanager_networks<O>(options: &O) -> Result<Vec<String>, RuwiError>
+where
+    O: Global,
+{
     run_command_pass_stdout(
         options,
         "nmcli",
@@ -70,7 +81,8 @@ fn find_known_netctl_networks() -> io::Result<Vec<String>> {
                 } else {
                     None
                 }
-            }).collect();
+            })
+            .collect();
 
         Ok(known_essids)
     } else {

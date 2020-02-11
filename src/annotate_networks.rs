@@ -1,19 +1,45 @@
-use crate::options::interfaces::Global;
+use crate::check_known_identifiers::KnownIdentifiers;
+use crate::options::interfaces::{Global, Identifiable, Annotated};
 use crate::structs::*;
+use std::fmt::Debug;
 
-pub(crate) fn annotate_networks<O>(
+impl Identifiable for WirelessNetwork {
+    fn get_identifier(&self) -> &str {
+        self.essid.as_ref()
+    }
+}
+
+impl Identifiable for AnnotatedWirelessNetwork {
+    fn get_identifier(&self) -> &str {
+        self.essid.as_ref()
+    }
+}
+
+impl Annotated<WirelessNetwork> for AnnotatedWirelessNetwork {
+    fn from(nw: WirelessNetwork, is_known: bool) -> Self {
+        AnnotatedWirelessNetwork::from_nw(nw, is_known)
+    }
+    
+    fn is_known(&self) -> bool {
+        self.known
+    }
+}
+
+pub(crate) fn annotate_networks<'a, O, T, U>(
     options: &O,
-    networks: &[WirelessNetwork],
-    known_network_names: &KnownNetworkNames,
-) -> AnnotatedNetworks
+    networks: &[T],
+    known_identifiers: &KnownIdentifiers,
+) -> Vec<U>
 where
     O: Global,
+    T: Debug + Identifiable + Clone,
+    U: Debug + Annotated<T>,
 {
     let networks = networks
         .iter()
         .map(|nw| {
-            let is_known = known_network_names.contains(&nw.essid);
-            AnnotatedWirelessNetwork::from_nw(nw.clone(), is_known)
+            let is_known = known_identifiers.check_for(nw.get_identifier());
+            U::from(nw.clone(), is_known)
         })
         .collect();
 
@@ -21,7 +47,7 @@ where
         dbg![&networks];
     }
 
-    AnnotatedNetworks { networks }
+    networks
 }
 
 #[cfg(test)]
@@ -41,14 +67,11 @@ mod tests {
             essid: essid.clone(),
             ..WirelessNetwork::default()
         };
-        let known_networks = KnownNetworkNames::new(vec![nw.essid.clone()]);
-        let annotated_networks = annotate_networks(
-            &WifiConnectOptions::default(),
-            &vec![nw],
-            &known_networks,
-        );
+        let known_networks = KnownIdentifiers::new(vec![essid]);
+        let annotated_networks: Vec<AnnotatedWirelessNetwork> =
+            annotate_networks(&WifiConnectOptions::default(), &vec![nw], &known_networks);
 
-        let resulting_nw = annotated_networks.networks.first().unwrap();
+        let resulting_nw = annotated_networks.first().unwrap();
         assert![resulting_nw.known];
     }
 
@@ -59,14 +82,11 @@ mod tests {
             essid,
             ..WirelessNetwork::default()
         };
-        let known_networks = KnownNetworkNames::default();
-        let annotated_networks = annotate_networks(
-            &WifiConnectOptions::default(),
-            &vec![nw],
-            &known_networks,
-        );
+        let known_networks = KnownIdentifiers::new(vec![]);
+        let annotated_networks: Vec<AnnotatedWirelessNetwork> =
+            annotate_networks(&WifiConnectOptions::default(), &[nw], &known_networks);
 
-        let resulting_nw = annotated_networks.networks.first().unwrap();
+        let resulting_nw = annotated_networks.first().unwrap();
         assert![!resulting_nw.known];
     }
 
@@ -77,14 +97,11 @@ mod tests {
             essid: essid.clone(),
             ..WirelessNetwork::default()
         };
-        let known_networks = KnownNetworkNames::default();
-        let annotated_networks = annotate_networks(
-            &WifiConnectOptions::default(),
-            &vec![nw],
-            &known_networks,
-        );
+        let known_networks = KnownIdentifiers::new(vec![]);
+        let annotated_networks: Vec<AnnotatedWirelessNetwork> =
+            annotate_networks(&WifiConnectOptions::default(), &[nw], &known_networks);
 
-        let resulting_nw = annotated_networks.networks.first().unwrap();
+        let resulting_nw = annotated_networks.first().unwrap();
         assert_eq![essid, resulting_nw.essid];
     }
 
@@ -95,14 +112,11 @@ mod tests {
             essid: essid.clone(),
             ..WirelessNetwork::default()
         };
-        let known_networks = KnownNetworkNames::default();
-        let annotated_networks = annotate_networks(
-            &WifiConnectOptions::default(),
-            &vec![nw],
-            &known_networks,
-        );
+        let known_networks = KnownIdentifiers::new(vec![]);
+        let annotated_networks: Vec<AnnotatedWirelessNetwork> =
+            annotate_networks(&WifiConnectOptions::default(), &[nw], &known_networks);
 
-        let resulting_nw = annotated_networks.networks.first().unwrap();
+        let resulting_nw = annotated_networks.first().unwrap();
         assert![!resulting_nw.known];
     }
 }

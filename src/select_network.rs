@@ -1,12 +1,14 @@
 // TODO: abstract away this functionality to not be wifi-specific
-use crate::rerr;
-use crate::options::interfaces::*;
-use crate::select_utils::*;
 use crate::errors::*;
+use crate::options::interfaces::*;
+use crate::rerr;
+use crate::select_utils::*;
+use crate::sort_networks::SortedFilteredNetworks;
 use crate::structs::*;
 
 use crate::strum_utils::possible_vals;
 use std::str::FromStr;
+use std::fmt::Debug;
 
 fn get_possible_selection_options_as_strings() -> Vec<String> {
     possible_vals::<SelectionOption, _>()
@@ -15,7 +17,7 @@ fn get_possible_selection_options_as_strings() -> Vec<String> {
         .collect()
 }
 
-impl SortedUniqueNetworks {
+impl<T: Ord + Identifiable + Selectable + Clone> SortedFilteredNetworks<T> {
     pub fn get_tokens_for_selection(&self) -> Vec<String> {
         self.get_network_tokens()
             .into_iter()
@@ -24,7 +26,7 @@ impl SortedUniqueNetworks {
     }
 
     pub fn get_network_tokens(&self) -> Vec<String> {
-        self.networks
+        self.get_networks()
             .iter()
             .enumerate()
             .map(|(i, x)| format!("{}) {}", i, x.get_display_string()))
@@ -32,17 +34,25 @@ impl SortedUniqueNetworks {
     }
 }
 
-pub(crate) fn select_network<O>(
+pub(crate) fn select_network<O, N, T>(
     options: &O,
-    networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global + AutoSelect {
+    networks: &SortedFilteredNetworks<N>,
+) -> Result<N, RuwiError>
+where
+    O: Global + AutoSelect,
+    N: Identifiable + Selectable + Ord + Debug + Annotated<T> + Clone,
+{
     select_network_impl(options, networks, prompt_user_for_selection)
 }
 
-fn prompt_user_for_selection<O>(
+fn prompt_user_for_selection<O, N>(
     options: &O,
-    networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global {
+    networks: &SortedFilteredNetworks<N>,
+) -> Result<N, RuwiError>
+where
+    O: Global,
+    N: Identifiable + Selectable + Ord + Clone,
+{
     let selector_output = run_manual_selector(options, networks)?;
 
     if let Ok(selection_option) = SelectionOption::from_str(&selector_output) {
@@ -55,7 +65,7 @@ fn prompt_user_for_selection<O>(
     } else {
         let index = get_index_of_selected_item(&selector_output)?;
 
-        networks.networks.get(index).cloned().ok_or_else(|| {
+        networks.get_networks().get(index).map(Clone::clone).ok_or_else(|| {
             rerr!(
                 RuwiErrorKind::NoNetworksFoundMatchingSelectionResult,
                 format!("No network matching {} found.", selector_output)
@@ -64,30 +74,39 @@ fn prompt_user_for_selection<O>(
     }
 }
 
-fn run_manual_selector<O>(
+fn run_manual_selector<O, N>(
     options: &O,
-    networks: &SortedUniqueNetworks,
-) -> Result<String, RuwiError> where O: Global {
-    run_manual_selector_impl(options, networks, pass_tokens_to_selection_program)
+    networks: &SortedFilteredNetworks<N>,
+) -> Result<String, RuwiError>
+where
+    O: Global,
+    N: Identifiable + Selectable + Ord + Clone,
+{
+    run_manual_selector_impl(options, networks, pass_tokens_to_selection_program::<O, N>)
 }
 
-fn run_manual_selector_impl<O, F>(
+fn run_manual_selector_impl<O, N, F>(
     options: &O,
-    networks: &SortedUniqueNetworks,
+    networks: &SortedFilteredNetworks<N>,
     selector: F,
 ) -> Result<String, RuwiError>
 where
     O: Global,
+    N: Identifiable + Selectable + Ord + Clone,
     F: FnOnce(&O, &[String]) -> Result<String, RuwiError>,
 {
     let selection_tokens = networks.get_tokens_for_selection();
     selector(options, &selection_tokens).map(|x| x.trim().into())
 }
 
-fn pass_tokens_to_selection_program<O>(
+fn pass_tokens_to_selection_program<O, N>(
     options: &O,
     selection_tokens: &[String],
-) -> Result<String, RuwiError> where O: Global {
+) -> Result<String, RuwiError>
+where
+    O: Global,
+    N: Identifiable + Selectable + Ord,
+{
     match options.get_selection_method() {
         SelectionMethod::Dmenu => run_dmenu(options, "Select a network: ", &selection_tokens),
         SelectionMethod::Fzf => run_fzf(
@@ -113,14 +132,18 @@ fn get_line_parse_err(line: &str) -> RuwiError {
     )
 }
 
-fn select_first_known<O>(
+fn select_first_known<O, N, T>(
     _options: &O,
-    networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global {
+    networks: &SortedFilteredNetworks<N>,
+) -> Result<N, RuwiError>
+where
+    O: Global,
+    N: Identifiable + Selectable + Ord + Annotated<T> + Clone,
+{
     networks
-        .networks
+        .get_networks()
         .iter()
-        .find(|nw| nw.known)
+        .find(|nw| nw.is_known())
         .ok_or_else(|| {
             rerr!(
                 RuwiErrorKind::NoKnownNetworksFound,
@@ -130,12 +153,13 @@ fn select_first_known<O>(
         .map(Clone::clone)
 }
 
-fn select_first<O>(
-    _options: &O,
-    networks: &SortedUniqueNetworks,
-) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global {
+fn select_first<O, N>(_options: &O, networks: &SortedFilteredNetworks<N>) -> Result<N, RuwiError>
+where
+    O: Global,
+    N: Identifiable + Selectable + Ord + Clone,
+{
     networks
-        .networks
+        .get_networks()
         .iter()
         .next()
         .ok_or_else(|| {
@@ -147,14 +171,15 @@ fn select_first<O>(
         .map(Clone::clone)
 }
 
-fn select_network_impl<'a, 'b, O, F>(
+fn select_network_impl<'a, 'b, O, N, F, T>(
     options: &'a O,
-    networks: &'b SortedUniqueNetworks,
+    networks: &'b SortedFilteredNetworks<N>,
     manual_selector: F,
-) -> Result<AnnotatedWirelessNetwork, RuwiError>
+) -> Result<N, RuwiError>
 where
     O: Global + AutoSelect,
-    F: FnOnce(&'a O, &'b SortedUniqueNetworks) -> Result<AnnotatedWirelessNetwork, RuwiError>,
+    N: Identifiable + Selectable + Ord + Annotated<T> + Clone + Debug,
+    F: FnOnce(&'a O, &'b SortedFilteredNetworks<N>) -> Result<N, RuwiError>,
 {
     let selected_network_res = match options.get_auto_mode() {
         AutoMode::Ask => manual_selector(options, networks),
@@ -166,7 +191,8 @@ where
     };
 
     match &selected_network_res {
-        Ok(nw) => eprintln!("[NOTE]: Selected network: \"{}\"", nw.essid),
+        // TODO: should there be a less machine-specific version of get_identifier?
+        Ok(nw) => eprintln!("[NOTE]: Selected network: \"{}\"", nw.get_identifier()),
         Err(_) => {
             if options.get_auto_mode() == &AutoMode::KnownOrFail {
                 eprintln!(
@@ -185,44 +211,45 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::strum::AsStaticRef;
-    use crate::options::wifi::WifiOptions;
     use crate::options::wifi::connect::WifiConnectOptions;
+    use crate::options::wifi::WifiOptions;
+    use crate::strum::AsStaticRef;
 
     static FIRST_NW_NAME: &str = "FIRSTNWLOL";
     static SECND_NW_NAME: &str = "SECNDNWWUT";
     static THIRD_NW_NAME: &str = "THIRDNWOKK";
 
-    fn get_3_networks() -> SortedUniqueNetworks {
-        let networks = vec![FIRST_NW_NAME, SECND_NW_NAME, THIRD_NW_NAME]
+    fn get_3_networks() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
+        let networks = [FIRST_NW_NAME, SECND_NW_NAME, THIRD_NW_NAME]
             .iter()
             .map(|name| AnnotatedWirelessNetwork::from_essid((*name).to_string(), false, false))
-            .collect();
-        SortedUniqueNetworks { networks }
+            .collect::<Vec<AnnotatedWirelessNetwork>>();
+        SortedFilteredNetworks::new(&networks)
     }
 
-    fn get_3_unknown_networks() -> SortedUniqueNetworks {
+    fn get_3_unknown_networks() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
         get_3_networks()
     }
 
-    fn get_3_networks_first_known() -> SortedUniqueNetworks {
+    fn get_3_networks_first_known() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
         let mut networks = get_3_networks();
-        networks.networks[0].known = true;
+        networks.get_networks_mut()[0].known = true;
         networks
     }
 
-    fn get_3_networks_last_known() -> SortedUniqueNetworks {
+    fn get_3_networks_last_known() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
         let mut networks = get_3_networks();
-        networks.networks[2].known = true;
+        networks.get_networks_mut()[2].known = true;
         networks
     }
 
-    fn select_last<O>(
-        _options: &O,
-        networks: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global {
+    fn select_last<O, N>(_options: &O, networks: &SortedFilteredNetworks<N>) -> Result<N, RuwiError>
+    where
+        O: Global,
+        N: Identifiable + Selectable + Ord + Clone,
+    {
         networks
-            .networks
+            .get_networks()
             .iter()
             .last()
             .ok_or_else(|| {
@@ -234,17 +261,22 @@ mod tests {
             .map(Clone::clone)
     }
 
-    fn select_refresh<O>(
-        _options: &O,
-        _networks: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global {
+    fn select_refresh<O, N>(_options: &O, _networks: &SortedFilteredNetworks<N>) -> Result<N, RuwiError>
+    where
+        O: Global,
+        N: Identifiable + Selectable + Ord + Clone,
+    {
         Err(rerr!(RuwiErrorKind::RefreshRequested, "Refresh requested."))
     }
 
-    fn err_should_not_have_used_manual<O>(
+    fn err_should_not_have_used_manual<O, N>(
         _opt: &O,
-        _nw: &SortedUniqueNetworks,
-    ) -> Result<AnnotatedWirelessNetwork, RuwiError> where O: Global {
+        _nw: &SortedFilteredNetworks<N>,
+    ) -> Result<N, RuwiError>
+    where
+        O: Global,
+        N: Identifiable + Selectable + Ord + Clone,
+    {
         Err(rerr!(
             RuwiErrorKind::TestUsedManualWhenNotExpected,
             "Used manual selector in test when should not have!",
@@ -257,7 +289,7 @@ mod tests {
         assert_eq![options.get_auto_mode(), &AutoMode::Ask];
         let networks = get_3_unknown_networks();
         let nw = select_network_impl(&options, &networks, select_first)?;
-        assert_eq![networks.networks[0], nw];
+        assert_eq![networks.get_networks()[0], nw];
         Ok(())
     }
 
@@ -267,7 +299,7 @@ mod tests {
         assert_eq![options.get_auto_mode(), &AutoMode::Ask];
         let networks = get_3_unknown_networks();
         let nw = select_network_impl(&options, &networks, select_last)?;
-        assert_eq![networks.networks[2], nw];
+        assert_eq![networks.get_networks()[2], nw];
         Ok(())
     }
 
@@ -288,7 +320,7 @@ mod tests {
             .build();
         let networks = get_3_networks_last_known();
         let nw = select_network_impl(&options, &networks, err_should_not_have_used_manual)?;
-        assert_eq![networks.networks[2], nw];
+        assert_eq![networks.get_networks()[2], nw];
         Ok(())
     }
 
@@ -300,7 +332,7 @@ mod tests {
             .build();
         let networks = get_3_networks_first_known();
         let nw = select_network_impl(&options, &networks, err_should_not_have_used_manual)?;
-        assert_eq![networks.networks[0], nw];
+        assert_eq![networks.get_networks()[0], nw];
         Ok(())
     }
 
@@ -312,7 +344,7 @@ mod tests {
             .build();
         let networks = get_3_networks_last_known();
         let nw = select_network_impl(&options, &networks, err_should_not_have_used_manual)?;
-        assert_eq![networks.networks[2], nw];
+        assert_eq![networks.get_networks()[2], nw];
         Ok(())
     }
 
@@ -324,7 +356,7 @@ mod tests {
             .build();
         let networks = get_3_unknown_networks();
         let nw = select_network_impl(&options, &networks, select_first)?;
-        assert_eq![networks.networks[0], nw];
+        assert_eq![networks.get_networks()[0], nw];
         Ok(())
     }
 
@@ -387,16 +419,16 @@ mod tests {
 
     #[test]
     fn test_get_tokens_for_selection() {
-        let networks = SortedUniqueNetworks {
-            networks: vec![
+        let networks = SortedFilteredNetworks::new(
+            &[
                 AnnotatedWirelessNetwork::from_essid("FAKE NEWS LOL OK".to_string(), true, true),
                 AnnotatedWirelessNetwork::from_essid("WOWWW OK FACEBO".to_string(), false, true),
                 AnnotatedWirelessNetwork::from_essid("LOOK, DISCOURSE".to_string(), true, false),
                 AnnotatedWirelessNetwork::from_essid("UWU MAMMMAAAAA".to_string(), false, false),
-            ],
-        };
+            ]
+        );
         let tokens = networks.get_tokens_for_selection();
-        for (i, (nw, token)) in networks.networks.iter().zip(tokens).enumerate() {
+        for (i, (nw, token)) in networks.get_networks().iter().zip(tokens).enumerate() {
             let expected_token = format!("{}) {}", i, nw.get_display_string());
             assert_eq![expected_token, token];
         }

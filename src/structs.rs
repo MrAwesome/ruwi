@@ -2,12 +2,12 @@
 #![allow(clippy::default_trait_access)]
 #![allow(clippy::used_underscore_binding)]
 
-use std::collections::HashSet;
 use std::fmt::Debug;
-use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
-use std::iter::FromIterator;
 
 // NOTE: instead of strum, you can use arg_enum! from the clap crate, to cut down on compile times
+use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
+use typed_builder::TypedBuilder;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ScanMethod {
     ByRunning,
@@ -130,7 +130,8 @@ pub enum IndividualParseError {
     ZeroLengthIWChunk,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+// TODO: make private, provide interface?
+#[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
 pub struct WirelessNetwork {
     pub essid: String,
     pub is_encrypted: bool,
@@ -195,48 +196,6 @@ impl Default for AnnotatedWirelessNetwork {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
-pub struct KnownNetworkNames {
-    networks: HashSet<String>,
-}
-
-impl Default for KnownNetworkNames {
-    fn default() -> Self {
-        Self {
-            networks: HashSet::new(),
-        }
-    }
-}
-
-impl KnownNetworkNames {
-    pub fn new(seen_networks: Vec<String>) -> Self {
-        let unique_networks = HashSet::from_iter(seen_networks);
-        Self { networks: unique_networks }
-    }
-
-    pub fn contains(&self, target: &str) -> bool {
-        self.networks.contains(target)
-    }
-}
-
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub struct AnnotatedNetworks {
-    pub networks: Vec<AnnotatedWirelessNetwork>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct SortedUniqueNetworks {
-    pub networks: Vec<AnnotatedWirelessNetwork>,
-}
-
-impl From<AnnotatedNetworks> for SortedUniqueNetworks {
-    fn from(nws: AnnotatedNetworks) -> Self {
-        Self {
-            networks: nws.networks,
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConfigResult {
     pub connection_type: WifiConnectionType,
@@ -255,4 +214,3 @@ pub struct ConnectionResult {
     //ipv4_addr: Option<String>,
     //ipv6_addr: Option<String>,
 }
-

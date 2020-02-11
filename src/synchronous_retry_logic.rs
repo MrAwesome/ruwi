@@ -3,9 +3,11 @@ use crate::structs::*;
 
 pub(crate) fn should_retry_with_synchronous_scan<O>(
     options: &O,
-    annotated_networks: &AnnotatedNetworks,
-) -> bool where O: Global + AutoSelect {
-    let networks = &annotated_networks.networks;
+    networks: &[AnnotatedWirelessNetwork],
+) -> bool
+where
+    O: Global + AutoSelect,
+{
     networks.is_empty()
         || match options.get_auto_mode() {
             AutoMode::KnownOrAsk | AutoMode::KnownOrFail => !networks.iter().any(|x| x.known),
@@ -16,59 +18,55 @@ pub(crate) fn should_retry_with_synchronous_scan<O>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::options::wifi::WifiOptions;
     use crate::options::wifi::connect::WifiConnectOptions;
+    use crate::options::wifi::WifiOptions;
 
     fn get_options(auto_mode: &AutoMode) -> WifiConnectOptions {
         WifiConnectOptions::builder()
             .wifi(WifiOptions::default())
             .auto_mode(auto_mode.clone())
-        .build()
+            .build()
     }
 
-    fn get_three_unknown_networks() -> AnnotatedNetworks {
-        AnnotatedNetworks {
-            networks: vec![
-                AnnotatedWirelessNetwork {
-                    known: false,
-                    ..AnnotatedWirelessNetwork::default()
-                },
-                AnnotatedWirelessNetwork {
-                    known: false,
-                    ..AnnotatedWirelessNetwork::default()
-                },
-                AnnotatedWirelessNetwork {
-                    known: false,
-                    ..AnnotatedWirelessNetwork::default()
-                },
-            ],
-        }
+    fn get_three_unknown_networks() -> Vec<AnnotatedWirelessNetwork> {
+        vec![
+            AnnotatedWirelessNetwork {
+                known: false,
+                ..AnnotatedWirelessNetwork::default()
+            },
+            AnnotatedWirelessNetwork {
+                known: false,
+                ..AnnotatedWirelessNetwork::default()
+            },
+            AnnotatedWirelessNetwork {
+                known: false,
+                ..AnnotatedWirelessNetwork::default()
+            },
+        ]
     }
 
-    fn get_three_known_networks() -> AnnotatedNetworks {
-        AnnotatedNetworks {
-            networks: vec![
-                AnnotatedWirelessNetwork {
-                    known: true,
-                    ..AnnotatedWirelessNetwork::default()
-                },
-                AnnotatedWirelessNetwork {
-                    known: true,
-                    ..AnnotatedWirelessNetwork::default()
-                },
-                AnnotatedWirelessNetwork {
-                    known: true,
-                    ..AnnotatedWirelessNetwork::default()
-                },
-            ],
-        }
+    fn get_three_known_networks() -> Vec<AnnotatedWirelessNetwork> {
+        vec![
+            AnnotatedWirelessNetwork {
+                known: true,
+                ..AnnotatedWirelessNetwork::default()
+            },
+            AnnotatedWirelessNetwork {
+                known: true,
+                ..AnnotatedWirelessNetwork::default()
+            },
+            AnnotatedWirelessNetwork {
+                known: true,
+                ..AnnotatedWirelessNetwork::default()
+            },
+        ]
     }
 
-    fn get_empty_networks() -> AnnotatedNetworks {
-        AnnotatedNetworks::default()
+    fn get_empty_networks() -> Vec<AnnotatedWirelessNetwork> {
+        vec![]
     }
 
-    fn get_networks(network_list_type: &NetworkListType) -> AnnotatedNetworks {
+    fn get_networks(network_list_type: &NetworkListType) -> Vec<AnnotatedWirelessNetwork> {
         match network_list_type {
             NetworkListType::ContainsKnown => get_three_known_networks(),
             NetworkListType::ContainsOnlyUnknown => get_three_unknown_networks(),
