@@ -1,5 +1,5 @@
-use crate::structs::*;
 use crate::errors::*;
+use crate::structs::*;
 
 // TODO: make more usages look like this
 // impl<O> NetworkingService where O: Global {
