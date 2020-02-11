@@ -3,8 +3,19 @@ use crate::structs::*;
 use std::cmp::Ordering;
 use std::collections::HashSet;
 
-pub(crate) struct SortedFilteredNetworks<T: Ord + Identifiable> {
+pub(crate) struct SortedFilteredNetworks<T> {
     networks: Vec<T>,
+}
+
+impl<T> SortedFilteredNetworks<T> {
+    pub(crate) fn get_networks(&self) -> &[T] {
+        &self.networks
+    }
+
+    #[cfg(test)]
+    pub(crate) fn get_networks_mut(&mut self) -> &mut [T] {
+        &mut self.networks
+    }
 }
 
 impl<T: Ord + Identifiable + Clone> SortedFilteredNetworks<T> {
@@ -15,15 +26,13 @@ impl<T: Ord + Identifiable + Clone> SortedFilteredNetworks<T> {
         Self { networks }
     }
 
-    pub(crate) fn get_networks(&self) -> &[T] {
-        &self.networks
+    fn put_best_networks_first(networks: &mut Vec<T>) {
+        networks.sort();
+        networks.reverse();
     }
+}
 
-    #[cfg(test)]
-    pub(crate) fn get_networks_mut(&mut self) -> &mut [T] {
-        &mut self.networks
-    }
-
+impl<T: Identifiable + Clone> SortedFilteredNetworks<T> {
     fn dedup_networks(networks: Vec<T>) -> Vec<T> {
         // Once partition_dedup_by is stable:
         //let (unique_networks, _dups) = sorted_networks.partition_dedup_by(|a, b| a.essid == b.essid);
@@ -38,11 +47,6 @@ impl<T: Ord + Identifiable + Clone> SortedFilteredNetworks<T> {
             }
         }
         unique_networks
-    }
-
-    fn put_best_networks_first(networks: &mut Vec<T>) {
-        networks.sort();
-        networks.reverse();
     }
 }
 

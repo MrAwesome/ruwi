@@ -17,7 +17,7 @@ fn get_possible_selection_options_as_strings() -> Vec<String> {
         .collect()
 }
 
-impl<T: Ord + Identifiable + Selectable + Clone> SortedFilteredNetworks<T> {
+impl<T: Identifiable + Selectable> SortedFilteredNetworks<T> {
     pub fn get_tokens_for_selection(&self) -> Vec<String> {
         self.get_network_tokens()
             .into_iter()
@@ -40,7 +40,7 @@ pub(crate) fn select_network<O, N, T>(
 ) -> Result<N, RuwiError>
 where
     O: Global + AutoSelect,
-    N: Identifiable + Selectable + Ord + Debug + Annotated<T> + Clone,
+    N: Identifiable + Selectable + Debug + Annotated<T> + Clone,
 {
     select_network_impl(options, networks, prompt_user_for_selection)
 }
@@ -51,7 +51,7 @@ fn prompt_user_for_selection<O, N>(
 ) -> Result<N, RuwiError>
 where
     O: Global,
-    N: Identifiable + Selectable + Ord + Clone,
+    N: Identifiable + Selectable + Clone,
 {
     let selector_output = run_manual_selector(options, networks)?;
 
@@ -80,7 +80,7 @@ fn run_manual_selector<O, N>(
 ) -> Result<String, RuwiError>
 where
     O: Global,
-    N: Identifiable + Selectable + Ord + Clone,
+    N: Identifiable + Selectable + Clone,
 {
     run_manual_selector_impl(options, networks, pass_tokens_to_selection_program::<O, N>)
 }
@@ -92,7 +92,7 @@ fn run_manual_selector_impl<O, N, F>(
 ) -> Result<String, RuwiError>
 where
     O: Global,
-    N: Identifiable + Selectable + Ord + Clone,
+    N: Identifiable + Selectable + Clone,
     F: FnOnce(&O, &[String]) -> Result<String, RuwiError>,
 {
     let selection_tokens = networks.get_tokens_for_selection();
@@ -105,7 +105,7 @@ fn pass_tokens_to_selection_program<O, N>(
 ) -> Result<String, RuwiError>
 where
     O: Global,
-    N: Identifiable + Selectable + Ord,
+    N: Identifiable + Selectable,
 {
     match options.get_selection_method() {
         SelectionMethod::Dmenu => run_dmenu(options, "Select a network: ", &selection_tokens),
@@ -138,7 +138,7 @@ fn select_first_known<O, N, T>(
 ) -> Result<N, RuwiError>
 where
     O: Global,
-    N: Identifiable + Selectable + Ord + Annotated<T> + Clone,
+    N: Identifiable + Selectable + Annotated<T> + Clone,
 {
     networks
         .get_networks()
@@ -156,7 +156,7 @@ where
 fn select_first<O, N>(_options: &O, networks: &SortedFilteredNetworks<N>) -> Result<N, RuwiError>
 where
     O: Global,
-    N: Identifiable + Selectable + Ord + Clone,
+    N: Identifiable + Selectable + Clone,
 {
     networks
         .get_networks()
@@ -178,7 +178,7 @@ fn select_network_impl<'a, 'b, O, N, F, T>(
 ) -> Result<N, RuwiError>
 where
     O: Global + AutoSelect,
-    N: Identifiable + Selectable + Ord + Annotated<T> + Clone + Debug,
+    N: Identifiable + Selectable + Annotated<T> + Clone + Debug,
     F: FnOnce(&'a O, &'b SortedFilteredNetworks<N>) -> Result<N, RuwiError>,
 {
     let selected_network_res = match options.get_auto_mode() {
@@ -246,7 +246,7 @@ mod tests {
     fn select_last<O, N>(_options: &O, networks: &SortedFilteredNetworks<N>) -> Result<N, RuwiError>
     where
         O: Global,
-        N: Identifiable + Selectable + Ord + Clone,
+        N: Identifiable + Selectable + Clone,
     {
         networks
             .get_networks()
@@ -264,7 +264,7 @@ mod tests {
     fn select_refresh<O, N>(_options: &O, _networks: &SortedFilteredNetworks<N>) -> Result<N, RuwiError>
     where
         O: Global,
-        N: Identifiable + Selectable + Ord + Clone,
+        N: Identifiable + Selectable + Clone,
     {
         Err(rerr!(RuwiErrorKind::RefreshRequested, "Refresh requested."))
     }
@@ -275,7 +275,7 @@ mod tests {
     ) -> Result<N, RuwiError>
     where
         O: Global,
-        N: Identifiable + Selectable + Ord + Clone,
+        N: Identifiable + Selectable + Clone,
     {
         Err(rerr!(
             RuwiErrorKind::TestUsedManualWhenNotExpected,
