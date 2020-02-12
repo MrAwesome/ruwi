@@ -1,6 +1,7 @@
 use crate::errors::*;
 use crate::get_default_interface::get_default_wifi_interface;
 use crate::options::interfaces::*;
+use crate::options::command::*;
 use crate::options::wifi::connect::WifiConnectOptions;
 use crate::options::wifi::select::WifiSelectOptions;
 use crate::options::wifi::*;
@@ -13,7 +14,9 @@ use clap::{App, Arg, ArgMatches, SubCommand};
 use std::fmt::Debug;
 use strum::AsStaticRef;
 
+static CLEAR_TOKEN: &str = "clear";
 static WIFI_TOKEN: &str = "wifi";
+
 static WIFI_SELECT_TOKEN: &str = "select";
 static WIFI_CONNECT_TOKEN: &str = "connect";
 
@@ -121,6 +124,7 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .arg(debug)
         .arg(dry_run)
         .arg(selection_method)
+        .subcommand(SubCommand::with_name(CLEAR_TOKEN).help("Stop all managed networking services (netctl, NetworkManager, wpa_supplicant, etc.)"))
         .subcommand(SubCommand::with_name(WIFI_TOKEN)
             .arg(ignore_known)
             .arg(input_file)
@@ -167,6 +171,10 @@ fn get_command_impl(m: &ArgMatches) -> Result<RuwiCommand, RuwiError> {
     let opts = match m.subcommand() {
         (subc_name, maybe_sub_m) if subc_name == WIFI_TOKEN || subc_name == "" => {
             RuwiCommand::Wifi(get_wifi_cmd(globals, maybe_sub_m)?)
+        }
+
+        (subc_name, _) if subc_name == CLEAR_TOKEN || subc_name == "" => {
+            RuwiCommand::Clear(globals)
         }
 
         // (subc_name, Some(sub_m)) if subc_name == RuwiCommand::Wired(Default::default()).to_string() => {}
@@ -362,11 +370,19 @@ mod tests {
         get_command_impl(&get_matches(args)).unwrap()
     }
 
+    fn expect_clear_opts(cmd: RuwiCommand) -> GlobalOptions {
+        if let RuwiCommand::Clear(opts) = cmd {
+            opts
+        } else {
+            panic!("Expected command to be 'clear', but got: {:?}", cmd);
+        }
+    }
+
     fn expect_wifi_connect_opts(cmd: RuwiCommand) -> WifiConnectOptions {
         if let RuwiCommand::Wifi(RuwiWifiCommand::Connect(opts)) = cmd {
             opts
         } else {
-            panic!("Expected command to be wifi connect, but got: {:?}", cmd);
+            panic!("Expected command to be 'wifi connect', but got: {:?}", cmd);
         }
     }
 
@@ -378,6 +394,12 @@ mod tests {
                 e.description()
             )
         })?)
+    }
+
+    #[test]
+    fn test_clear() {
+        let opts = expect_clear_opts(getopts(&["clear"]));
+        assert![!opts.d()];
     }
 
     #[test]

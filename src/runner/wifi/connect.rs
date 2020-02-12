@@ -10,7 +10,6 @@ use crate::find_known_network_names::find_known_network_names;
 use crate::options::interfaces::*;
 use crate::parse::parse_result;
 use crate::rerr;
-use crate::select_network::select_network;
 use crate::sort_networks::SortedFilteredNetworks;
 use crate::structs::*;
 use crate::synchronous_retry_logic::should_retry_with_synchronous_scan;
@@ -63,7 +62,7 @@ impl WifiConnectOptions {
     }
 
     fn network_sorter(&self, annotated_networks: Vec<AnnotatedWirelessNetwork>) -> Result<(), RuwiError> {
-        let sorted_networks = SortedFilteredNetworks::new(&annotated_networks);
+        let sorted_networks = SortedFilteredNetworks::new(annotated_networks);
         self.network_selector(&sorted_networks)
     }
 
@@ -71,7 +70,7 @@ impl WifiConnectOptions {
         &self,
         sorted_networks: &SortedFilteredNetworks<AnnotatedWirelessNetwork>,
     ) -> Result<(), RuwiError> {
-        match select_network(self, sorted_networks) {
+        match sorted_networks.select_network(self) {
             Ok(selected_network) => self.password_asker(&selected_network),
             Err(err) => match &err.kind {
                 RuwiErrorKind::RefreshRequested => {

@@ -39,7 +39,6 @@ pub(crate) mod wpa_cli_initialize;
 use cmdline_parser::*;
 use errors::*;
 use options::*;
-use runner::Runner;
 
 // Arch dependencies: netctl, iw, bluetooth things?, fzf
 // Arch optional dependencies: dmenu, iwconfig, NetworkManager,
@@ -66,27 +65,5 @@ use runner::Runner;
 
 pub fn run_ruwi() -> Result<(), RuwiError> {
     let command = get_command()?;
-    match command {
-        RuwiCommand::Wifi(RuwiWifiCommand::Connect(options)) => options.run(),
-        RuwiCommand::Wifi(RuwiWifiCommand::Select(options)) => options.run(),
-        RuwiCommand::Wired(RuwiWiredCommand::Connect) => unimplemented!(),
-        RuwiCommand::Bluetooth(RuwiBluetoothCommand::Pair) => unimplemented!(),
-    }
-    //      RuwiCommand::BluetoothPair => {}
-    //      RuwiCommand::WifiSelect => {}
-    //      RuwiCommand::WifiEditNetwork => {}
-    //      RuwiCommand::WifiDeleteNetwork => {}
-    //      RuwiCommand::List => {}
-    //      RuwiCommand::DumpJSON => {}
-    //      RuwiCommand::Disconnect => {}
-}
-
-#[cfg(test)]
-mod tests {
-    // use super::*;
-    //
-    // #[test]
-    // fn test_run_ruwi() -> Result<(), RuwiError> {
-    //     run_ruwi()
-    // }
+    command.run()
 }

@@ -7,6 +7,7 @@ use std::fmt::Debug;
 // NOTE: instead of strum, you can use arg_enum! from the clap crate, to cut down on compile times
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 use typed_builder::TypedBuilder;
+use crate::interfaces::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ScanMethod {
@@ -162,8 +163,8 @@ pub struct AnnotatedWirelessNetwork {
     pub known: bool,
 }
 
-impl AnnotatedWirelessNetwork {
-    pub fn from_nw(nw: WirelessNetwork, is_known: bool) -> Self {
+impl Annotated<WirelessNetwork> for AnnotatedWirelessNetwork {
+    fn from_nw(nw: WirelessNetwork, is_known: bool) -> Self {
         let essid = nw.essid;
         let is_encrypted = nw.is_encrypted;
         let bssid = nw.bssid;
@@ -179,6 +180,9 @@ impl AnnotatedWirelessNetwork {
         }
     }
 
+}
+
+impl AnnotatedWirelessNetwork {
     pub fn from_essid(essid: String, is_known: bool, is_encrypted: bool) -> Self {
         Self {
             essid,
@@ -193,6 +197,24 @@ impl Default for AnnotatedWirelessNetwork {
     fn default() -> Self {
         let nw = WirelessNetwork::default();
         Self::from_nw(nw, false)
+    }
+}
+
+impl Identifiable for WirelessNetwork {
+    fn get_identifier(&self) -> &str {
+        self.essid.as_ref()
+    }
+}
+
+impl Identifiable for AnnotatedWirelessNetwork {
+    fn get_identifier(&self) -> &str {
+        self.essid.as_ref()
+    }
+}
+
+impl Known for AnnotatedWirelessNetwork {
+    fn is_known(&self) -> bool {
+        self.known
     }
 }
 

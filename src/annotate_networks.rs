@@ -1,29 +1,6 @@
 use crate::check_known_identifiers::KnownIdentifiers;
 use crate::options::interfaces::{Global, Identifiable, Annotated};
-use crate::structs::*;
 use std::fmt::Debug;
-
-impl Identifiable for WirelessNetwork {
-    fn get_identifier(&self) -> &str {
-        self.essid.as_ref()
-    }
-}
-
-impl Identifiable for AnnotatedWirelessNetwork {
-    fn get_identifier(&self) -> &str {
-        self.essid.as_ref()
-    }
-}
-
-impl Annotated<WirelessNetwork> for AnnotatedWirelessNetwork {
-    fn from(nw: WirelessNetwork, is_known: bool) -> Self {
-        AnnotatedWirelessNetwork::from_nw(nw, is_known)
-    }
-    
-    fn is_known(&self) -> bool {
-        self.known
-    }
-}
 
 pub(crate) fn annotate_networks<'a, O, T, U>(
     options: &O,
@@ -39,7 +16,7 @@ where
         .iter()
         .map(|nw| {
             let is_known = known_identifiers.check_for(nw.get_identifier());
-            U::from(nw.clone(), is_known)
+            U::from_nw(nw.clone(), is_known)
         })
         .collect();
 
@@ -53,6 +30,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::structs::*;
     use crate::options::wifi::connect::WifiConnectOptions;
 
     #[test]

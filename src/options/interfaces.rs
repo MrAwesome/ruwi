@@ -39,7 +39,10 @@ pub trait Identifiable {
     fn get_identifier(&self) -> &str;
 }
 
-pub trait Annotated<T> {
-    fn from(orignal_type: T, is_known: bool) -> Self;
+pub trait Known {
     fn is_known(&self) -> bool;
+}
+
+pub trait Annotated<T>: Known {
+    fn from_nw(nw: T, is_known: bool) -> Self;
 }

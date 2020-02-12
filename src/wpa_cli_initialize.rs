@@ -1,6 +1,6 @@
+use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::run_commands::*;
-use crate::errors::*;
 use std::thread;
 use std::time::Duration;
 
@@ -54,7 +54,7 @@ where
     }
 
     Err(rerr!(
-        RuwiErrorKind::FailedToConnectViaWPACli,
+        RuwiErrorKind::FailedToStartWpaSupplicant,
         WPA_CONNECT_ERROR
     ))
 }
@@ -63,12 +63,18 @@ fn wpa_ping_success<O>(options: &O) -> bool
 where
     O: Global,
 {
-    let ping_status = run_command_status_dumb(options, "wpa_cli", &["ping"]);
-
-    if options.d() {
-        dbg![&ping_status];
-    }
-
-    ping_status
+    run_command_status_dumb(options, "wpa_cli", &["ping"])
 }
 
+pub(crate) fn kill_wpa_supplicant<O>(options: &O) -> Result<(), RuwiError>
+where
+    O: Global,
+{
+    run_command_pass(
+        options,
+        "pkill",
+        &["wpa_supplicant"],
+        RuwiErrorKind::FailedToStopWpaSupplicant,
+        "Failed to stop wpa_supplicant! Are you running as root?",
+    )
+}

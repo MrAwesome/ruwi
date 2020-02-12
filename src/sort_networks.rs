@@ -2,38 +2,40 @@ use crate::options::interfaces::*;
 use crate::structs::*;
 use std::cmp::Ordering;
 use std::collections::HashSet;
+use std::fmt::Debug;
 
-pub(crate) struct SortedFilteredNetworks<T> {
-    networks: Vec<T>,
+#[derive(Debug)]
+pub(crate) struct SortedFilteredNetworks<N: Debug> {
+    networks: Vec<N>,
 }
 
-impl<T> SortedFilteredNetworks<T> {
-    pub(crate) fn get_networks(&self) -> &[T] {
+impl<N: Debug> SortedFilteredNetworks<N> {
+    pub(crate) fn get_networks(&self) -> &[N] {
         &self.networks
     }
 
     #[cfg(test)]
-    pub(crate) fn get_networks_mut(&mut self) -> &mut [T] {
+    pub(crate) fn get_networks_mut(&mut self) -> &mut [N] {
         &mut self.networks
     }
 }
 
-impl<T: Ord + Identifiable + Clone> SortedFilteredNetworks<T> {
-    pub(crate) fn new(networks: &[T]) -> Self {
-        let mut networks = networks.clone().to_vec(); 
+impl<N: Ord + Identifiable + Clone + Debug> SortedFilteredNetworks<N> {
+    pub(crate) fn new(networks: Vec<N>) -> Self {
+        let mut networks = networks; 
         Self::put_best_networks_first(&mut networks);
         let networks = Self::dedup_networks(networks);
         Self { networks }
     }
 
-    fn put_best_networks_first(networks: &mut Vec<T>) {
+    fn put_best_networks_first(networks: &mut Vec<N>) {
         networks.sort();
         networks.reverse();
     }
 }
 
-impl<T: Identifiable + Clone> SortedFilteredNetworks<T> {
-    fn dedup_networks(networks: Vec<T>) -> Vec<T> {
+impl<N: Identifiable + Clone + Debug> SortedFilteredNetworks<N> {
+    fn dedup_networks(networks: Vec<N>) -> Vec<N> {
         // Once partition_dedup_by is stable:
         //let (unique_networks, _dups) = sorted_networks.partition_dedup_by(|a, b| a.essid == b.essid);
         let mut unique_networks = vec![];
@@ -65,6 +67,7 @@ impl PartialOrd for AnnotatedWirelessNetwork {
         Some(self.cmp(other))
     }
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -166,7 +169,7 @@ mod tests {
             networks[3].clone(),
         ];
 
-        let sorted_unique_networks = SortedFilteredNetworks::new(&networks);
+        let sorted_unique_networks = SortedFilteredNetworks::new(networks);
         assert_eq![expected_networks, sorted_unique_networks.get_networks()];
     }
 }

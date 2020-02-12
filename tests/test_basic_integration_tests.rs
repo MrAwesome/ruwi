@@ -65,3 +65,14 @@ fn test_iw_many_networks_from_stdin_with_select() -> Result<()> {
     p.exp_regex("Patrician Pad")?;
     Ok(())
 }
+
+#[test]
+fn test_clear() -> Result<()> {
+    let mut p = spawn(
+        "./target/debug/ruwi -D clear",
+        Some(200),
+    )?;
+    p.exp_string("Running in dryrun mode")?;
+    p.exp_string("Not running command in dryrun mode: `systemctl stop netctl`")?;
+    Ok(())
+}
