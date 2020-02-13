@@ -1,5 +1,5 @@
 use crate::options::interfaces::*;
-use crate::select_utils::*;
+use crate::select::prompt_for_encryption_key::prompt_for_encryption_key;
 use crate::errors::*;
 use crate::structs::*;
 
@@ -48,20 +48,6 @@ where
     }
 
     Ok(pw)
-}
-
-fn prompt_for_encryption_key<O>(options: &O, network_name: &str) -> Result<String, RuwiError>
-where
-    O: Global,
-{
-    match options.get_selection_method() {
-        SelectionMethod::Dmenu => {
-            run_dmenu(options, &format!("Password for {}: ", network_name), &[])
-        }
-        SelectionMethod::Fzf => {
-            run_stdin_prompt_single_line(options, &format!("Password for {}: ", network_name), &[])
-        }
-    }
 }
 
 #[cfg(test)]

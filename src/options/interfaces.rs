@@ -46,3 +46,8 @@ pub trait Known {
 pub trait Annotated<T>: Known {
     fn from_nw(nw: T, is_known: bool) -> Self;
 }
+
+pub trait Selectable {
+    fn get_display_string(&self) -> String;
+}
+

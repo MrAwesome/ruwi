@@ -1,8 +1,14 @@
+mod text_format_for_display;
+
+pub(crate) mod prompt_for_encryption_key;
+
+mod external_selection_programs;
+use external_selection_programs::*;
+
 // TODO: abstract away this functionality to not be wifi-specific
 use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::rerr;
-use crate::select_utils::*;
 use crate::sort_networks::SortedFilteredNetworks;
 use crate::structs::*;
 

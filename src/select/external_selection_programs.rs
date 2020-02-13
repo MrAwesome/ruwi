@@ -8,10 +8,6 @@ use std::io;
 use std::io::BufRead;
 use std::io::Write;
 
-pub trait Selectable {
-    fn get_display_string(&self) -> String;
-}
-
 pub(crate) fn run_dmenu<O>(
     options: &O,
     prompt: &str,
