@@ -6,12 +6,12 @@ mod text_format_for_display;
 use additional_selection_options::*;
 use external_selection_programs::*;
 
-// TODO: abstract away this functionality to not be wifi-specific
 use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::rerr;
 use crate::sort_networks::SortedFilteredNetworks;
 use crate::structs::*;
+
 use std::fmt::Debug;
 use std::str::FromStr;
 
@@ -184,7 +184,6 @@ impl<N: Identifiable + Selectable + Debug + Ord + Known + Clone> SortedFilteredN
     fn select_last<O>(&self, _options: &O) -> Result<N, RuwiError>
     where
         O: Global,
-        N: Identifiable + Selectable + Clone,
     {
         self.get_networks()
             .iter()
@@ -202,7 +201,6 @@ impl<N: Identifiable + Selectable + Debug + Ord + Known + Clone> SortedFilteredN
     fn select_refresh<O>(&self, _options: &O) -> Result<N, RuwiError>
     where
         O: Global,
-        N: Identifiable + Selectable + Clone,
     {
         dbg![&self];
         Err(rerr!(RuwiErrorKind::RefreshRequested, "Refresh requested."))
@@ -212,7 +210,6 @@ impl<N: Identifiable + Selectable + Debug + Ord + Known + Clone> SortedFilteredN
     fn err_should_not_have_used_manual<O>(&self, _opt: &O) -> Result<N, RuwiError>
     where
         O: Global,
-        N: Identifiable + Selectable + Clone,
     {
         dbg![&self];
         Err(rerr!(
