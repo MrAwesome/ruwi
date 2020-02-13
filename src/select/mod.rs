@@ -15,7 +15,7 @@ use crate::structs::*;
 use std::fmt::Debug;
 use std::str::FromStr;
 
-impl<N: Identifiable + Selectable + Debug + Ord + Known + Clone> SortedFilteredNetworks<N> {
+impl<N: Identifiable + Selectable + Debug + Known + Clone> SortedFilteredNetworks<N> {
     pub fn get_tokens_for_selection(&self) -> Vec<String> {
         self.get_network_tokens()
             .into_iter()
@@ -113,41 +113,7 @@ impl<N: Identifiable + Selectable + Debug + Ord + Known + Clone> SortedFilteredN
         let selection_tokens = self.get_tokens_for_selection();
         selector(options, &selection_tokens).map(|x| x.trim().into())
     }
-}
 
-fn pass_tokens_to_selection_program<O>(
-    options: &O,
-    selection_tokens: &[String],
-) -> Result<String, RuwiError>
-where
-    O: Global,
-{
-    match options.get_selection_method() {
-        SelectionMethod::Dmenu => run_dmenu(options, "Select a network: ", &selection_tokens),
-        SelectionMethod::Fzf => run_fzf(
-            options,
-            "Select a network (ctrl-r or \"refresh\" to refresh results): ",
-            &selection_tokens,
-        ),
-    }
-}
-
-fn get_index_of_selected_item(line: &str) -> Result<usize, RuwiError> {
-    line.split(") ")
-        .next()
-        .ok_or_else(|| get_line_parse_err(line))?
-        .parse::<usize>()
-        .or_else(|_| Err(get_line_parse_err(line)))
-}
-
-fn get_line_parse_err(line: &str) -> RuwiError {
-    rerr!(
-        RuwiErrorKind::FailedToParseSelectedLine,
-        format!("Failed to parse line {}", line)
-    )
-}
-
-impl<N: Identifiable + Selectable + Debug + Ord + Known + Clone> SortedFilteredNetworks<N> {
     fn select_first_known<O>(&self, _options: &O) -> Result<N, RuwiError>
     where
         O: Global,
@@ -217,6 +183,38 @@ impl<N: Identifiable + Selectable + Debug + Ord + Known + Clone> SortedFilteredN
             "Used manual selector in test when should not have!",
         ))
     }
+}
+
+fn pass_tokens_to_selection_program<O>(
+    options: &O,
+    selection_tokens: &[String],
+) -> Result<String, RuwiError>
+where
+    O: Global,
+{
+    match options.get_selection_method() {
+        SelectionMethod::Dmenu => run_dmenu(options, "Select a network: ", &selection_tokens),
+        SelectionMethod::Fzf => run_fzf(
+            options,
+            "Select a network (ctrl-r or \"refresh\" to refresh results): ",
+            &selection_tokens,
+        ),
+    }
+}
+
+fn get_index_of_selected_item(line: &str) -> Result<usize, RuwiError> {
+    line.split(") ")
+        .next()
+        .ok_or_else(|| get_line_parse_err(line))?
+        .parse::<usize>()
+        .or_else(|_| Err(get_line_parse_err(line)))
+}
+
+fn get_line_parse_err(line: &str) -> RuwiError {
+    rerr!(
+        RuwiErrorKind::FailedToParseSelectedLine,
+        format!("Failed to parse line {}", line)
+    )
 }
 
 #[cfg(test)]
