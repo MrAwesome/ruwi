@@ -12,10 +12,9 @@ use crate::rerr;
 use crate::sort_networks::SortedFilteredNetworks;
 use crate::structs::*;
 
-use std::fmt::Debug;
 use std::str::FromStr;
 
-impl<N: Identifiable + Selectable + Debug + Known + Clone> SortedFilteredNetworks<N> {
+impl<N: AnnotatedRuwiNetwork> SortedFilteredNetworks<N> {
     pub fn get_tokens_for_selection(&self) -> Vec<String> {
         self.get_network_tokens()
             .into_iter()

@@ -1,5 +1,6 @@
 use crate::errors::*;
 use crate::structs::*;
+use std::fmt::Debug;
 
 // TODO: make more usages look like this
 // impl<O> NetworkingService where O: Global {
@@ -51,3 +52,5 @@ pub trait Selectable {
     fn get_display_string(&self) -> String;
 }
 
+pub trait RuwiNetwork: Identifiable + Debug + Clone {} 
+pub trait AnnotatedRuwiNetwork: RuwiNetwork + Selectable + Known + Ord {} 

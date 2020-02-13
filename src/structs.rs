@@ -5,9 +5,9 @@
 use std::fmt::Debug;
 
 // NOTE: instead of strum, you can use arg_enum! from the clap crate, to cut down on compile times
+use crate::interfaces::*;
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 use typed_builder::TypedBuilder;
-use crate::interfaces::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ScanMethod {
@@ -172,7 +172,6 @@ impl Annotated<WirelessNetwork> for AnnotatedWirelessNetwork {
             known: is_known,
         }
     }
-
 }
 
 impl AnnotatedWirelessNetwork {
@@ -210,6 +209,9 @@ impl Known for AnnotatedWirelessNetwork {
         self.known
     }
 }
+
+impl RuwiNetwork for AnnotatedWirelessNetwork {}
+impl AnnotatedRuwiNetwork for AnnotatedWirelessNetwork {}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConfigResult {
