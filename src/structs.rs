@@ -63,13 +63,6 @@ impl Default for SelectionMethod {
         Self::Fzf
     }
 }
-
-#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
-#[strum(serialize_all = "snake_case")]
-pub enum SelectionOption {
-    Refresh,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
 #[strum(serialize_all = "snake_case")]
 pub enum WifiConnectionType {

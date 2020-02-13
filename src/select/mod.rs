@@ -1,8 +1,9 @@
+mod additional_selection_options;
+mod external_selection_programs;
+pub(crate) mod prompt_for_encryption_key;
 mod text_format_for_display;
 
-pub(crate) mod prompt_for_encryption_key;
-
-mod external_selection_programs;
+use additional_selection_options::*;
 use external_selection_programs::*;
 
 // TODO: abstract away this functionality to not be wifi-specific
@@ -11,17 +12,8 @@ use crate::options::interfaces::*;
 use crate::rerr;
 use crate::sort_networks::SortedFilteredNetworks;
 use crate::structs::*;
-
-use crate::strum_utils::possible_vals;
 use std::fmt::Debug;
 use std::str::FromStr;
-
-fn get_possible_selection_options_as_strings() -> Vec<String> {
-    possible_vals::<SelectionOption, _>()
-        .iter()
-        .map(|&x| x.into())
-        .collect()
-}
 
 impl<N: Identifiable + Selectable + Debug + Ord + Known + Clone> SortedFilteredNetworks<N> {
     pub fn get_tokens_for_selection(&self) -> Vec<String> {
@@ -194,8 +186,7 @@ impl<N: Identifiable + Selectable + Debug + Ord + Known + Clone> SortedFilteredN
         O: Global,
         N: Identifiable + Selectable + Clone,
     {
-        self
-            .get_networks()
+        self.get_networks()
             .iter()
             .last()
             .ok_or_else(|| {
@@ -207,11 +198,8 @@ impl<N: Identifiable + Selectable + Debug + Ord + Known + Clone> SortedFilteredN
             .map(Clone::clone)
     }
 
-
     #[cfg(test)]
-    fn select_refresh<O>(
-        &self,
-        _options: &O) -> Result<N, RuwiError>
+    fn select_refresh<O>(&self, _options: &O) -> Result<N, RuwiError>
     where
         O: Global,
         N: Identifiable + Selectable + Clone,
@@ -221,9 +209,7 @@ impl<N: Identifiable + Selectable + Debug + Ord + Known + Clone> SortedFilteredN
     }
 
     #[cfg(test)]
-    fn err_should_not_have_used_manual<O>(
-        &self,
-        _opt: &O) -> Result<N, RuwiError>
+    fn err_should_not_have_used_manual<O>(&self, _opt: &O) -> Result<N, RuwiError>
     where
         O: Global,
         N: Identifiable + Selectable + Clone,
@@ -296,7 +282,8 @@ mod tests {
         let options = WifiConnectOptions::default();
         assert_eq![options.get_auto_mode(), &AutoMode::Ask];
         let networks = get_3_unknown_networks();
-        let res = networks.select_network_impl(&options, SortedFilteredNetworks::select_first_known);
+        let res =
+            networks.select_network_impl(&options, SortedFilteredNetworks::select_first_known);
         assert_eq![RuwiErrorKind::NoKnownNetworksFound, res.err().unwrap().kind];
     }
 
@@ -307,7 +294,10 @@ mod tests {
             .auto_mode(AutoMode::KnownOrFail)
             .build();
         let networks = get_3_networks_last_known();
-        let nw = networks.select_network_impl(&options, SortedFilteredNetworks::err_should_not_have_used_manual)?;
+        let nw = networks.select_network_impl(
+            &options,
+            SortedFilteredNetworks::err_should_not_have_used_manual,
+        )?;
         assert_eq![networks.get_networks()[2], nw];
         Ok(())
     }
@@ -319,7 +309,10 @@ mod tests {
             .auto_mode(AutoMode::KnownOrFail)
             .build();
         let networks = get_3_networks_first_known();
-        let nw = networks.select_network_impl(&options, SortedFilteredNetworks::err_should_not_have_used_manual)?;
+        let nw = networks.select_network_impl(
+            &options,
+            SortedFilteredNetworks::err_should_not_have_used_manual,
+        )?;
         assert_eq![networks.get_networks()[0], nw];
         Ok(())
     }
@@ -331,7 +324,10 @@ mod tests {
             .auto_mode(AutoMode::KnownOrFail)
             .build();
         let networks = get_3_networks_last_known();
-        let nw = networks.select_network_impl(&options, SortedFilteredNetworks::err_should_not_have_used_manual)?;
+        let nw = networks.select_network_impl(
+            &options,
+            SortedFilteredNetworks::err_should_not_have_used_manual,
+        )?;
         assert_eq![networks.get_networks()[2], nw];
         Ok(())
     }
@@ -365,18 +361,20 @@ mod tests {
         let opts = WifiConnectOptions::default();
         let networks = get_3_unknown_networks();
 
-        let run_without_whitespace = networks.run_manual_selector_impl(&opts, |_opts, names| {
-            Ok(format!("{}", &names.first().unwrap()))
-        })
-        .unwrap();
+        let run_without_whitespace = networks
+            .run_manual_selector_impl(&opts, |_opts, names| {
+                Ok(format!("{}", &names.first().unwrap()))
+            })
+            .unwrap();
 
-        let run_with_whitespace = networks.run_manual_selector_impl(&opts, |_opts, names| {
-            Ok(format!(
-                " \n\n  \n {}   \n\n   \t   \n",
-                &names.first().unwrap()
-            ))
-        })
-        .unwrap();
+        let run_with_whitespace = networks
+            .run_manual_selector_impl(&opts, |_opts, names| {
+                Ok(format!(
+                    " \n\n  \n {}   \n\n   \t   \n",
+                    &names.first().unwrap()
+                ))
+            })
+            .unwrap();
 
         dbg!(&run_without_whitespace, &run_with_whitespace);
         assert_eq!(run_without_whitespace, run_with_whitespace);
