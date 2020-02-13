@@ -72,7 +72,21 @@ fn test_clear() -> Result<()> {
         "./target/debug/ruwi -D clear",
         Some(200),
     )?;
-    p.exp_string("Running in dryrun mode")?;
-    p.exp_string("Not running command in dryrun mode: `systemctl stop netctl`")?;
+    p.exp_string("Running in dryrun mode!")?;
+    let text = p.exp_eof()?;
+
+    // This is a little inflexible, but since `ruwi clear` can give results in any order because it's
+    // threaded, ensuring we do kill everything we expect to kill seems like a small price to pay.
+    let killed_netctl = text.contains("Not running command in dryrun mode: `systemctl stop netctl`");
+    let killed_nwmgr = text.contains("Not running command in dryrun mode: `systemctl stop NetworkManager`");
+    let killed_wpa_supp = text.contains("Not running command in dryrun mode: `pkill wpa_supplicant`");
+
+    dbg!(text);
+    dbg!(killed_netctl, killed_nwmgr, killed_wpa_supp);
+
+    assert![killed_netctl];
+    assert![killed_nwmgr];
+    assert![killed_wpa_supp];
+
     Ok(())
 }
