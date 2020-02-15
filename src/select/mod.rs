@@ -185,7 +185,7 @@ where
     O: Global,
 {
     match options.get_selection_method() {
-        SelectionMethod::NoCurses => run_select_nocurses(options, "Select a network: ", &selection_tokens),
+        SelectionMethod::NoCurses => run_select_nocurses(options, "Select a network (\"refresh\" or \".\" to rescan, Enter to select the top option): ", &selection_tokens),
         SelectionMethod::Dmenu => run_dmenu(options, "Select a network: ", &selection_tokens),
         SelectionMethod::Fzf => run_fzf(
             options,
