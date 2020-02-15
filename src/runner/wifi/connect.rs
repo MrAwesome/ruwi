@@ -41,6 +41,8 @@ impl WifiConnectOptions {
         self.network_parser_and_annotator(&known_network_names, &scan_result)
     }
 
+    // fn TODO() { println!("Remove the code reuse between connect and select"); }
+
     fn network_parser_and_annotator(
         &self,
         known_network_names: &KnownIdentifiers,

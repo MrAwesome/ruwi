@@ -44,12 +44,15 @@ pub trait Known {
     fn is_known(&self) -> bool;
 }
 
-pub trait Annotated<T>: Known {
-    fn from_nw(nw: T, is_known: bool) -> Self;
-}
-
 pub trait Selectable {
     fn get_display_string(&self) -> String;
+}
+
+// This exists so that AnnotatedRuwiNetwork does not need to have the 
+// associated type defined everywhere it is used, since associated trait 
+// bounds are unstable right now (Q1 2020).
+pub trait Annotated<T>: Known + Debug {
+        fn from_nw(nw: T, is_known: bool) -> Self;
 }
 
 pub trait RuwiNetwork: Identifiable + Debug + Clone {} 

@@ -56,6 +56,7 @@ impl Default for WifiScanType {
 pub enum SelectionMethod {
     Dmenu,
     Fzf,
+    //NoCurses,
 }
 
 impl Default for SelectionMethod {
@@ -145,6 +146,8 @@ impl Default for WirelessNetwork {
         }
     }
 }
+
+impl RuwiNetwork for WirelessNetwork {}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AnnotatedWirelessNetwork {

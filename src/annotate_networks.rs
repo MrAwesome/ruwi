@@ -1,6 +1,5 @@
 use crate::check_known_identifiers::KnownIdentifiers;
-use crate::options::interfaces::{Global, Identifiable, Annotated};
-use std::fmt::Debug;
+use crate::options::interfaces::*;
 
 pub(crate) fn annotate_networks<'a, O, T, U>(
     options: &O,
@@ -9,8 +8,8 @@ pub(crate) fn annotate_networks<'a, O, T, U>(
 ) -> Vec<U>
 where
     O: Global,
-    T: Debug + Identifiable + Clone,
-    U: Debug + Annotated<T>,
+    T: RuwiNetwork,
+    U: Annotated<T>,
 {
     let networks = networks
         .iter()

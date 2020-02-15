@@ -1,9 +1,9 @@
-mod additional_selection_options;
+mod additional_options_for_manual_selection;
 mod external_selection_programs;
 pub(crate) mod prompt_for_encryption_key;
 mod text_format_for_display;
 
-use additional_selection_options::*;
+use additional_options_for_manual_selection::*;
 use external_selection_programs::*;
 
 use crate::errors::*;
