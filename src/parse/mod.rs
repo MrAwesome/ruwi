@@ -144,7 +144,7 @@ where O: Global + LinuxNetworkingInterface {
     rerr!(
         RuwiErrorKind::MalformedIWOutput,
         format!(
-            "Malformed output returned by `sudo iw {} scan dump`. Try running it manually.",
+            "Malformed output returned by `sudo iw {} scan dump`. Try running it manually, or rerunning ruwi with -d to see the parse error.",
             options.get_interface_name()
         )
     )

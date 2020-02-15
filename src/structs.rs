@@ -52,11 +52,11 @@ impl Default for WifiScanType {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
-#[strum(serialize_all = "snake_case")]
+#[strum(serialize_all = "lowercase")]
 pub enum SelectionMethod {
     Dmenu,
     Fzf,
-    //NoCurses,
+    NoCurses,
 }
 
 impl Default for SelectionMethod {

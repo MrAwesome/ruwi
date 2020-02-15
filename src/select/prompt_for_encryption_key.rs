@@ -11,7 +11,7 @@ where
         SelectionMethod::Dmenu => {
             run_dmenu(options, &format!("Password for {}: ", network_name), &[])
         }
-        SelectionMethod::Fzf => {
+        SelectionMethod::Fzf | SelectionMethod::NoCurses => {
             run_stdin_prompt_single_line(options, &format!("Password for {}: ", network_name), &[])
         }
     }

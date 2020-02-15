@@ -36,6 +36,16 @@ pub(crate) fn run_fzf<O>(
     )
 }
 
+#[cfg_attr(test, allow(unused))]
+pub(crate) fn run_select_nocurses<O>(
+    options: &O,
+    prompt: &str,
+    elements: &[String],
+) -> Result<String, RuwiError> where O: Global {
+    run_stdin_prompt_single_line_impl(options, prompt, elements)
+        .map_err(|e| rerr!(RuwiErrorKind::SingleLinePromptFailed, e.description()))
+}
+
 pub(crate) fn run_stdin_prompt_single_line<O>(
     options: &O,
     prompt: &str,
@@ -48,9 +58,12 @@ pub(crate) fn run_stdin_prompt_single_line<O>(
 fn run_stdin_prompt_single_line_impl<O>(
     _options: &O,
     prompt: &str,
-    _elements: &[String],
+    elements: &[String],
 ) -> io::Result<String> where O: Global {
-    print!("{}", prompt);
+    if ! elements.is_empty() {
+        eprintln!("{}", elements.join("\n"));
+    }
+    eprint!("{}", prompt);
     io::stdout().flush()?;
     let stdin = io::stdin();
     let line_res = stdin.lock().lines().next();

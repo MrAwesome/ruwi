@@ -2,17 +2,18 @@ mod additional_options_for_manual_selection;
 mod external_selection_programs;
 pub(crate) mod prompt_for_encryption_key;
 mod text_format_for_display;
+mod get_index_of_selected_item;
+
 
 use additional_options_for_manual_selection::*;
 use external_selection_programs::*;
+use get_index_of_selected_item::get_index_of_selected_item;
 
 use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::rerr;
 use crate::sort_networks::SortedFilteredNetworks;
 use crate::structs::*;
-
-use std::str::FromStr;
 
 impl<N: AnnotatedRuwiNetwork> SortedFilteredNetworks<N> {
     pub fn get_tokens_for_selection(&self) -> Vec<String> {
@@ -75,14 +76,6 @@ impl<N: AnnotatedRuwiNetwork> SortedFilteredNetworks<N> {
     {
         let selector_output = self.run_manual_selector(options)?;
 
-        if let Ok(selection_option) = SelectionOption::from_str(&selector_output) {
-            match selection_option {
-                SelectionOption::Refresh => {
-                    eprintln!("[NOTE]: Refresh requested, running synchronous scan.");
-                    Err(rerr!(RuwiErrorKind::RefreshRequested, "Refresh requested."))
-                }
-            }
-        } else {
             let index = get_index_of_selected_item(&selector_output)?;
 
             self.get_networks()
@@ -94,7 +87,7 @@ impl<N: AnnotatedRuwiNetwork> SortedFilteredNetworks<N> {
                         format!("No network matching {} found.", selector_output)
                     )
                 })
-        }
+        
     }
 
     fn run_manual_selector<O>(&self, options: &O) -> Result<String, RuwiError>
@@ -192,6 +185,7 @@ where
     O: Global,
 {
     match options.get_selection_method() {
+        SelectionMethod::NoCurses => run_select_nocurses(options, "Select a network: ", &selection_tokens),
         SelectionMethod::Dmenu => run_dmenu(options, "Select a network: ", &selection_tokens),
         SelectionMethod::Fzf => run_fzf(
             options,
@@ -199,21 +193,6 @@ where
             &selection_tokens,
         ),
     }
-}
-
-fn get_index_of_selected_item(line: &str) -> Result<usize, RuwiError> {
-    line.split(") ")
-        .next()
-        .ok_or_else(|| get_line_parse_err(line))?
-        .parse::<usize>()
-        .or_else(|_| Err(get_line_parse_err(line)))
-}
-
-fn get_line_parse_err(line: &str) -> RuwiError {
-    rerr!(
-        RuwiErrorKind::FailedToParseSelectedLine,
-        format!("Failed to parse line {}", line)
-    )
 }
 
 #[cfg(test)]
@@ -372,29 +351,6 @@ mod tests {
 
         dbg!(&run_without_whitespace, &run_with_whitespace);
         assert_eq!(run_without_whitespace, run_with_whitespace);
-    }
-
-    #[test]
-    fn test_get_indices() -> Result<(), RuwiError> {
-        let test_cases: Vec<(&str, Result<usize, RuwiError>)> = vec![
-            ("1) jfdlskajfdlksa", Ok(1)),
-            ("0) jfdlskajfdlksa", Ok(0)),
-            ("22) jfdlskajfdlksa", Ok(22)),
-            ("69) 54) jfdlskajfdlksa", Ok(69)),
-            ("4000) jfdlskajfdlksa", Ok(4000)),
-            ("4000000000) jfdlskajfdlksa", Ok(4_000_000_000)),
-            ("-12) negawifi", Err(get_line_parse_err("-12) negawifi"))),
-            ("jf jfjf", Err(get_line_parse_err("jf jfjf"))),
-            ("!@&*(#@!", Err(get_line_parse_err("!@&*(#@!"))),
-        ];
-
-        for (line, res) in test_cases {
-            match get_index_of_selected_item(line) {
-                Ok(val) => assert_eq![res?, val],
-                Err(err) => assert_eq![res.err().unwrap().kind, err.kind],
-            }
-        }
-        Ok(())
     }
 
     #[test]

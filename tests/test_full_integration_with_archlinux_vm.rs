@@ -20,6 +20,8 @@ fn test_full_integration_with_archlinux_vm() -> Result<()> {
     shell_for_copying_files_into_shared_dir.wait_for_prompt()?;
     eprintln!("[TEST]: Done copying files.");
 
+    // TODO: make this work when offline and the iso is present
+    // TODO: update to the newest iso always?
     eprintln!("[TEST]: Fetching/checking LiveCD...");
     let mut shell_for_fetching_iso = spawn_bash(Some(900000))?;
     let command = concat!(
@@ -86,34 +88,23 @@ fn test_full_integration_with_archlinux_vm() -> Result<()> {
     p.exp_string("@archiso")?;
     eprintln!("[TEST]: Successfully connected to cowardice with `-e` and `-p`!");
     // TODO: test scanning with iw
+    // TODO: test refresh with iw by adding a new radio and network on it while ruwi is running?
 
     // fzf doesn't recognize non-control inputs sent with rexpect
-    //    p.send_line("/tmp/host_shared/ruwi -i wlan2")?;
-    //    p.exp_string("Select a network")?;
-    //    eprintln!("[TEST]: Started ruwi in fzf mode!");
-    //    p.send_control('r')?;
-    //    eprintln!("[TEST]: Sent refresh...");
-    //    p.exp_string("[NOTE]: Refresh requested, running synchronous scan.")?;
-    //    eprintln!("[TEST]: Refresh recognized...");
-    //    p.exp_string("bravery")?;
-    //    eprintln!("[TEST]: Refresh successful!");
-    //    // Make sure we aren't just selecting the first option
-    //    p.send_control('n')?;
-    //    p.send_control('n')?;
-    //    p.send_control('n')?;
-    //    p.send_control('v')?;
-    //    p.send("b")?;
-    //    p.flush()?;
-    //    p.send_control('v')?;
-    //    p.send("r")?;
-    //    p.flush()?;
-    //    p.send_control('v')?;
-    //    p.send("a")?;
-    //    p.flush()?;
-    //    p.send("\n")?;
-    //    p.flush()?;
-    //    p.exp_string("[NOTE]: Successfully connected to: \"bravery\"")?;
-    //    eprintln!("[TEST]: Successfully connected to bravery!");
+    p.send_line("/tmp/host_shared/ruwi -m nocurses -i wlan2")?;
+    p.exp_string("Select a network")?;
+    eprintln!("[TEST]: Started ruwi in nocurses mode!");
+    p.send_line("refresh")?;
+    eprintln!("[TEST]: Sent refresh...");
+    p.exp_string("[NOTE]: Refresh requested, running synchronous scan.")?;
+    eprintln!("[TEST]: Refresh recognized...");
+    p.exp_string("bravery")?;
+    eprintln!("[TEST]: Refresh successful!");
+    p.send_line("")?;
+    // TODO: implement prefix matching
+    // p.exp_string("[NOTE]: Successfully connected to: \"bravery\"")?;
+    p.wait_for_prompt()?;
+
 
     eprintln!("[TEST]: Finished successfully!");
     eprintln!("[TEST]: Starting shutdown...");
