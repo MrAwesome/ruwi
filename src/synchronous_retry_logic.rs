@@ -1,7 +1,7 @@
 use crate::options::interfaces::*;
 use crate::structs::*;
 
-pub(crate) fn should_retry_with_synchronous_scan<O>(
+pub(crate) fn should_auto_retry_with_synchronous_scan<O>(
     options: &O,
     networks: &[AnnotatedWirelessNetwork],
 ) -> bool
@@ -140,7 +140,7 @@ mod tests {
         {
             let options = get_options(auto_mode);
             let networks = get_networks(network_list_type);
-            let should_retry = should_retry_with_synchronous_scan(&options, &networks);
+            let should_retry = should_auto_retry_with_synchronous_scan(&options, &networks);
 
             // Only bother trying to print if we know we're going to fail:
             if expected_should_retry != &should_retry {

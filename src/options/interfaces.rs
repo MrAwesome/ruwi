@@ -1,6 +1,10 @@
 use crate::errors::*;
+// TODO: remove reliance on naked structs here
+use crate::check_known_identifiers::KnownIdentifiers;
 use crate::structs::*;
 use std::fmt::Debug;
+
+// TODO: Remove networks from here and put elsewhere
 
 // TODO: make more usages look like this
 // impl<O> NetworkingService where O: Global {
@@ -36,6 +40,13 @@ pub trait WifiConnect {
     fn get_connect_via(&self) -> &WifiConnectionType;
 }
 
+pub trait WifiDataGatherer {
+    fn get_wifi_data(
+        &self,
+        synchronous_rescan: Option<SynchronousRescanType>,
+    ) -> Result<(KnownIdentifiers, ScanResult), RuwiError>;
+}
+
 pub trait Identifiable {
     fn get_identifier(&self) -> &str;
 }
@@ -48,12 +59,12 @@ pub trait Selectable {
     fn get_display_string(&self) -> String;
 }
 
-// This exists so that AnnotatedRuwiNetwork does not need to have the 
-// associated type defined everywhere it is used, since associated trait 
+// This exists so that AnnotatedRuwiNetwork does not need to have the
+// associated type defined everywhere it is used, since associated trait
 // bounds are unstable right now (Q1 2020).
 pub trait Annotated<T>: Known + Debug {
-        fn from_nw(nw: T, is_known: bool) -> Self;
+    fn from_nw(nw: T, is_known: bool) -> Self;
 }
 
-pub trait RuwiNetwork: Identifiable + Debug + Clone {} 
-pub trait AnnotatedRuwiNetwork: RuwiNetwork + Selectable + Known + Ord {} 
+pub trait RuwiNetwork: Identifiable + Debug + Clone {}
+pub trait AnnotatedRuwiNetwork: RuwiNetwork + Selectable + Known + Ord {}

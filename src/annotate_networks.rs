@@ -1,7 +1,7 @@
 use crate::check_known_identifiers::KnownIdentifiers;
 use crate::options::interfaces::*;
 
-pub(crate) fn annotate_networks<'a, O, T, U>(
+pub(crate) fn annotate_networks<O, T, U>(
     options: &O,
     networks: &[T],
     known_identifiers: &KnownIdentifiers,
