@@ -16,7 +16,6 @@ pub(crate) fn run_dmenu<O>(
     run_prompt_cmd(options, "dmenu", &["-i", "-p", prompt], elements)
 }
 
-#[cfg_attr(test, allow(unused))]
 pub(crate) fn run_fzf<O>(
     options: &O,
     prompt: &str,
@@ -36,7 +35,6 @@ pub(crate) fn run_fzf<O>(
     )
 }
 
-#[cfg_attr(test, allow(unused))]
 pub(crate) fn run_select_nocurses<O>(
     options: &O,
     prompt: &str,
