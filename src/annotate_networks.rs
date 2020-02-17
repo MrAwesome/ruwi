@@ -46,7 +46,7 @@ mod tests {
         };
         let known_networks = KnownIdentifiers::new(vec![essid]);
         let annotated_networks: Vec<AnnotatedWirelessNetwork> =
-            annotate_networks(&WifiConnectOptions::default(), &vec![nw], &known_networks);
+            annotate_networks(&WifiConnectOptions::default(), &[nw], &known_networks);
 
         let resulting_nw = annotated_networks.first().unwrap();
         assert![resulting_nw.known];
@@ -95,5 +95,6 @@ mod tests {
 
         let resulting_nw = annotated_networks.first().unwrap();
         assert![!resulting_nw.known];
+        assert_eq![essid, resulting_nw.essid];
     }
 }

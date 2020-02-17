@@ -339,7 +339,7 @@ mod tests {
 
         let run_without_whitespace = networks
             .run_manual_selector_impl(&opts, |_opts, names| {
-                Ok(format!("{}", &names.first().unwrap()))
+                Ok(names.first().unwrap().to_string())
             })
             .unwrap();
 

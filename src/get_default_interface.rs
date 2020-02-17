@@ -34,7 +34,7 @@ where O: Global + Debug
     #[cfg(test)]
     {
         dbg!(&opts);
-        return Ok(IW_TEST_FAKE_INTERFACE.to_string());
+        Ok(IW_TEST_FAKE_INTERFACE.to_string())
     }
 
     #[cfg(not(test))]

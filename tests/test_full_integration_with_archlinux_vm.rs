@@ -23,7 +23,7 @@ fn test_full_integration_with_archlinux_vm() -> Result<()> {
     // TODO: make this work when offline and the iso is present
     // TODO: update to the newest iso always?
     eprintln!("[TEST]: Fetching/checking LiveCD...");
-    let mut shell_for_fetching_iso = spawn_bash(Some(900000))?;
+    let mut shell_for_fetching_iso = spawn_bash(Some(900_000))?;
     let command = concat!(
         "cd /tmp/archlinux/ && ",
         "curl http://mirror.rackspace.com/archlinux/iso/2019.12.01/md5sums.txt | grep archlinux-2019.12.01-x86_64.iso | md5sum -c || ",
