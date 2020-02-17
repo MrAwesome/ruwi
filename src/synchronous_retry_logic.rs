@@ -1,3 +1,4 @@
+use crate::enums::*;
 use crate::options::interfaces::*;
 use crate::structs::*;
 

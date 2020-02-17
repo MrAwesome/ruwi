@@ -1,3 +1,4 @@
+use crate::enums::*;
 use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::rerr;

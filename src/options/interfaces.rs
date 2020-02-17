@@ -1,7 +1,8 @@
 use crate::errors::*;
 // TODO: remove reliance on naked structs here
 use crate::check_known_identifiers::KnownIdentifiers;
-use crate::structs::*;
+use crate::enums::*;
+use crate::structs::ScanResult;
 use std::fmt::Debug;
 
 // TODO: Remove networks from here and put elsewhere
@@ -68,3 +69,7 @@ pub trait Annotated<T>: Known + Debug {
 
 pub trait RuwiNetwork: Identifiable + Debug + Clone {}
 pub trait AnnotatedRuwiNetwork: RuwiNetwork + Selectable + Known + Ord {}
+
+pub(crate) trait GetService {
+    fn get_service(&self) -> NetworkingService;
+}

@@ -1,12 +1,13 @@
 use super::utils::*;
 
 use crate::check_known_identifiers::KnownIdentifiers;
+use crate::enums::*;
 use crate::errors::*;
-use crate::structs::*;
-use crate::wifi_scan::wifi_scan;
-use crate::runner::Runner;
 use crate::options::interfaces::*;
 use crate::options::wifi::select::WifiSelectOptions;
+use crate::runner::Runner;
+use crate::structs::*;
+use crate::wifi_scan::wifi_scan;
 
 impl Runner for WifiSelectOptions {
     fn run(&self) -> Result<(), RuwiError> {

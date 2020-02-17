@@ -1,6 +1,7 @@
+use crate::enums::*;
+use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::run_commands::*;
-use crate::errors::*;
 use crate::structs::*;
 
 static NMCLI_SCAN_ERR_MSG: &str = concat!(

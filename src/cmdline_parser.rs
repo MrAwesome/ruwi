@@ -1,13 +1,13 @@
+use crate::enums::*;
 use crate::errors::*;
 use crate::get_default_interface::get_default_wifi_interface;
-use crate::options::interfaces::*;
 use crate::options::command::*;
+use crate::options::interfaces::*;
 use crate::options::wifi::connect::WifiConnectOptions;
 use crate::options::wifi::select::WifiSelectOptions;
 use crate::options::wifi::*;
 use crate::options::*;
 use crate::rerr;
-use crate::structs::*;
 use crate::strum_utils::*;
 
 use clap::{App, Arg, ArgMatches, SubCommand};

@@ -1,21 +1,12 @@
+use crate::enums::*;
 use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::run_commands::run_command_pass;
-use crate::structs::*;
 use crate::wpa_cli_initialize::*;
 
 use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
 
 // TODO: implement service killing for when switching between services?
-
-#[derive(Debug, EnumIter)]
-pub(crate) enum NetworkingService {
-    Netctl,
-    NetworkManager,
-    WpaSupplicant,
-    None,
-}
 
 impl NetworkingService {
     pub(crate) fn start<O>(&self, options: &O) -> Result<(), RuwiError>
@@ -115,10 +106,6 @@ where
         RuwiErrorKind::FailedToStopNetworkManager,
         "Failed to stop NetworkManager. Are you running as root?",
     )
-}
-
-pub(crate) trait GetService {
-    fn get_service(&self) -> NetworkingService;
 }
 
 impl GetService for WifiConnectionType {

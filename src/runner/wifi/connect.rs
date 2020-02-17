@@ -4,6 +4,7 @@ use crate::check_known_identifiers::KnownIdentifiers;
 use crate::configure_network::possibly_configure_network;
 use crate::connect::connect_to_network;
 use crate::encryption_key::possibly_get_encryption_key;
+use crate::enums::*;
 use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::options::wifi::connect::WifiConnectOptions;

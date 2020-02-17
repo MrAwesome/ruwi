@@ -4,6 +4,7 @@ use nmcli::parse_nmcli_scan;
 use crate::rerr;
 use crate::errors::*;
 use crate::structs::*;
+use crate::enums::*;
 use crate::options::interfaces::*;
 
 use unescape::unescape;
@@ -239,6 +240,7 @@ fn parse_wpa_line_into_network(line: &str) -> Result<WirelessNetwork, Individual
 // TODO: for networkmanager: shorten to nm in options
 // TODO: check behavior of SSIDs with colons in them for scan/parse
 // TODO: check behavior on nothing returned from scan
+#[allow(soft_unstable)]
 #[cfg(test)]
 mod tests {
     use super::*;

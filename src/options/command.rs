@@ -1,9 +1,9 @@
+use crate::enums::NetworkingService;
 use crate::errors::*;
 use crate::options::wifi::connect::WifiConnectOptions;
 use crate::options::wifi::select::WifiSelectOptions;
-use crate::runner::Runner;
-use crate::service_management::NetworkingService;
 use crate::options::GlobalOptions;
+use crate::runner::Runner;
 
 use strum_macros::{AsRefStr, AsStaticStr, Display, EnumIter, EnumString};
 

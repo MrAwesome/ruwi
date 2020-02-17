@@ -1,9 +1,13 @@
+use crate::enums::*;
 use crate::errors::*;
-use crate::structs::*;
-use crate::run_commands::*;
 use crate::interfaces::*;
+use crate::run_commands::*;
+use crate::structs::*;
 
-pub(crate) fn run_wpa_cli_scan<O>(options: &O, scan_type: ScanType) -> Result<ScanResult, RuwiError> where O: Global {
+pub(crate) fn run_wpa_cli_scan<O>(options: &O, scan_type: ScanType) -> Result<ScanResult, RuwiError>
+where
+    O: Global,
+{
     let err_msg = concat!(
         "Failed to scan with `wpa_cli scan_results`. ",
         "Is wpa_supplicant running? Is it installed? ",
@@ -28,4 +32,3 @@ pub(crate) fn run_wpa_cli_scan<O>(options: &O, scan_type: ScanType) -> Result<Sc
         scan_output,
     })
 }
-

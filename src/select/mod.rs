@@ -1,19 +1,18 @@
 mod additional_options_for_manual_selection;
 mod external_selection_programs;
+mod get_index_of_selected_item;
 pub(crate) mod prompt_for_encryption_key;
 mod text_format_for_display;
-mod get_index_of_selected_item;
-
 
 use additional_options_for_manual_selection::*;
 use external_selection_programs::*;
 use get_index_of_selected_item::get_index_of_selected_item;
 
+use crate::enums::*;
 use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::rerr;
 use crate::sort_networks::SortedFilteredNetworks;
-use crate::structs::*;
 
 impl<N: AnnotatedRuwiNetwork> SortedFilteredNetworks<N> {
     pub fn get_tokens_for_selection(&self) -> Vec<String> {
@@ -76,18 +75,17 @@ impl<N: AnnotatedRuwiNetwork> SortedFilteredNetworks<N> {
     {
         let selector_output = self.run_manual_selector(options)?;
 
-            let index = get_index_of_selected_item(&selector_output)?;
+        let index = get_index_of_selected_item(&selector_output)?;
 
-            self.get_networks()
-                .get(index)
-                .map(Clone::clone)
-                .ok_or_else(|| {
-                    rerr!(
-                        RuwiErrorKind::NoNetworksFoundMatchingSelectionResult,
-                        format!("No network matching {} found.", selector_output)
-                    )
-                })
-        
+        self.get_networks()
+            .get(index)
+            .map(Clone::clone)
+            .ok_or_else(|| {
+                rerr!(
+                    RuwiErrorKind::NoNetworksFoundMatchingSelectionResult,
+                    format!("No network matching {} found.", selector_output)
+                )
+            })
     }
 
     fn run_manual_selector<O>(&self, options: &O) -> Result<String, RuwiError>
@@ -185,7 +183,11 @@ where
     O: Global,
 {
     match options.get_selection_method() {
-        SelectionMethod::NoCurses => run_select_nocurses(options, "Select a network (\"refresh\" or \".\" to rescan, Enter to select the top option): ", &selection_tokens),
+        SelectionMethod::NoCurses => run_select_nocurses(
+            options,
+            "Select a network (\"refresh\" or \".\" to rescan, Enter to select the top option): ",
+            &selection_tokens,
+        ),
         SelectionMethod::Dmenu => run_dmenu(options, "Select a network: ", &selection_tokens),
         SelectionMethod::Fzf => run_fzf(
             options,
@@ -198,6 +200,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::structs::AnnotatedWirelessNetwork;
     use crate::options::wifi::connect::WifiConnectOptions;
     use crate::options::wifi::WifiOptions;
     use crate::strum::AsStaticRef;

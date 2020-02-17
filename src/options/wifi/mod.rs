@@ -1,12 +1,12 @@
 pub(crate) mod connect;
 pub(crate) mod select;
 
-use typed_builder::TypedBuilder;
-use crate::structs::*;
+use crate::enums::*;
 use crate::errors::*;
-use crate::options::GlobalOptions;
-use crate::options::interfaces::*;
 use crate::interface_management::linux_networking_interface_management::*;
+use crate::options::interfaces::*;
+use crate::options::GlobalOptions;
+use typed_builder::TypedBuilder;
 
 #[derive(Debug, Clone, TypedBuilder)]
 pub struct WifiOptions {
@@ -17,9 +17,9 @@ pub struct WifiOptions {
     scan_method: ScanMethod,
     #[builder(default="wlan0".to_string())]
     interface: String,
-    #[builder(default=false)]
+    #[builder(default = false)]
     ignore_known: bool,
-    #[builder(default=false)]
+    #[builder(default = false)]
     force_synchronous_scan: bool,
 }
 

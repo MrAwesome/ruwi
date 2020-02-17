@@ -9,9 +9,9 @@ use wpa_cli_scan::run_wpa_cli_scan;
 
 use crate::rerr;
 use crate::errors::*;
+use crate::enums::*;
 use crate::structs::*;
 use crate::options::interfaces::*;
-use crate::service_management::GetService;
 
 use std::fs::File;
 use std::io;

@@ -2,6 +2,7 @@ use std::thread;
 
 use crate::annotate_networks::annotate_networks;
 use crate::check_known_identifiers::KnownIdentifiers;
+use crate::enums::*;
 use crate::errors::*;
 use crate::find_known_network_names::find_known_network_names;
 use crate::options::interfaces::*;

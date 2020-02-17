@@ -8,8 +8,8 @@ pub(crate) mod command;
 pub mod interfaces;
 pub(crate) mod wifi;
 
+use crate::enums::*;
 use crate::options::interfaces::*;
-use crate::structs::*;
 
 use typed_builder::TypedBuilder;
 pub static PROG_NAME: &str = "ruwi";

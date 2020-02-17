@@ -1,9 +1,9 @@
+use crate::enums::*;
 use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::rerr;
 #[cfg(not(test))]
 use crate::run_commands::*;
-use crate::structs::*;
 #[cfg(not(test))]
 use std::fs::{read_dir, DirEntry, File};
 use std::io;
@@ -17,9 +17,7 @@ use unescape::unescape;
 use crate::check_known_identifiers::KnownIdentifiers;
 
 // TODO: unit test the logic in this function
-pub(crate) fn find_known_network_names<O>(
-    options: &O,
-) -> Result<KnownIdentifiers, RuwiError>
+pub(crate) fn find_known_network_names<O>(options: &O) -> Result<KnownIdentifiers, RuwiError>
 where
     O: Global + Wifi + WifiConnect,
 {

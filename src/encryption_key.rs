@@ -1,6 +1,7 @@
+use crate::enums::*;
+use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::select::prompt_for_encryption_key::prompt_for_encryption_key;
-use crate::errors::*;
 use crate::structs::*;
 
 pub(crate) fn possibly_get_encryption_key<O>(
@@ -53,8 +54,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::options::wifi::WifiOptions;
     use crate::options::wifi::connect::WifiConnectOptions;
+    use crate::options::wifi::WifiOptions;
 
     fn should_not_run(_opt: &WifiConnectOptions, _nw: &str) -> Result<String, RuwiError> {
         panic!("Should not run.")
