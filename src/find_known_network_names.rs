@@ -52,13 +52,16 @@ fn find_known_networkmanager_networks<O>(options: &O) -> Result<Vec<String>, Ruw
 where
     O: Global,
 {
-    run_command_pass_stdout(
+    NetworkingService::NetworkManager.start(options)?;
+    let output = run_command_pass_stdout(
         options,
         "nmcli",
         &["-g", "NAME", "connection", "show"],
         RuwiErrorKind::FailedToListKnownNetworksWithNetworkManager,
         "Failed to list known networks with NetworkManager. Try running `nmcli -g NAME connection show`.",
-    ).map(|x| x.lines().map(String::from).collect())
+    ).map(|x| x.lines().map(String::from).collect());
+    NetworkingService::NetworkManager.stop(options)?;
+    output
 }
 
 #[cfg(test)]

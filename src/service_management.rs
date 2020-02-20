@@ -21,13 +21,26 @@ impl NetworkingService {
         }
     }
 
+    pub(crate) fn stop<O>(&self, options: &O) -> Result<(), RuwiError>
+    where
+        O: Global,
+    {
+        match self {
+            Self::Netctl => stop_netctl(options),
+            Self::NetworkManager => stop_networkmanager(options),
+            Self::WpaSupplicant => kill_wpa_supplicant(options),
+            Self::None => Ok(()),
+        }
+    }
+
     pub(crate) fn stop_all<O: 'static>(options: &O) -> Result<(), RuwiError>
     where
         O: Global + Send + Sync + Clone,
     {
         use std::thread;
         let options: &'static O = Box::leak(Box::new(options.clone()));
-        let handles: Vec<_> = Self::iter()
+        let all_service_types = Self::iter();
+        let handles: Vec<_> = all_service_types
             .map(|service| thread::spawn(move || service.stop(options)))
             .collect();
         for h in handles {
@@ -43,17 +56,6 @@ impl NetworkingService {
         Ok(())
     }
 
-    pub(crate) fn stop<O>(&self, options: &O) -> Result<(), RuwiError>
-    where
-        O: Global,
-    {
-        match self {
-            Self::Netctl => stop_netctl(options),
-            Self::NetworkManager => stop_networkmanager(options),
-            Self::WpaSupplicant => kill_wpa_supplicant(options),
-            Self::None => Ok(()),
-        }
-    }
 }
 
 fn start_netctl<O>(options: &O) -> Result<(), RuwiError>

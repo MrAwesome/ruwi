@@ -94,7 +94,7 @@ pub enum SynchronousRescanType {
     Automatic,
 }
 
-#[derive(Debug, EnumIter)]
+#[derive(Debug, PartialEq, Eq, EnumIter)]
 pub(crate) enum NetworkingService {
     Netctl,
     NetworkManager,

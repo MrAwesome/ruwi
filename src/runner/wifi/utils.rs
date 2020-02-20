@@ -19,12 +19,12 @@ where
 {
     let mut synchronous_retry = None;
     loop {
-        let (known_network_names, scan_result) = options.get_wifi_data(synchronous_retry)?;
+        let (known_network_names, scan_result) = options.get_wifi_data(&synchronous_retry)?;
         let parse_results = parse_result(options, &scan_result)?;
 
         let annotated_networks =
             annotate_networks(options, &parse_results.seen_networks, &known_network_names);
-        if should_auto_retry_with_synchronous_scan(options, &annotated_networks) {
+        if should_auto_retry_with_synchronous_scan(options, &annotated_networks, &synchronous_retry) {
             synchronous_retry = Some(SynchronousRescanType::Automatic);
             continue;
         }
@@ -42,12 +42,13 @@ where
 
 pub(super) fn gather_wifi_network_data<O>(
     options: &O,
-    synchronous_rescan: Option<SynchronousRescanType>,
+    synchronous_rescan: &Option<SynchronousRescanType>,
 ) -> Result<(KnownIdentifiers, ScanResult), RuwiError>
 where
     O: 'static + Global + Wifi + WifiConnect + LinuxNetworkingInterface + Send + Sync + Clone,
 {
     let options: &'static O = Box::leak(Box::new(options.clone()));
+    let synchronous_rescan = synchronous_rescan.clone();
 
     let get_nw_names = thread::spawn(move || find_known_network_names(options));
     let get_scan_results = thread::spawn(move || wifi_scan(options, &synchronous_rescan));

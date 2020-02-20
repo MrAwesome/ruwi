@@ -7,6 +7,7 @@ use std::fmt;
 pub enum RuwiErrorKind {
     CommandNotInstalled,
     InvalidScanTypeAndMethod,
+    InvalidScanTypeAndConnectType,
     FailedToListKnownNetworksWithNetworkManager,
     FailedToBringLinuxNetworkingInterfaceDown,
     FailedToBringLinuxNetworkingInterfaceUp,

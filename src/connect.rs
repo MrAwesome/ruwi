@@ -14,10 +14,10 @@ pub(crate) fn connect_to_network<O>(
 where
     O: Global + Wifi + WifiConnect + LinuxNetworkingInterface,
 {
-    let cv = options.get_connect_via();
-    cv.get_service().start(options)?;
+    manage_services(options)?;
 
-    match cv {
+    let connect_via = options.get_connect_via();
+    match connect_via {
         WifiConnectionType::Print => {}
         conn_type @ WifiConnectionType::None => {
             eprintln!(
@@ -33,7 +33,7 @@ where
         }
     }
 
-    let res = match cv {
+    let res = match connect_via {
         WifiConnectionType::Netctl => connect_via_netctl(options, selected_network),
         WifiConnectionType::Nmcli => {
             connect_via_networkmanager(options, selected_network, encryption_key)
@@ -43,7 +43,7 @@ where
             // TODO: integration tests to ensure this happens
             println!("{}", essid);
             Ok(ConnectionResult {
-                connection_type: cv.clone(),
+                connection_type: connect_via.clone(),
             })
         }
         WifiConnectionType::None => Ok(ConnectionResult {
@@ -76,6 +76,23 @@ where
     }
 
     res
+}
+
+// TODO: test service-switching behavior in VM integration test
+fn manage_services<O>(options: &O) -> Result<(), RuwiError>
+where
+    O: Global + Wifi + WifiConnect,
+{
+    let scan_service = options.get_scan_type().get_service();
+    let connect_service = options.get_connect_via().get_service();
+
+    if scan_service != connect_service {
+        scan_service.stop(options)?;
+    }
+
+    connect_service.start(options)?;
+
+    Ok(())
 }
 
 fn connect_via_netctl<O>(
@@ -120,18 +137,15 @@ where
     // TODO: see if interface needs to be down
     //bring_interface_down(options)?;
 
-    // TODO TODO TODO TODO
-    // TODO: for configuration, make sure NetworkManager service is running
-    //
-    // TODO: kill wpa_supplicant and any active netctl profiles, or print message saying to do so
-    //       if connection is unsuccessful?
-    // TODO TODO TODO TODO
-
     if options.get_dry_run() {
         return Ok(ConnectionResult {
             connection_type: WifiConnectionType::Nmcli,
         });
     }
+
+    // Refresh NetworkManager's list of known networks, otherwise the connect will
+    // fail if we've scanned using another method.
+    run_command_output(options, "nmcli", &["device", "wifi", "list"])?;
 
     let args = vec!["device", "wifi", "connect", &selected_network.essid];
     let args = if let Some(pw) = encryption_key {

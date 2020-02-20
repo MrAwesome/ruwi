@@ -44,7 +44,7 @@ pub trait WifiConnect {
 pub trait WifiDataGatherer {
     fn get_wifi_data(
         &self,
-        synchronous_rescan: Option<SynchronousRescanType>,
+        synchronous_rescan: &Option<SynchronousRescanType>,
     ) -> Result<(KnownIdentifiers, ScanResult), RuwiError>;
 }
 

@@ -2,16 +2,15 @@ use rexpect::errors::*;
 use rexpect::spawn_bash;
 
 // An absolutely end-to-end test of ruwi:
-// * Downloads and starts a Linux VM
+// * Downloads, starts, and gets a shell within a Linux VM
 // * Creates virtual wifi radios
-// * Starts access points 
+// * Starts access points
 // * Connects to them using ruwi.
 #[test]
 #[ignore]
 fn test_full_integration_with_archlinux_vm() -> Result<()> {
     let mut shell_for_copying_files_into_shared_dir = spawn_bash(Some(200))?;
 
-    // TODO: Other targets as well
     eprintln!("[TEST]: Copying files into place...");
     shell_for_copying_files_into_shared_dir.execute(
         "mkdir -p /tmp/archlinux/shared && cp -r ./target/debug/ruwi ./ci/configs/*.conf /tmp/archlinux/shared && echo COPIEDDD",
@@ -20,19 +19,19 @@ fn test_full_integration_with_archlinux_vm() -> Result<()> {
     shell_for_copying_files_into_shared_dir.wait_for_prompt()?;
     eprintln!("[TEST]: Done copying files.");
 
-    // TODO: make this work when offline and the iso is present
+    // TODO: Support other distributions besides arch
     // TODO: update to the newest iso always?
     eprintln!("[TEST]: Fetching/checking LiveCD...");
     let mut shell_for_fetching_iso = spawn_bash(Some(900_000))?;
-    let command = concat!(
-        "cd /tmp/archlinux/ && ",
-        "curl http://mirror.rackspace.com/archlinux/iso/2019.12.01/md5sums.txt | grep archlinux-2019.12.01-x86_64.iso | md5sum -c || ",
-        "curl -O http://mirror.rackspace.com/archlinux/iso/2019.12.01/archlinux-2019.12.01-x86_64.iso && ",
-        "curl http://mirror.rackspace.com/archlinux/iso/2019.12.01/md5sums.txt | grep archlinux-2019.12.01-x86_64.iso | md5sum -c && ",
-        "echo DOWNLOADEDBRAH || ",
-        "exit 1"
-    );
-    shell_for_fetching_iso.execute(&command, "DOWNLOADEDBRAH")?;
+    let command = "
+        set -euxo pipefail &&
+        ARCH_VERSION=2019.12.01 &&
+        cd /tmp/archlinux/ &&
+        ( [ -f md5sums.txt ] || curl -O http://mirror.rackspace.com/archlinux/iso/${ARCH_VERSION}/md5sums.txt ) &&
+        ( grep archlinux-${ARCH_VERSION}-x86_64.iso md5sums.txt | md5sum -c || curl -O http://mirror.rackspace.com/archlinux/iso/${ARCH_VERSION}/archlinux-${ARCH_VERSION}-x86_64.iso ) &&
+        ( grep archlinux-${ARCH_VERSION}-x86_64.iso md5sums.txt | md5sum -c && echo DOWNLOADEDBRAH ) || exit 1
+    ";
+    shell_for_fetching_iso.execute(command, "DOWNLOADEDBRAH")?;
     eprintln!("[TEST]: Successfully downloaded/checksummed LiveCD!");
 
     eprintln!("[TEST]: Starting VM.");
@@ -83,7 +82,9 @@ fn test_full_integration_with_archlinux_vm() -> Result<()> {
     p.exp_string("[NOTE]: Successfully connected to: \"bravery\"")?;
     p.exp_string("@archiso")?;
     eprintln!("[TEST]: Successfully connected to bravery with `-A known_or_fail`!");
-    p.send_line("/tmp/host_shared/ruwi wifi -i wlan2 connect -c netctl -e cowardice -p cowardice2")?;
+    p.send_line(
+        "/tmp/host_shared/ruwi wifi -i wlan2 connect -c netctl -e cowardice -p cowardice2",
+    )?;
     p.exp_string("[NOTE]: Successfully connected to: \"cowardice\"")?;
     p.exp_string("@archiso")?;
     eprintln!("[TEST]: Successfully connected to cowardice with `-e` and `-p`!");
@@ -104,7 +105,6 @@ fn test_full_integration_with_archlinux_vm() -> Result<()> {
     // TODO: implement prefix matching
     // p.exp_string("[NOTE]: Successfully connected to: \"bravery\"")?;
     p.wait_for_prompt()?;
-
 
     eprintln!("[TEST]: Finished successfully!");
     eprintln!("[TEST]: Starting shutdown...");

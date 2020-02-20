@@ -29,7 +29,7 @@ impl Runner for WifiConnectOptions {
 impl WifiDataGatherer for WifiConnectOptions {
     fn get_wifi_data(
         &self,
-        synchronous_rescan: Option<SynchronousRescanType>,
+        synchronous_rescan: &Option<SynchronousRescanType>,
     ) -> Result<(KnownIdentifiers, ScanResult), RuwiError> {
         gather_wifi_network_data(self, synchronous_rescan)
     }

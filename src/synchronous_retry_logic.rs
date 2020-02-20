@@ -5,15 +5,17 @@ use crate::structs::*;
 pub(crate) fn should_auto_retry_with_synchronous_scan<O>(
     options: &O,
     networks: &[AnnotatedWirelessNetwork],
+    synchronous_retry: &Option<SynchronousRescanType>,
 ) -> bool
 where
     O: Global + AutoSelect,
 {
-    networks.is_empty()
-        || match options.get_auto_mode() {
-            AutoMode::KnownOrAsk | AutoMode::KnownOrFail => !networks.iter().any(|x| x.known),
-            AutoMode::First | AutoMode::Ask => false,
-        }
+    synchronous_retry.is_none()
+        && (networks.is_empty()
+            || match options.get_auto_mode() {
+                AutoMode::KnownOrAsk | AutoMode::KnownOrFail => !networks.iter().any(|x| x.known),
+                AutoMode::First | AutoMode::Ask => false,
+            })
 }
 
 #[cfg(test)]
@@ -82,6 +84,7 @@ mod tests {
     }
 
     struct SyncTestDataProvider {
+        synchronous_rescan: Option<SynchronousRescanType>,
         network_list_type: NetworkListType,
         auto_mode: AutoMode,
         expected_should_retry: bool,
@@ -89,11 +92,13 @@ mod tests {
 
     impl SyncTestDataProvider {
         fn new(
+            synchronous_rescan: Option<SynchronousRescanType>,
             network_list_type: NetworkListType,
             auto_mode: AutoMode,
             expected_should_retry: bool,
         ) -> Self {
             Self {
+                synchronous_rescan,
                 network_list_type,
                 auto_mode,
                 expected_should_retry,
@@ -114,26 +119,57 @@ mod tests {
         type AM = AutoMode;
 
         vec![
-            STDP::new(NLT::ContainsKnown, AM::Ask, false),
-            STDP::new(NLT::ContainsKnown, AM::First, false),
-            STDP::new(NLT::ContainsKnown, AM::KnownOrAsk, false),
-            STDP::new(NLT::ContainsKnown, AM::KnownOrFail, false),
+            STDP::new(None, NLT::ContainsKnown, AM::Ask, false),
+            STDP::new(None, NLT::ContainsKnown, AM::First, false),
+            STDP::new(None, NLT::ContainsKnown, AM::KnownOrAsk, false),
+            STDP::new(None, NLT::ContainsKnown, AM::KnownOrFail, false),
             //
-            STDP::new(NLT::ContainsOnlyUnknown, AM::Ask, false),
-            STDP::new(NLT::ContainsOnlyUnknown, AM::First, false),
-            STDP::new(NLT::ContainsOnlyUnknown, AM::KnownOrAsk, true),
-            STDP::new(NLT::ContainsOnlyUnknown, AM::KnownOrFail, true),
+            STDP::new(None, NLT::ContainsOnlyUnknown, AM::Ask, false),
+            STDP::new(None, NLT::ContainsOnlyUnknown, AM::First, false),
+            STDP::new(None, NLT::ContainsOnlyUnknown, AM::KnownOrAsk, true),
+            STDP::new(None, NLT::ContainsOnlyUnknown, AM::KnownOrFail, true),
             //
-            STDP::new(NLT::Empty, AM::Ask, true),
-            STDP::new(NLT::Empty, AM::First, true),
-            STDP::new(NLT::Empty, AM::KnownOrAsk, true),
-            STDP::new(NLT::Empty, AM::KnownOrFail, true),
+            STDP::new(None, NLT::Empty, AM::Ask, true),
+            STDP::new(None, NLT::Empty, AM::First, true),
+            STDP::new(None, NLT::Empty, AM::KnownOrAsk, true),
+            STDP::new(None, NLT::Empty, AM::KnownOrFail, true),
+            //
+            STDP::new(Some(SynchronousRescanType::Automatic), NLT::ContainsKnown, AM::Ask, false),
+            STDP::new(Some(SynchronousRescanType::Automatic), NLT::ContainsKnown, AM::First, false),
+            STDP::new(Some(SynchronousRescanType::Automatic), NLT::ContainsKnown, AM::KnownOrAsk, false),
+            STDP::new(Some(SynchronousRescanType::Automatic), NLT::ContainsKnown, AM::KnownOrFail, false),
+            //
+            STDP::new(Some(SynchronousRescanType::Automatic), NLT::ContainsOnlyUnknown, AM::Ask, false),
+            STDP::new(Some(SynchronousRescanType::Automatic), NLT::ContainsOnlyUnknown, AM::First, false),
+            STDP::new(Some(SynchronousRescanType::Automatic), NLT::ContainsOnlyUnknown, AM::KnownOrAsk, false),
+            STDP::new(Some(SynchronousRescanType::Automatic), NLT::ContainsOnlyUnknown, AM::KnownOrFail, false),
+            //
+            STDP::new(Some(SynchronousRescanType::Automatic), NLT::Empty, AM::Ask, false),
+            STDP::new(Some(SynchronousRescanType::Automatic), NLT::Empty, AM::First, false),
+            STDP::new(Some(SynchronousRescanType::Automatic), NLT::Empty, AM::KnownOrAsk, false),
+            STDP::new(Some(SynchronousRescanType::Automatic), NLT::Empty, AM::KnownOrFail, false),
+            //
+            STDP::new(Some(SynchronousRescanType::ManuallyRequested), NLT::ContainsKnown, AM::Ask, false),
+            STDP::new(Some(SynchronousRescanType::ManuallyRequested), NLT::ContainsKnown, AM::First, false),
+            STDP::new(Some(SynchronousRescanType::ManuallyRequested), NLT::ContainsKnown, AM::KnownOrAsk, false),
+            STDP::new(Some(SynchronousRescanType::ManuallyRequested), NLT::ContainsKnown, AM::KnownOrFail, false),
+            //
+            STDP::new(Some(SynchronousRescanType::ManuallyRequested), NLT::ContainsOnlyUnknown, AM::Ask, false),
+            STDP::new(Some(SynchronousRescanType::ManuallyRequested), NLT::ContainsOnlyUnknown, AM::First, false),
+            STDP::new(Some(SynchronousRescanType::ManuallyRequested), NLT::ContainsOnlyUnknown, AM::KnownOrAsk, false),
+            STDP::new(Some(SynchronousRescanType::ManuallyRequested), NLT::ContainsOnlyUnknown, AM::KnownOrFail, false),
+            //
+            STDP::new(Some(SynchronousRescanType::ManuallyRequested), NLT::Empty, AM::Ask, false),
+            STDP::new(Some(SynchronousRescanType::ManuallyRequested), NLT::Empty, AM::First, false),
+            STDP::new(Some(SynchronousRescanType::ManuallyRequested), NLT::Empty, AM::KnownOrAsk, false),
+            STDP::new(Some(SynchronousRescanType::ManuallyRequested), NLT::Empty, AM::KnownOrFail, false),
         ]
     }
 
     #[test]
     fn test_should_synchronous_retry_all_unknown() {
         for SyncTestDataProvider {
+            synchronous_rescan,
             network_list_type,
             auto_mode,
             expected_should_retry,
@@ -141,7 +177,7 @@ mod tests {
         {
             let options = get_options(auto_mode);
             let networks = get_networks(network_list_type);
-            let should_retry = should_auto_retry_with_synchronous_scan(&options, &networks);
+            let should_retry = should_auto_retry_with_synchronous_scan(&options, &networks, synchronous_rescan);
 
             // Only bother trying to print if we know we're going to fail:
             if expected_should_retry != &should_retry {

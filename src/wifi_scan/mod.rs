@@ -25,18 +25,21 @@ pub(crate) static DEVICE_OR_RESOURCE_BUSY_EXIT_CODE: i32 = 240;
 pub(crate) fn wifi_scan<O>(options: &O, synchronous_rescan: &Option<SynchronousRescanType>) -> Result<ScanResult, RuwiError> where O: Global + Wifi + LinuxNetworkingInterface {
     let sm = options.get_scan_method().clone();
     let st = options.get_scan_type().clone();
-    st.get_service().start(options)?;
 
     let res = match sm {
-        ScanMethod::ByRunning => match &st {
-            ScanType::Wifi(WifiScanType::Nmcli) => run_nmcli_scan(options, st, synchronous_rescan),
-            ScanType::Wifi(WifiScanType::WpaCli) => run_wpa_cli_scan(options, st),
-            ScanType::Wifi(WifiScanType::IW) => run_iw_scan(options, st, synchronous_rescan),
-            ScanType::Wifi(WifiScanType::RuwiJSON) => 
-                Err(rerr!(
-                    RuwiErrorKind::InvalidScanTypeAndMethod,
-                    "There is currently no binary for providing JSON results, you must format them yourself and pass in via stdin or from a file.",
-                ))
+        ScanMethod::ByRunning => {
+            // TODO: integration test that service is only started on byrunning scan
+            st.get_service().start(options)?;
+            match &st {
+                ScanType::Wifi(WifiScanType::Nmcli) => run_nmcli_scan(options, st, synchronous_rescan),
+                ScanType::Wifi(WifiScanType::WpaCli) => run_wpa_cli_scan(options, st),
+                ScanType::Wifi(WifiScanType::IW) => run_iw_scan(options, st, synchronous_rescan),
+                ScanType::Wifi(WifiScanType::RuwiJSON) => 
+                    Err(rerr!(
+                        RuwiErrorKind::InvalidScanTypeAndMethod,
+                        "There is currently no binary for providing JSON results, you must format them yourself and pass in via stdin or from a file.",
+                    ))
+            }
         },
         ScanMethod::FromFile(filename) => get_scan_contents_from_file(options, st, &filename),
         ScanMethod::FromStdin => get_scan_contents_from_stdin(options, st),

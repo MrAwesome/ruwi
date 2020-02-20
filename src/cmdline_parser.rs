@@ -20,6 +20,7 @@ static WIFI_TOKEN: &str = "wifi";
 static WIFI_SELECT_TOKEN: &str = "select";
 static WIFI_CONNECT_TOKEN: &str = "connect";
 
+// TODO: add help for connect and clear and select!
 // TODO: respect force_ask_password
 // TODO: fail if not run as root
 // TODO: use subcommands for conuigurations of options, but still go through all functions always?

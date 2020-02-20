@@ -1,8 +1,11 @@
 use crate::enums::NetworkingService;
+use crate::enums::*;
 use crate::errors::*;
+use crate::options::interfaces::*;
 use crate::options::wifi::connect::WifiConnectOptions;
 use crate::options::wifi::select::WifiSelectOptions;
 use crate::options::GlobalOptions;
+use crate::rerr;
 use crate::runner::Runner;
 
 use strum_macros::{AsRefStr, AsStaticStr, Display, EnumIter, EnumString};
@@ -24,12 +27,34 @@ impl Default for RuwiCommand {
 
 impl RuwiCommand {
     pub fn run(&self) -> Result<(), RuwiError> {
+        self.verify_options()?;
+
         match self {
             Self::Wifi(RuwiWifiCommand::Connect(options)) => options.run(),
             Self::Wifi(RuwiWifiCommand::Select(options)) => options.run(),
             Self::Wired(RuwiWiredCommand::Connect) => unimplemented!(),
             Self::Bluetooth(RuwiBluetoothCommand::Pair) => unimplemented!(),
             Self::Clear(options) => NetworkingService::stop_all(options),
+        }
+    }
+
+    fn verify_options(&self) -> Result<(), RuwiError> {
+        match self {
+            Self::Wifi(RuwiWifiCommand::Connect(options)) => {
+                if options.get_scan_method() == &ScanMethod::ByRunning
+                    && options.get_connect_via() == &WifiConnectionType::Nmcli
+                    && options.get_scan_type() != &ScanType::Wifi(WifiScanType::Nmcli)
+                {
+                    Err(rerr!(
+                            RuwiErrorKind::InvalidScanTypeAndConnectType,
+                            "Non-nmcli scan types do not work when connect_via is set to nmcli, as nmcli needs the NetworkManager service enabled while it looks for known networks. You can pass in results from another scanning program with -I or -F, but most likely you just want to add \"-s nmcli\" to wifi."
+
+                    ))
+                } else {
+                    Ok(())
+                }
+            }
+            _ => Ok(()),
         }
     }
 }

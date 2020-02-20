@@ -20,9 +20,9 @@ impl Runner for WifiSelectOptions {
 impl WifiDataGatherer for WifiSelectOptions {
     fn get_wifi_data(
         &self,
-        synchronous_rescan: Option<SynchronousRescanType>,
+        synchronous_rescan: &Option<SynchronousRescanType>,
     ) -> Result<(KnownIdentifiers, ScanResult), RuwiError> {
-        let scan_result = wifi_scan(self, &synchronous_rescan)?;
+        let scan_result = wifi_scan(self, synchronous_rescan)?;
         Ok((KnownIdentifiers::default(), scan_result))
     }
 }
