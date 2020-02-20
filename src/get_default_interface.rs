@@ -51,17 +51,20 @@ where O: Global + Debug
             err_msg,
         )?;
 
-        get_interface_from_iw_output(&iw_dev_output)
+        let interfaces = get_interfaces_from_iw_dev_output(&iw_dev_output);
+        select_interface(&interfaces)
     }
 }
 
-fn get_interface_from_iw_output(iw_output: &str) -> Result<String, RuwiError> {
-    let interfaces = iw_output
+fn get_interfaces_from_iw_dev_output(iw_dev_output: &str) -> Vec<&str> {
+    iw_dev_output
         .lines()
         .filter(|line| line.trim().starts_with("Interface"))
         .filter_map(|line| line.split_ascii_whitespace().last())
-        .collect::<Vec<&str>>();
+        .collect::<Vec<&str>>()
+}
 
+fn select_interface(interfaces: &[&str]) -> Result<String, RuwiError> {
     // TODO: provide a way to select from multiple interfaces
     if interfaces.len() > 1 {
         eprintln!(concat!(
@@ -71,7 +74,7 @@ fn get_interface_from_iw_output(iw_output: &str) -> Result<String, RuwiError> {
     }
 
     match interfaces.first() {
-        Some(intf) => Ok((*intf).to_string()),
+        Some(intf) => Ok(intf.to_string()),
         None => Err(rerr!(
             RuwiErrorKind::NoInterfacesFoundWithIW,
             "No interfaces found with `iw dev`!"
@@ -93,7 +96,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_interface_from_iw_output() -> Result<(), RuwiError> {
+    fn test_get_interface_from_iw_dev_output() -> Result<(), RuwiError> {
         let iw_dev_output = "phy#0
 Interface wlp3s0
         ifindex 3
@@ -104,16 +107,16 @@ Interface wlp3s0
         channel 157 (5785 MHz), width: 40 MHz, center1: 5795 MHz
         txpower 15.00 dBm";
 
-        let interface = get_interface_from_iw_output(iw_dev_output)?;
+        let interface = select_interface(&get_interfaces_from_iw_dev_output(iw_dev_output))?;
         assert_eq!["wlp3s0", interface];
         Ok(())
     }
 
     #[test]
-    fn test_get_interface_from_malformed_iw_output() -> Result<(), RuwiError> {
+    fn test_get_interface_from_malformed_iw_dev_output() -> Result<(), RuwiError> {
         let iw_dev_output = "jfdklsajfdklsajfkdlsjfjdkkkkkkkd";
 
-        let res = get_interface_from_iw_output(iw_dev_output);
+        let res = select_interface(&get_interfaces_from_iw_dev_output(iw_dev_output));
         assert![res.is_err()];
         Ok(())
     }
