@@ -6,8 +6,6 @@ use crate::wpa_cli_initialize::*;
 
 use strum::IntoEnumIterator;
 
-// TODO: implement service killing for when switching between services?
-
 impl NetworkingService {
     pub(crate) fn start<O>(&self, options: &O) -> Result<(), RuwiError>
     where
@@ -77,11 +75,19 @@ where
 {
     run_command_pass(
         options,
+        "netctl",
+        &["stop-all"],
+        RuwiErrorKind::FailedToStopNetctl,
+        "Failed to stop netctl. Are you running as root?",
+    )?;
+    run_command_pass(
+        options,
         "systemctl",
         &["stop", "netctl"],
         RuwiErrorKind::FailedToStopNetctl,
         "Failed to stop netctl. Are you running as root?",
-    )
+    )?;
+    Ok(())
 }
 
 fn start_networkmanager<O>(options: &O) -> Result<(), RuwiError>

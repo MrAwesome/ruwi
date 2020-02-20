@@ -1,9 +1,9 @@
 use typed_builder::TypedBuilder;
 
-use crate::options::interfaces::*;
-use crate::structs::*;
 use crate::errors::*;
+use crate::options::interfaces::*;
 use crate::options::wifi::WifiOptions;
+use crate::structs::*;
 
 #[derive(Debug, Clone, TypedBuilder)]
 pub struct WifiSelectOptions {
