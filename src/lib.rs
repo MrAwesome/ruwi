@@ -39,11 +39,11 @@ use cmdline_parser::*;
 use errors::*;
 use options::*;
 
-// Arch dependencies: netctl, iw, bluetooth things?, fzf
+// Arch dependencies: wireless_tools, netctl, iw, bluetooth things?, fzf
 // Arch optional dependencies: dmenu, iwconfig, NetworkManager,
 
 // TODO(high): implement speed/connection/dns test - `nmcli networking connectivity` for networkmanager mode
-// TODO(high): stop/start the relevant services (in particular, stop networkmanager if it's running before trying to do netctl things) - - pkill wpa_supplicant, systemctl stop NetworkManager, etc etc etc (add "conflicting services" to src/service_management.rs )
+// TODO(high): implement wired/bluetooth
 // TODO(high): fix error messages. -F kfdjsalkf will give "ERR: entity not found"
 // TODO(high): write benchmark tests: ~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/liballoc/benches/slice.rs
 // TODO(mid): add colors to output / use a real logging library
