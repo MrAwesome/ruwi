@@ -1,5 +1,5 @@
-use std::thread;
 use crate::errors::*;
+use std::thread;
 
 #[inline]
 pub(crate) fn await_thread<T>(handle: thread::JoinHandle<T>) -> Result<T, RuwiError> {
@@ -48,12 +48,15 @@ mod tests {
 
         let final_loop_res = loop_check(&mut start, max);
 
-        if let Err(RuwiError{kind: RuwiErrorKind::LoopProtectionMaxExceeded, desc: _}) = final_loop_res {
+        if let Err(RuwiError {
+            kind: RuwiErrorKind::LoopProtectionMaxExceeded,
+            ..
+        }) = final_loop_res
+        {
             Ok(())
         } else {
             dbg!(&final_loop_res);
             panic!("Loop protection did not fail when expected!");
         }
-            
     }
 }
