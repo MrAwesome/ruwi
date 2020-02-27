@@ -68,6 +68,7 @@ where O: Global + LinuxNetworkingInterface {
         if is_first_line_of_iw_network(&untrimmed_line) {
             network.push(untrimmed_line.trim());
         } else {
+            eprintln!("[ERR]: Culprit line: \"{}\"", untrimmed_line);
             return Err(err_iw_malformed_output(options));
         }
     } else {
@@ -137,7 +138,7 @@ fn parse_iw_chunk_into_network(chunk: &[&str]) -> Result<WirelessNetwork, Indivi
 }
 
 fn is_first_line_of_iw_network(line: &str) -> bool {
-    line.starts_with("BSS ") && line.ends_with(')')
+    line.starts_with("BSS ") && line.contains("(on ")
 }
 
 fn err_iw_malformed_output<O>(options: &O) -> RuwiError 
