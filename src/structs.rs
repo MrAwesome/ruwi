@@ -3,7 +3,7 @@
 
 use std::fmt::Debug;
 use crate::enums::*;
-use crate::interfaces::*;
+use crate::options::interfaces::*;
 use typed_builder::TypedBuilder;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]

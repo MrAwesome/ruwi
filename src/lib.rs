@@ -8,7 +8,12 @@ extern crate strum;
 extern crate strum_macros;
 extern crate typed_builder;
 
+#[macro_use]
+pub(crate) mod macros;
+
+// TODO: collapse these into subdirs
 pub(crate) mod annotate_networks;
+pub(crate) mod bluetooth;
 pub(crate) mod check_known_identifiers;
 pub(crate) mod cmdline_parser;
 pub(crate) mod configure_network;
@@ -28,20 +33,20 @@ pub(crate) mod select;
 pub(crate) mod service_management;
 pub(crate) mod sort_networks;
 pub(crate) mod structs;
+pub(crate) mod strum_utils;
 pub(crate) mod synchronous_retry_logic;
 pub(crate) mod wifi_scan;
-#[macro_use]
-pub(crate) mod macros;
-pub(crate) mod strum_utils;
 pub(crate) mod wpa_cli_initialize;
 
-use cmdline_parser::*;
-use errors::*;
-use options::*;
+use cmdline_parser::get_command;
+use errors::RuwiError;
 
 // Arch dependencies: wireless_tools, netctl, iw, bluetooth things?, fzf
 // Arch optional dependencies: dmenu, iwconfig, NetworkManager,
 
+// TODO(high): `clear` should be `wifi clear`? or at least call into it? i guess wired and wireless
+// may use the same services. bluetooth also will have services i suppose. should ip/bt be
+// different service types?
 // TODO(high): implement speed/connection/dns test - `nmcli networking connectivity` for networkmanager mode
 // TODO(high): implement wired/bluetooth
 // TODO(high): fix error messages. -F kfdjsalkf will give "ERR: entity not found"
