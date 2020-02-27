@@ -6,8 +6,8 @@ use crate::errors::*;
 use std::fmt::Debug;
 
 #[cfg(test)]
-static IW_TEST_FAKE_INTERFACE: &str = "TESTS_FAKE_INTERFACE";
-static DRY_RUN_FAKE_INTERFACE: &str = "DRY_RUN_FAKE_INTERFACE";
+const IW_TEST_FAKE_INTERFACE: &str = "TESTS_FAKE_INTERFACE";
+const DRY_RUN_FAKE_INTERFACE: &str = "DRY_RUN_FAKE_INTERFACE";
 
 // TODO: make interface a struct of some sort?
 pub(crate) fn get_default_wifi_interface<O>(opts: &O) -> Result<String, RuwiError> 

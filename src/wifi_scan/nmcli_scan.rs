@@ -4,7 +4,7 @@ use crate::options::interfaces::*;
 use crate::run_commands::*;
 use crate::structs::*;
 
-static NMCLI_SCAN_ERR_MSG: &str = concat!(
+const NMCLI_SCAN_ERR_MSG: &str = concat!(
     "Failed to load cached list of seen networks with `nmcli`. Is it installed? ",
     "You can also select a different scanning method with -s (try 'wpa_cli' or 'iw'), ",
     "or you can manually specify an essid with -e.",

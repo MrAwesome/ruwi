@@ -4,7 +4,7 @@ use crate::run_commands::*;
 use std::thread;
 use std::time::Duration;
 
-static WPA_CONNECT_ERROR: &str = "Error initializing wpa_supplicant to use wpa_cli. Specify another scan method with -s, or add the following to /etc/wpa_supplicant/wpa_supplicant.conf and try again:
+const WPA_CONNECT_ERROR: &str = "Error initializing wpa_supplicant to use wpa_cli. Specify another scan method with -s, or add the following to /etc/wpa_supplicant/wpa_supplicant.conf and try again:
 
 ctrl_interface=/run/wpa_supplicant
 ctrl_interface_group=wheel

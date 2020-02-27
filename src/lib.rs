@@ -57,7 +57,6 @@ use errors::RuwiError;
 // TODO(mid): have known netctl networks return essid, for matching/annotation with config name
 // TODO(mid): kill, or suggest killing, wpa_supplicant if netctl fails to connect
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
-// TODO(low): replace all static with const
 // TODO(low): flag to disable looking for known networks
 // TODO(low): mark as linux-only
 // TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default

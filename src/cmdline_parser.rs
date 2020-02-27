@@ -14,11 +14,11 @@ use clap::{App, Arg, ArgMatches, SubCommand};
 use std::fmt::Debug;
 use strum::AsStaticRef;
 
-static CLEAR_TOKEN: &str = "clear";
-static WIFI_TOKEN: &str = "wifi";
+const CLEAR_TOKEN: &str = "clear";
+const WIFI_TOKEN: &str = "wifi";
 
-static WIFI_SELECT_TOKEN: &str = "select";
-static WIFI_CONNECT_TOKEN: &str = "connect";
+const WIFI_SELECT_TOKEN: &str = "select";
+const WIFI_CONNECT_TOKEN: &str = "connect";
 
 // TODO: add help for connect and clear and select!
 // TODO: respect force_ask_password
