@@ -58,7 +58,6 @@ use errors::RuwiError;
 // TODO(mid): kill, or suggest killing, wpa_supplicant if netctl fails to connect
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
 // TODO(low): flag to disable looking for known networks
-// TODO(low): mark as linux-only
 // TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
 // TODO(wishlist): implement json scan output mode
 // TODO(wishlist): find a generalized way to do x notifications, for dmenu mode, use to surface failures
