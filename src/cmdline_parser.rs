@@ -1,6 +1,6 @@
 use crate::enums::*;
 use crate::errors::*;
-use crate::get_default_interface::get_default_wifi_interface;
+use crate::interface_management::get_default_interface::get_default_wifi_interface;
 use crate::options::command::*;
 use crate::options::interfaces::*;
 use crate::options::wifi::connect::WifiConnectOptions;
@@ -20,6 +20,7 @@ const WIFI_TOKEN: &str = "wifi";
 const WIFI_SELECT_TOKEN: &str = "select";
 const WIFI_CONNECT_TOKEN: &str = "connect";
 
+// TODO: find a better place for interface to live (perhaps not on options at all?)
 // TODO: add help for connect and clear and select!
 // TODO: respect force_ask_password
 // TODO: fail if not run as root
@@ -203,6 +204,7 @@ fn get_wifi_cmd(
         // TODO: this feels like a nasty hack, and doesn't belong here? Just store
         // None if none given, and calculate the default later? It is nice to have
         // the default show up in --help, but it still feels off.
+        // TODO: make this use `ip`
         let interface = get_default_wifi_interface(&globals)?;
         return Ok(RuwiWifiCommand::Connect(
             WifiConnectOptions::builder()

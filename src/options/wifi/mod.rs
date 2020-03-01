@@ -3,7 +3,7 @@ pub(crate) mod select;
 
 use crate::enums::*;
 use crate::errors::*;
-use crate::interface_management::linux_networking_interface_management::*;
+use crate::interface_management::LinuxIPLinkDevice;
 use crate::options::interfaces::*;
 use crate::options::GlobalOptions;
 use typed_builder::TypedBuilder;
@@ -11,12 +11,11 @@ use typed_builder::TypedBuilder;
 #[derive(Debug, Clone, TypedBuilder)]
 pub struct WifiOptions {
     globals: GlobalOptions,
+    interface: LinuxIPLinkDevice,
     #[builder(default)]
     scan_type: ScanType,
     #[builder(default)]
     scan_method: ScanMethod,
-    #[builder(default="wlan0".to_string())]
-    interface: String,
     #[builder(default = false)]
     ignore_known: bool,
     #[builder(default = false)]
@@ -48,13 +47,15 @@ impl WifiOptions {
 
 impl LinuxNetworkingInterface for WifiOptions {
     fn get_interface_name(&self) -> &str {
-        &self.interface
+        self.interface.get_ifname()
     }
     fn bring_interface_up(&self) -> Result<(), RuwiError> {
-        bring_linux_networking_interface_up(self, &self.interface)
+        self.interface.set_up(self)?;
+        Ok(())
     }
     fn bring_interface_down(&self) -> Result<(), RuwiError> {
-        bring_linux_networking_interface_down(self, &self.interface)
+        self.interface.set_down(self)?;
+        Ok(())
     }
 }
 
