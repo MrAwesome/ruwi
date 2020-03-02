@@ -3,7 +3,7 @@ use crate::options::interfaces::Global;
 use crate::rerr;
 use crate::run_commands::run_command_pass_stdout;
 
-use super::super::LinuxIPLinkInterface;
+use super::super::ip_interfaces::LinuxIPLinkInterface;
 
 use serde_json;
 
@@ -68,7 +68,7 @@ fn process_ip_link_json(stdout: &str) -> Result<Vec<LinuxIPLinkInterface>, RuwiE
 
 #[cfg(test)]
 mod tests {
-    use super::super::super::OperState;
+    use super::super::super::ip_interfaces::OperState;
     use super::*;
 
     #[test]

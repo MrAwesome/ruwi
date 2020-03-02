@@ -3,7 +3,7 @@ pub(crate) mod select;
 
 use crate::enums::*;
 use crate::errors::*;
-use crate::interface_management::WifiIPInterface;
+use crate::interface_management::ip_interfaces::WifiIPInterface;
 use crate::options::interfaces::*;
 use crate::options::GlobalOptions;
 use typed_builder::TypedBuilder;

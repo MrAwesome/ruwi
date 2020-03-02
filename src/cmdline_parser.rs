@@ -1,6 +1,6 @@
 use crate::enums::*;
 use crate::errors::*;
-use crate::interface_management::WifiIPInterface;
+use crate::interface_management::ip_interfaces::WifiIPInterface;
 use crate::options::command::*;
 use crate::options::interfaces::*;
 use crate::options::wifi::connect::WifiConnectOptions;
