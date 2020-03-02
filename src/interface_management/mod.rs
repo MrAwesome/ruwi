@@ -37,7 +37,7 @@ impl WifiIPInterface {
         if opts.is_test_or_dry_run() {
             return Ok(Self::default());
         }
-        let first_seen_wifi_iface = LinuxIPLinkInterface::get_first_wired(opts)?;
+        let first_seen_wifi_iface = LinuxIPLinkInterface::get_first_wifi(opts)?;
         Ok(Self::new(first_seen_wifi_iface.get_ifname()))
     }
 
