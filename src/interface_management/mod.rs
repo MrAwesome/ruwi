@@ -1,4 +1,3 @@
-pub(crate) mod get_default_interface;
 pub(crate) mod interface_discovery;
 pub(crate) mod linux_networking_interface_management;
 
