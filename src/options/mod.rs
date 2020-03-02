@@ -37,6 +37,17 @@ impl Global for GlobalOptions {
     fn get_selection_method(&self) -> &SelectionMethod {
         &self.selection_method
     }
+
+    fn is_test_or_dry_run(&self) -> bool {
+        #[cfg(test)]
+        let is_test = true;
+
+        #[cfg(not(test))]
+        let is_test = false;
+
+        is_test || self.get_dry_run()
+    }
+
 }
 
 impl Default for GlobalOptions {

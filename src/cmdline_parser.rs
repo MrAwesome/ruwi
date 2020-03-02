@@ -1,6 +1,6 @@
 use crate::enums::*;
 use crate::errors::*;
-use crate::interface_management::get_default_interface::get_default_wifi_interface;
+use crate::interface_management::WifiIPInterface;
 use crate::options::command::*;
 use crate::options::interfaces::*;
 use crate::options::wifi::connect::WifiConnectOptions;
@@ -205,7 +205,7 @@ fn get_wifi_cmd(
         // None if none given, and calculate the default later? It is nice to have
         // the default show up in --help, but it still feels off.
         // TODO: make this use `ip`
-        let interface = get_default_wifi_interface(&globals)?;
+        let interface = WifiIPInterface::find_first(&globals)?;
         return Ok(RuwiWifiCommand::Connect(
             WifiConnectOptions::builder()
                 .wifi(
@@ -318,13 +318,13 @@ fn get_scan_method(m: &ArgMatches) -> ScanMethod {
     }
 }
 
-fn get_wifi_interface<O>(m: &ArgMatches, opts: &O) -> Result<String, RuwiError>
+fn get_wifi_interface<O>(m: &ArgMatches, opts: &O) -> Result<WifiIPInterface, RuwiError>
 where
     O: Global + Debug,
 {
     Ok(match m.value_of("interface") {
-        Some(val) => String::from(val),
-        None => get_default_wifi_interface(opts)?,
+        Some(given_ifname) => WifiIPInterface::new(given_ifname),
+        None => WifiIPInterface::find_first(opts)?
     })
 }
 

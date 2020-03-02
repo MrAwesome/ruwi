@@ -3,7 +3,7 @@ pub(crate) mod select;
 
 use crate::enums::*;
 use crate::errors::*;
-use crate::interface_management::LinuxIPLinkDevice;
+use crate::interface_management::WifiIPInterface;
 use crate::options::interfaces::*;
 use crate::options::GlobalOptions;
 use typed_builder::TypedBuilder;
@@ -11,7 +11,7 @@ use typed_builder::TypedBuilder;
 #[derive(Debug, Clone, TypedBuilder)]
 pub struct WifiOptions {
     globals: GlobalOptions,
-    interface: LinuxIPLinkDevice,
+    interface: WifiIPInterface,
     #[builder(default)]
     scan_type: ScanType,
     #[builder(default)]
@@ -28,7 +28,7 @@ impl Default for WifiOptions {
             globals: GlobalOptions::default(),
             scan_type: ScanType::default(),
             scan_method: ScanMethod::default(),
-            interface: "wlan0".to_string(),
+            interface: WifiIPInterface::default(),
             ignore_known: false,
             force_synchronous_scan: false,
         }
@@ -47,14 +47,14 @@ impl WifiOptions {
 
 impl LinuxNetworkingInterface for WifiOptions {
     fn get_interface_name(&self) -> &str {
-        self.interface.get_ifname()
+        &self.interface.get_ifname()
     }
     fn bring_interface_up(&self) -> Result<(), RuwiError> {
-        self.interface.set_up(self)?;
+        self.interface.bring_up(self)?;
         Ok(())
     }
     fn bring_interface_down(&self) -> Result<(), RuwiError> {
-        self.interface.set_down(self)?;
+        self.interface.bring_down(self)?;
         Ok(())
     }
 }
@@ -86,5 +86,8 @@ impl Global for WifiOptions {
     }
     fn get_selection_method(&self) -> &SelectionMethod {
         self.globals.get_selection_method()
+    }
+    fn is_test_or_dry_run(&self) -> bool {
+        self.globals.is_test_or_dry_run()
     }
 }

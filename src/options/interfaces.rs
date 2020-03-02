@@ -15,6 +15,7 @@ pub trait Global {
     fn get_debug(&self) -> bool;
     fn get_dry_run(&self) -> bool;
     fn get_selection_method(&self) -> &SelectionMethod;
+    fn is_test_or_dry_run(&self) -> bool;
 }
 
 pub trait LinuxNetworkingInterface {

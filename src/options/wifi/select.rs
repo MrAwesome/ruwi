@@ -41,6 +41,9 @@ impl Global for WifiSelectOptions {
     fn get_selection_method(&self) -> &SelectionMethod {
         self.wifi.get_selection_method()
     }
+    fn is_test_or_dry_run(&self) -> bool {
+        self.wifi.is_test_or_dry_run()
+    }
 }
 
 impl LinuxNetworkingInterface for WifiSelectOptions {
