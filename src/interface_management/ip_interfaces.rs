@@ -160,7 +160,7 @@ impl LinuxIPLinkInterface {
             .into_iter()
             .find(Self::is_wifi)
             .ok_or_else(|| rerr!(
-                RuwiErrorKind::NoWifiInterfacesFound, 
+                RuwiErrorKind::NoWifiInterfacesFound,
                 "No wifi interfaces found with `ip link show`! Is \"iproute2\" installed? You can manually specify an interface with `... wifi -i <INTERFACE_NAME>`."
             ))?;
         Ok(WifiLinuxIPLinkInterface(raw_interface))
@@ -176,7 +176,7 @@ impl LinuxIPLinkInterface {
             .into_iter()
             .find(Self::is_wired)
             .ok_or_else(|| rerr!(
-                RuwiErrorKind::NoWiredInterfacesFound, 
+                RuwiErrorKind::NoWiredInterfacesFound,
                 "No wired interfaces found with `ip link show`! Is \"iproute2\" installed? You can manually specify an interface with `... wired -i <INTERFACE_NAME>`."
             ))?;
         Ok(WiredLinuxIPLinkInterface(raw_interface))
