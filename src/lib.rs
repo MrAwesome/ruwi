@@ -47,6 +47,8 @@ use errors::RuwiError;
 // Arch dependencies: wireless_tools, netctl, iw, bluetooth things?, fzf
 // Arch optional dependencies: dmenu, iwconfig, NetworkManager,
 
+
+// TODO(high): include netctl profile name with annotated wired/wireless networks
 // TODO(high): `clear` should be `wifi clear`? or at least call into it? i guess wired and wireless
 // may use the same services. bluetooth also will have services i suppose. should ip/bt be
 // different service types?

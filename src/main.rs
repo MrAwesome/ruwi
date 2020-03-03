@@ -10,6 +10,13 @@ fn main() {
         Ok(()) => (),
         Err(err) => {
             eprintln!("[ERR]: {}", err);
+            if let Some(extra_data) = err.extra_data {
+                for (key, val) in extra_data.iter() {
+                    eprintln!("{}: {}", key, val);
+                }
+            } else {
+                println!("JFKLDSJFLKDJ");
+            }
             // TODO: Different error codes for different errors? Default exit code, with the ability to pass in custom codes?
             // TODO: Ability to print stdout/stderr of failing commands?
             exit(1);
