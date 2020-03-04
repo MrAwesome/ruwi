@@ -117,7 +117,13 @@ fn run_iw_scan_synchronous_cmd<O>(options: &O) -> Result<Output, RuwiError>
 where
     O: Global + LinuxNetworkingInterface,
 {
-    run_command_output(options, "iw", &[&options.get_interface_name(), "scan"])
+    run_command_output_pass(
+        options,
+        "iw",
+        &[&options.get_interface_name(), "scan"],
+        RuwiErrorKind::FailedToRunIWScanSynchronous,
+        IW_SCAN_SYNC_ERR_MSG,
+    )
 }
 
 fn run_iw_scan_dump<O>(options: &O) -> Result<String, RuwiError>

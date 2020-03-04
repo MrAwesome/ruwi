@@ -1,6 +1,6 @@
-use crate::rerr;
-use crate::options::interfaces::*;
 use crate::errors::*;
+use crate::options::interfaces::*;
+use crate::rerr;
 use std::error::Error;
 use std::io;
 #[cfg(not(test))]
@@ -9,6 +9,7 @@ use std::process::Output;
 use std::process::{Command, ExitStatus, Stdio};
 
 // TODO: find a way to namespace O for modules like this
+// TODO: time silent vs output command
 
 pub(crate) fn run_command_pass<O>(
     opts: &O,
@@ -20,18 +21,9 @@ pub(crate) fn run_command_pass<O>(
 where
     O: Global,
 {
-    if opts.d() {
-        dbg!(&cmd_name, &args, &err_kind, &err_msg);
-    }
-
-    // TODO: allow the err_msg to be or contain stderr somehow, esp for netctl switch-to
-    let output_res = run_command_silent_impl(opts, cmd_name, args);
-    if let Ok(output) = &output_res {
-        if output.success() {
-            return Ok(());
-        }
-    }
-    Err(rerr!(err_kind, err_msg))
+    //let output_res = run_command_silent_impl(opts, cmd_name, args);
+    run_command_output_pass(opts, cmd_name, args, err_kind, err_msg)?;
+    Ok(())
 }
 
 pub(crate) fn run_command_pass_stdout<O>(
@@ -44,25 +36,47 @@ pub(crate) fn run_command_pass_stdout<O>(
 where
     O: Global,
 {
+    // TODO: allow the err_msg to be or contain stderr somehow, esp for netctl switch-to
+    let output = run_command_output_pass(opts, cmd_name, args, err_kind, err_msg)?;
+    return Ok(String::from_utf8_lossy(&output.stdout).to_string());
+}
+
+pub(crate) fn run_command_output_pass<O>(
+    opts: &O,
+    cmd_name: &str,
+    args: &[&str],
+    err_kind: RuwiErrorKind,
+    err_msg: &str,
+) -> Result<Output, RuwiError>
+where
+    O: Global,
+{
     if opts.d() {
         dbg!(&cmd_name, &args, &err_kind, &err_msg);
     }
 
-    // TODO: allow the err_msg to be or contain stderr somehow, esp for netctl switch-to
-    let output_res = run_command_output(opts, cmd_name, args);
-    if let Ok(output) = &output_res {
-        if output.status.success() {
-            return Ok(String::from_utf8_lossy(&output.stdout).to_string());
+    let output_res = run_command_output_raw(opts, cmd_name, args);
+    match output_res {
+        Ok(output) => {
+            if output.status.success() {
+                Ok(output)
+            } else {
+                Err(format_output_and_given_err(
+                    &output, err_kind, err_msg, cmd_name, args,
+                ))
+            }
         }
+        Err(io_err) => Err(format_failure_to_run_command_and_given_err(
+            &io_err, err_kind, err_msg, cmd_name, args,
+        )),
     }
-    Err(rerr!(err_kind, err_msg))
 }
 
-pub(crate) fn run_command_output<O>(
+pub(crate) fn run_command_output_raw<O>(
     opts: &O,
     cmd_name: &str,
     args: &[&str],
-) -> Result<Output, RuwiError>
+) -> io::Result<Output>
 where
     O: Global,
 {
@@ -71,8 +85,8 @@ where
     }
 
     // TODO: instead of e.description, use stderr?
-    run_command_impl(opts, cmd_name, args)
-        .map_err(|e| rerr!(RuwiErrorKind::FailedToRunCommand, e.description()))
+    let mut cmd = get_output_command(opts, cmd_name, args);
+    spawn_and_await_output_command(opts, &mut cmd)
 }
 
 pub(crate) fn run_command_status_dumb<O>(opts: &O, cmd_name: &str, args: &[&str]) -> bool
@@ -90,14 +104,6 @@ where
     } else {
         false
     }
-}
-
-fn run_command_impl<O>(opts: &O, cmd_name: &str, args: &[&str]) -> io::Result<Output>
-where
-    O: Global,
-{
-    let mut cmd = get_output_command(opts, cmd_name, args);
-    spawn_and_await_output_command(opts, &mut cmd)
 }
 
 fn get_output_command<O>(opts: &O, cmd_name: &str, args: &[&str]) -> Command
@@ -147,6 +153,38 @@ where
         output_res
     }
 }
+
+fn format_output_and_given_err(
+    output: &Output,
+    err_kind: RuwiErrorKind,
+    err_msg: &str,
+    cmd_name: &str,
+    args: &[&str],
+) -> RuwiError {
+    rerr!(
+        err_kind,
+        err_msg,
+        "Command" => format!("`{} {}`", cmd_name, args.join(" ")),
+        "STDOUT" => String::from_utf8_lossy(&output.stdout),
+        "STDERR" => String::from_utf8_lossy(&output.stderr)
+    )
+}
+
+fn format_failure_to_run_command_and_given_err(
+    io_error: &io::Error,
+    err_kind: RuwiErrorKind,
+    err_msg: &str,
+    cmd_name: &str,
+    args: &[&str],
+) -> RuwiError {
+    rerr!(
+        err_kind,
+        err_msg,
+        "Command" => format!("`{} {}`", cmd_name, args.join(" ")),
+        "OS Error" => io_error.description()
+    )
+}
+
 
 fn run_command_silent_impl<O>(opts: &O, cmd_name: &str, args: &[&str]) -> io::Result<ExitStatus>
 where
@@ -260,8 +298,8 @@ fn get_prompt_command<O>(opts: &O, cmd_name: &str, args: &[&str]) -> Command
 where
     O: Global,
 {
-    // NOTE: prompt commands are run in dryrun mode, as they should have 
-    //       no effect on the external state of the system, and should be 
+    // NOTE: prompt commands are run in dryrun mode, as they should have
+    //       no effect on the external state of the system, and should be
     //       tested thoroughly in integration tests.
     let mut cmd = Command::new(cmd_name);
     cmd.args(args)
@@ -373,7 +411,7 @@ mod tests {
     #[test]
     #[should_panic = "Prevented command usage in test!"]
     fn test_cmd_output_use_in_test_panics() {
-        run_command_output(
+        run_command_output_raw(
             &GlobalOptions::builder().debug(true).dry_run(false).build(),
             "echo",
             &["lawl"],

@@ -1,5 +1,4 @@
 use crate::rerr;
-use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 
@@ -22,6 +21,7 @@ pub enum RuwiErrorKind {
     FailedToRunIWScanAbort,
     FailedToRunIWScanDump,
     FailedToRunIWScanTrigger,
+    FailedToRunIWScanSynchronous,
     FailedToRunIPLinkShow,
     FailedToRunNmcliScan,
     FailedToRunNmcliScanSynchronous,
@@ -73,7 +73,7 @@ pub enum RuwiErrorKind {
 pub struct RuwiError {
     pub kind: RuwiErrorKind,
     pub desc: String,
-    pub extra_data: Option<HashMap<String, String>>,
+    pub extra_data: Option<Vec<(String, String)>>,
 }
 
 impl Error for RuwiError {
