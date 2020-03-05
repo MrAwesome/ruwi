@@ -41,7 +41,7 @@ pub(crate) mod utils;
 pub(crate) mod wifi_scan;
 pub(crate) mod wpa_cli_initialize;
 
-use cmdline_parser::get_command;
+use cmdline_parser::get_command_from_command_line;
 use errors::RuwiError;
 
 // Arch dependencies: wireless_tools, netctl, iw, bluetooth things?, fzf
@@ -60,6 +60,7 @@ use errors::RuwiError;
 // TODO(mid): add a "list seen networks" mode?
 // TODO(mid): have known netctl networks return essid, for matching/annotation with config name
 // TODO(mid): kill, or suggest killing, wpa_supplicant if netctl fails to connect
+// TODO(mid): have `ruwi -a` detect wired (can you detect a plugged-in ethernet?), try to connect to it, then try wifi -a if not
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
 // TODO(low): flag to disable looking for known networks
 // TODO(wishlist): `ruwi wifi get_default_interface` and/or `ruwi wifi select_interface`
@@ -73,6 +74,6 @@ use errors::RuwiError;
 // TODO(think): add a -w/--wait or --verify or something to attempt to connect to google/etc?
 
 pub fn run_ruwi() -> Result<(), RuwiError> {
-    let command = get_command()?;
+    let command = get_command_from_command_line()?;
     command.run()
 }

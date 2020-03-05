@@ -42,6 +42,10 @@ pub trait WifiConnect {
     fn get_connect_via(&self) -> &WifiConnectionType;
 }
 
+pub trait WiredConnect {
+    fn get_connect_via(&self) -> &WiredConnectionType;
+}
+
 pub trait WifiDataGatherer {
     fn get_wifi_data(
         &self,

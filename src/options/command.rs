@@ -4,6 +4,7 @@ use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::options::wifi::connect::WifiConnectOptions;
 use crate::options::wifi::select::WifiSelectOptions;
+use crate::options::wired::connect::WiredConnectOptions;
 use crate::options::GlobalOptions;
 use crate::rerr;
 use crate::runner::Runner;
@@ -29,10 +30,13 @@ impl RuwiCommand {
     pub fn run(&self) -> Result<(), RuwiError> {
         self.verify_options()?;
 
+        // This slightly odd-looking structure is to give us strong typing of 
+        // our "options" context objects, which each impl the logic for their
+        // respective runs.
         match self {
             Self::Wifi(RuwiWifiCommand::Connect(options)) => options.run(),
             Self::Wifi(RuwiWifiCommand::Select(options)) => options.run(),
-            Self::Wired(RuwiWiredCommand::Connect) => unimplemented!(),
+            Self::Wired(RuwiWiredCommand::Connect(_options)) => unimplemented!(),
             Self::Bluetooth(RuwiBluetoothCommand::Pair) => unimplemented!(),
             Self::Clear(options) => NetworkingService::stop_all(options),
         }
@@ -74,19 +78,19 @@ impl Default for RuwiWifiCommand {
 }
 
 #[strum(serialize_all = "snake_case")]
-#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr, AsRefStr)]
+#[derive(Debug, Clone, EnumString, EnumIter, Display, AsStaticStr, AsRefStr)]
 pub enum RuwiWiredCommand {
-    Connect,
+    Connect(WiredConnectOptions),
 }
 
 impl Default for RuwiWiredCommand {
     fn default() -> Self {
-        Self::Connect
+        Self::Connect(WiredConnectOptions::default())
     }
 }
 
 #[strum(serialize_all = "snake_case")]
-#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr, AsRefStr)]
+#[derive(Debug, Clone, EnumString, EnumIter, Display, AsStaticStr, AsRefStr)]
 pub enum RuwiBluetoothCommand {
     Pair,
 }

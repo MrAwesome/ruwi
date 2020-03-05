@@ -75,6 +75,22 @@ impl Default for WifiConnectionType {
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
 #[strum(serialize_all = "snake_case")]
+pub enum WiredConnectionType {
+    None,
+    Netctl,
+    Nmcli,
+    Dhclient,
+    Dhcpcd,
+}
+
+impl Default for WiredConnectionType {
+    fn default() -> Self {
+        Self::Netctl
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
+#[strum(serialize_all = "snake_case")]
 pub enum AutoMode {
     Ask,
     KnownOrAsk,

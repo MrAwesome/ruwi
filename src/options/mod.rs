@@ -7,6 +7,7 @@
 pub(crate) mod command;
 pub mod interfaces;
 pub(crate) mod wifi;
+pub(crate) mod wired;
 
 use crate::enums::*;
 use crate::options::interfaces::*;
