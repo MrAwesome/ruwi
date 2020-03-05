@@ -182,11 +182,11 @@ impl LinuxIPLinkInterface {
         Ok(WiredLinuxIPLinkInterface(raw_interface))
     }
 
-    fn is_up(&self) -> bool {
+    fn _is_up(&self) -> bool {
         self.operstate == OperState::UP || self.flags.iter().any(|x| x == "UP")
     }
-    fn is_down(&self) -> bool {
-        !self.is_up()
+    fn _is_down(&self) -> bool {
+        !self._is_up()
     }
     pub(crate) fn set_up<O: Global>(self, opts: &O) -> Result<Self, RuwiError> {
         let ifname = self.get_ifname();

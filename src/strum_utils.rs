@@ -3,7 +3,7 @@ use std::str::FromStr;
 use strum::AsStaticRef;
 use strum::IntoEnumIterator;
 
-pub(crate) fn possible_vals<E, I>() -> Vec<&'static str>
+pub(crate) fn possible_string_vals<E, I>() -> Vec<&'static str>
 where
     E: IntoEnumIterator<Iterator = I> + AsStaticRef<str>,
     I: Iterator<Item = E>,

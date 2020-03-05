@@ -4,7 +4,7 @@ use clap::ArgMatches;
 
 pub(super) fn handle_cmdline_parsing_error<T>(
     invalid_subc_name: &str,
-    maybe_sub_matcher: Option<&ArgMatches<'_>>,
+    _maybe_sub_matcher: Option<&ArgMatches<'_>>,
 ) -> Result<T, RuwiError> {
     Err(rerr!(
         RuwiErrorKind::InvalidSubcommand,

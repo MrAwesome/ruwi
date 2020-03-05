@@ -4,11 +4,12 @@ use utils::*;
 mod wifi;
 use wifi::get_wifi_cmd;
 
+mod wired;
+use wired::get_wired_cmd;
+
 use crate::enums::*;
 use crate::errors::*;
 use crate::options::command::*;
-//use crate::options::wired::connect::WiredConnectOptions;
-//use crate::options::wired::*;
 use crate::options::*;
 use crate::strum_utils::*;
 
@@ -64,7 +65,7 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .long("auto-mode")
         .takes_value(true)
         .default_value(&AutoMode::default().as_static())
-        .possible_values(&possible_vals::<AutoMode, _>())
+        .possible_values(&possible_string_vals::<AutoMode, _>())
         .help("The auto mode to use.");
 
     let force_synchronous = Arg::with_name("force_synchronous_scan")
@@ -76,11 +77,11 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .long("ignore-known")
         .help("Do not try to determine if networks are already known. Passwords will be requested always in this mode.");
 
-    let wifi_interface = Arg::with_name("interface")
+    let networking_interface = Arg::with_name("interface")
         .short("i")
         .long("interface")
         .takes_value(true)
-        .help("The wireless device interface (e.g. wlp3s0) to use. Will attempt to use wpa_cli to infer it, if none given.");
+        .help("The Linux networking interface (e.g. wlp3s0, eth0) to use. Will attempt to use `ip link show` to infer it, if none given.");
 
     let essid = Arg::with_name("essid")
         .short("e")
@@ -104,7 +105,7 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .long("scan-type")
         .takes_value(true)
         .default_value(&WifiScanType::default().as_static())
-        .possible_values(&possible_vals::<WifiScanType, _>())
+        .possible_values(&possible_string_vals::<WifiScanType, _>())
         .help("The wifi scanning program to use to get results.");
 
     let selection_method = Arg::with_name("selection_method")
@@ -112,16 +113,24 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .long("selection-method")
         .takes_value(true)
         .default_value(&SelectionMethod::default().as_static())
-        .possible_values(&possible_vals::<SelectionMethod, _>())
+        .possible_values(&possible_string_vals::<SelectionMethod, _>())
         .help("The program to use to prompt for input.");
 
-    let connect_via = Arg::with_name("connect_via")
+    let wifi_connect_via = Arg::with_name("connect_via")
         .short("c")
         .long("connect-via")
         .takes_value(true)
         .default_value(&WifiConnectionType::default().as_static())
-        .possible_values(&possible_vals::<WifiConnectionType, _>())
-        .help("Which network management suite to use to connect, or whether to just print the selected SSID for use elsewhere.");
+        .possible_values(&possible_string_vals::<WifiConnectionType, _>())
+        .help("Which network management suite to use to connect to the selected SSID on the given interface..");
+
+    let wired_connect_via = Arg::with_name("connect_via")
+        .short("c")
+        .long("connect-via")
+        .takes_value(true)
+        .default_value(&WiredConnectionType::default().as_static())
+        .possible_values(&possible_string_vals::<WiredConnectionType, _>())
+        .help("Which network management suite to use to connect on the given interface.");
 
     App::new("Ruwi")
         .version("0.2")
@@ -131,17 +140,23 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .arg(dry_run)
         .arg(selection_method)
         .subcommand(SubCommand::with_name(CLEAR_TOKEN).help("Stop all managed networking services (netctl, NetworkManager, wpa_supplicant, etc.)"))
+        .subcommand(SubCommand::with_name(WIRED_TOKEN)
+            .arg(networking_interface.clone())
+            .subcommand(SubCommand::with_name(WIRED_CONNECT_TOKEN)
+                .arg(wired_connect_via)
+            )
+        )
         .subcommand(SubCommand::with_name(WIFI_TOKEN)
             .arg(ignore_known)
             .arg(input_file)
             .arg(input_stdin)
             .arg(force_synchronous)
-            .arg(wifi_interface)
+            .arg(networking_interface)
             .arg(wifi_scan_type)
             .subcommand(SubCommand::with_name(WIFI_CONNECT_TOKEN)
                 .arg(auto.clone())
                 .arg(auto_mode.clone())
-                .arg(connect_via)
+                .arg(wifi_connect_via)
                 .arg(essid)
                 .arg(force_ask_password)
                 .arg(password))
@@ -180,8 +195,7 @@ fn get_command_from_command_line_impl(m: &ArgMatches) -> Result<RuwiCommand, Ruw
     } else if command_name == CLEAR_TOKEN {
         RuwiCommand::Clear(globals)
     } else if command_name == WIRED_TOKEN {
-        panic!("JFKJLKFDSJ");
-        //RuwiCommand::Wired(get_wired_cmd(globals, maybe_cmd_matcher)?)
+        RuwiCommand::Wired(get_wired_cmd(globals, maybe_cmd_matcher)?)
     } else {
         handle_cmdline_parsing_error(command_name, maybe_cmd_matcher)?
     };
@@ -192,26 +206,18 @@ fn get_command_from_command_line_impl(m: &ArgMatches) -> Result<RuwiCommand, Ruw
     Ok(cmd)
 }
 
-//fn get_wired_interface<O>(m: &ArgMatches, opts: &O) -> Result<WiredIPInterface, RuwiError>
-//where
-//    O: Global + Debug,
-//{
-//    Ok(match m.value_of("interface") {
-//        Some(given_ifname) => WiredIPInterface::new(given_ifname),
-//        None => WiredIPInterface::find_first(opts)?,
-//    })
-//}
-//
 #[cfg(test)]
 mod tests {
     use super::*;
 
     use crate::options::interfaces::*;
     use crate::options::wifi::connect::WifiConnectOptions;
+    use crate::options::wired::connect::WiredConnectOptions;
     use crate::rerr;
 
     use clap::ArgMatches;
     use std::error::Error;
+    use strum::IntoEnumIterator;
 
     static FAKE_BINARY_NAME: &str = "fake_binary_name";
 
@@ -231,7 +237,6 @@ mod tests {
         get_arg_app().get_matches_from_safe(construct_args(args))
     }
 
-    // TODO: fix to return something more generic, aka ruwicommand
     fn getopts(args: &[&str]) -> RuwiCommand {
         dbg!(args);
         get_command_from_command_line_impl(&get_matches(args)).unwrap()
@@ -252,6 +257,15 @@ mod tests {
             panic!("Expected command to be 'wifi connect', but got: {:?}", cmd);
         }
     }
+
+    fn expect_wired_connect_opts(cmd: RuwiCommand) -> WiredConnectOptions {
+        if let RuwiCommand::Wired(RuwiWiredCommand::Connect(opts)) = cmd {
+            opts
+        } else {
+            panic!("Expected command to be 'wired connect', but got: {:?}", cmd);
+        }
+    }
+
 
     fn getopts_safe(args: &[&str]) -> Result<RuwiCommand, RuwiError> {
         dbg!(args);
@@ -449,6 +463,8 @@ mod tests {
         assert![opts.get_force_synchronous_scan()];
     }
 
+    // NOTE: These are not actually testing what you want. You need to look for more specific
+    // failures.
     #[test]
     fn test_incorrect_selection_method() {
         let short_res = getopts_safe(&["wifi", "-s", "BOOOBLOOOBOO"]);
@@ -480,5 +496,19 @@ mod tests {
         let long_failed = long_res.is_err();
         assert![short_failed];
         assert![long_failed];
+    }
+
+    #[test]
+    fn test_wired_connect_via() {
+        for connect_type in WiredConnectionType::iter() {
+            dbg!(&connect_type);
+            let opts = expect_wired_connect_opts(getopts(&[
+                "wired",
+                "connect",
+                "--connect-via",
+                &connect_type.to_string()
+            ]));
+            assert_eq![opts.get_connect_via(), &connect_type];
+        }
     }
 }

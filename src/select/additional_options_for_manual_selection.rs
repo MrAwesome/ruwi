@@ -1,4 +1,4 @@
-use crate::strum_utils::possible_vals;
+use crate::strum_utils::possible_string_vals;
 use std::fmt::Debug;
 
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
@@ -10,7 +10,7 @@ pub(super) enum SelectionOption {
 }
 
 pub(super) fn get_possible_selection_options_as_strings() -> Vec<String> {
-    possible_vals::<SelectionOption, _>()
+    possible_string_vals::<SelectionOption, _>()
         .iter()
         .map(|&x| x.into())
         .collect()
