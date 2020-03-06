@@ -1,9 +1,9 @@
+use super::LinuxIPLinkInterface;
+
 use crate::errors::*;
 use crate::options::interfaces::Global;
 use crate::rerr;
 use crate::run_commands::run_command_pass_stdout;
-
-use super::super::ip_interfaces::LinuxIPLinkInterface;
 
 use serde_json;
 
@@ -17,7 +17,7 @@ use serde_json;
 //
 //      wlan wlp  vs   enp eth
 
-pub(in super::super) fn get_all_interfaces<O>(opts: &O) -> Result<Vec<LinuxIPLinkInterface>, RuwiError>
+pub(super) fn get_all_interfaces<O>(opts: &O) -> Result<Vec<LinuxIPLinkInterface>, RuwiError>
 where
     O: Global,
 {
@@ -31,7 +31,7 @@ where
     Ok(process_ip_link_json(&stdout)?)
 }
 
-pub(in super::super) fn get_interface_by_name<O>(
+pub(super) fn get_interface_by_name<O>(
     opts: &O,
     name: &str,
 ) -> Result<LinuxIPLinkInterface, RuwiError>
@@ -68,7 +68,7 @@ fn process_ip_link_json(stdout: &str) -> Result<Vec<LinuxIPLinkInterface>, RuwiE
 
 #[cfg(test)]
 mod tests {
-    use super::super::super::ip_interfaces::OperState;
+    use super::super::OperState;
     use super::*;
 
     #[test]

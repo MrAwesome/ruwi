@@ -35,7 +35,7 @@ pub(crate) fn run_iw_scan<O>(
     synchronous_rescan: &Option<SynchronousRescanType>,
 ) -> Result<ScanResult, RuwiError>
 where
-    O: Global + Wifi + LinuxNetworkingInterface,
+    O: Global + Wifi + UsesLinuxNetworkingInterface,
 {
     options.bring_interface_up()?;
     let scan_output = if options.get_force_synchronous_scan() || synchronous_rescan.is_some() {
@@ -58,7 +58,7 @@ where
 
 fn run_iw_scan_synchronous<O>(options: &O) -> Result<String, RuwiError>
 where
-    O: Global + Wifi + LinuxNetworkingInterface,
+    O: Global + Wifi + UsesLinuxNetworkingInterface,
 {
     run_iw_scan_synchronous_impl(options, run_iw_scan_synchronous_cmd)
 }
@@ -68,7 +68,7 @@ fn run_iw_scan_synchronous_impl<O, F>(
     mut synchronous_scan_func: F,
 ) -> Result<String, RuwiError>
 where
-    O: Global + Wifi + LinuxNetworkingInterface,
+    O: Global + Wifi + UsesLinuxNetworkingInterface,
     F: FnMut(&O) -> Result<Output, RuwiError>,
 {
     #[cfg(not(test))]
@@ -115,7 +115,7 @@ where
 
 fn run_iw_scan_synchronous_cmd<O>(options: &O) -> Result<Output, RuwiError>
 where
-    O: Global + LinuxNetworkingInterface,
+    O: Global + UsesLinuxNetworkingInterface,
 {
     run_command_output_pass(
         options,
@@ -128,7 +128,7 @@ where
 
 fn run_iw_scan_dump<O>(options: &O) -> Result<String, RuwiError>
 where
-    O: Global + LinuxNetworkingInterface,
+    O: Global + UsesLinuxNetworkingInterface,
 {
     run_command_pass_stdout(
         options,
@@ -141,7 +141,7 @@ where
 
 fn run_iw_scan_trigger<O>(options: &O) -> Result<String, RuwiError>
 where
-    O: Global + LinuxNetworkingInterface,
+    O: Global + UsesLinuxNetworkingInterface,
 {
     // Initiate a rescan. This command should return instantaneously.
     run_command_pass_stdout(
@@ -156,7 +156,7 @@ where
 #[cfg(not(test))]
 fn abort_ongoing_iw_scan<O>(options: &O) -> Result<String, RuwiError>
 where
-    O: Global + LinuxNetworkingInterface,
+    O: Global + UsesLinuxNetworkingInterface,
 {
     run_command_pass_stdout(
         options,

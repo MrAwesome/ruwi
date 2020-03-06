@@ -18,7 +18,7 @@ pub trait Global {
     fn is_test_or_dry_run(&self) -> bool;
 }
 
-pub trait LinuxNetworkingInterface {
+pub trait UsesLinuxNetworkingInterface {
     fn get_interface_name(&self) -> &str;
     fn bring_interface_up(&self) -> Result<(), RuwiError>;
     fn bring_interface_down(&self) -> Result<(), RuwiError>;

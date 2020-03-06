@@ -4,6 +4,10 @@ use rexpect::{spawn, spawn_bash};
 mod utils;
 use utils::spawn_dryrun;
 
+extern crate ruwi;
+use ruwi::interface_management::ip_interfaces::FAKE_INTERFACE_NAME;
+
+
 #[test]
 fn test_cli_help() -> Result<()> {
     let mut p = spawn("./target/debug/ruwi --help", Some(20))?;
@@ -43,6 +47,16 @@ fn test_print_given_essid() -> Result<()> {
         
     )?;
     p.exp_string("FUCKAHOL")?;
+    Ok(())
+}
+
+#[test]
+fn test_wired_connect() -> Result<()> {
+    let mut p = spawn_dryrun(
+        "wired connect",
+        
+    )?;
+    p.exp_string(&format!("Successfully connected on \"{}\"", FAKE_INTERFACE_NAME))?;
     Ok(())
 }
 

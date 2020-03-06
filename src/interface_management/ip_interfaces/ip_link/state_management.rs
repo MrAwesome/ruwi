@@ -50,7 +50,7 @@ where
     Ok(())
 }
 
-pub(crate) fn bring_linux_networking_interface_up<O>(
+pub(crate) fn bring_up<O>(
     options: &O,
     interface_name: &str,
 ) -> Result<(), RuwiError>
@@ -65,7 +65,7 @@ where
     )
 }
 
-pub(crate) fn bring_linux_networking_interface_down<O>(
+pub(crate) fn bring_down<O>(
     options: &O,
     interface_name: &str,
 ) -> Result<(), RuwiError>

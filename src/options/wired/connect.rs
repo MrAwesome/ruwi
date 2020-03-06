@@ -48,7 +48,7 @@ impl Global for WiredConnectOptions {
     }
 }
 
-impl LinuxNetworkingInterface for WiredConnectOptions {
+impl UsesLinuxNetworkingInterface for WiredConnectOptions {
     fn get_interface_name(&self) -> &str {
         self.wired.get_interface_name()
     }

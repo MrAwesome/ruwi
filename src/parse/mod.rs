@@ -14,7 +14,7 @@ pub(crate) fn parse_result<O>(
     options: &O,
     scan_result: &ScanResult,
 ) -> Result<ParseResult, RuwiError> 
-where O: Global + LinuxNetworkingInterface {
+where O: Global + UsesLinuxNetworkingInterface {
     let st = scan_result.scan_type.clone();
     // let TODO = "detangle scan type wifi etc?";
     let res = match &st {
@@ -36,7 +36,7 @@ fn parse_iw_scan<O>(
     output: &str,
     scan_type: ScanType,
 ) -> Result<ParseResult, RuwiError> 
-where O: Global + LinuxNetworkingInterface {
+where O: Global + UsesLinuxNetworkingInterface {
     let network_chunks = break_iw_output_into_chunks_per_network(options, output)?;
     let mut seen_networks = vec![];
     let mut line_parse_errors = vec![];
@@ -58,7 +58,7 @@ fn break_iw_output_into_chunks_per_network<'a, O>(
     options: &O,
     output: &'a str,
 ) -> Result<Vec<Vec<&'a str>>, RuwiError> 
-where O: Global + LinuxNetworkingInterface {
+where O: Global + UsesLinuxNetworkingInterface {
     let mut untrimmed_lines = output.trim().lines();
     let mut iw_network_line_groups = vec![];
 
@@ -142,7 +142,7 @@ fn is_first_line_of_iw_network(line: &str) -> bool {
 }
 
 fn err_iw_malformed_output<O>(options: &O) -> RuwiError 
-where O: Global + LinuxNetworkingInterface {
+where O: Global + UsesLinuxNetworkingInterface {
     rerr!(
         RuwiErrorKind::MalformedIWOutput,
         format!(
@@ -153,7 +153,7 @@ where O: Global + LinuxNetworkingInterface {
 }
 
 fn err_iw_no_networks_seen<O>(options: &O) -> RuwiError 
-where O: Global + LinuxNetworkingInterface {
+where O: Global + UsesLinuxNetworkingInterface {
     rerr!(
         RuwiErrorKind::NoNetworksSeenWithIWScanDump,
         format!("No networks seen by `sudo iw {} scan dump`. Are you near wireless networks? Try running `sudo iw {} scan`.", 

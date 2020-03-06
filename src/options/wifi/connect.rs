@@ -51,7 +51,7 @@ impl Global for WifiConnectOptions {
     }
 }
 
-impl LinuxNetworkingInterface for WifiConnectOptions {
+impl UsesLinuxNetworkingInterface for WifiConnectOptions {
     fn get_interface_name(&self) -> &str {
         self.wifi.get_interface_name()
     }

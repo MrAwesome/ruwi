@@ -14,7 +14,7 @@ pub(crate) fn netctl_config_write<O>(
     encryption_key: &Option<String>,
 ) -> Result<ConfigResult, RuwiError>
 where
-    O: Global + LinuxNetworkingInterface,
+    O: Global + UsesLinuxNetworkingInterface,
 {
     let contents = get_netctl_config_contents(options, network, encryption_key);
 
@@ -56,7 +56,7 @@ pub(crate) fn get_netctl_config_contents<O>(
     encryption_key: &Option<String>,
 ) -> String
 where
-    O: Global + LinuxNetworkingInterface,
+    O: Global + UsesLinuxNetworkingInterface,
 {
     let wpa_line = if network.is_encrypted {
         format!(

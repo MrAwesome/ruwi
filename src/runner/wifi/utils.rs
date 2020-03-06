@@ -17,7 +17,7 @@ const LOOP_MAX: u16 = 1000;
 
 pub(crate) fn get_selected_network<O>(options: &O) -> Result<AnnotatedWirelessNetwork, RuwiError>
 where
-    O: Send + Sync + Global + LinuxNetworkingInterface + AutoSelect + WifiDataGatherer,
+    O: Send + Sync + Global + UsesLinuxNetworkingInterface + AutoSelect + WifiDataGatherer,
 {
     let mut synchronous_retry = None;
     let mut loop_protection = 0;
@@ -50,7 +50,7 @@ pub(super) fn gather_wifi_network_data<O>(
     synchronous_rescan: &Option<SynchronousRescanType>,
 ) -> Result<(KnownIdentifiers, ScanResult), RuwiError>
 where
-    O: 'static + Global + Wifi + WifiConnect + LinuxNetworkingInterface + Send + Sync + Clone,
+    O: 'static + Global + Wifi + WifiConnect + UsesLinuxNetworkingInterface + Send + Sync + Clone,
 {
     let options: &'static O = Box::leak(Box::new(options.clone()));
     let synchronous_rescan = synchronous_rescan.clone();
@@ -78,7 +78,7 @@ pub(super) fn get_network_from_given_essid<O>(
     essid: &str,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError>
 where
-    O: Global + Wifi + WifiConnect + LinuxNetworkingInterface,
+    O: Global + Wifi + WifiConnect + UsesLinuxNetworkingInterface,
 {
     let is_known = find_known_network_names(options)?.check_for(essid);
     let is_encrypted = options.get_given_encryption_key().is_some();

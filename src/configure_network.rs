@@ -10,7 +10,7 @@ pub(crate) fn possibly_configure_network<O>(
     encryption_key: &Option<String>,
 ) -> Result<Option<ConfigResult>, RuwiError>
 where
-    O: Global + Wifi + WifiConnect + LinuxNetworkingInterface,
+    O: Global + Wifi + WifiConnect + UsesLinuxNetworkingInterface,
 {
     let res = if !network.known || options.get_given_encryption_key().is_some() {
         Some(configure_network(options, network, encryption_key)).transpose()
@@ -31,7 +31,7 @@ fn configure_network<O>(
     encryption_key: &Option<String>,
 ) -> Result<ConfigResult, RuwiError>
 where
-    O: Global + Wifi + WifiConnect + LinuxNetworkingInterface,
+    O: Global + Wifi + WifiConnect + UsesLinuxNetworkingInterface,
 {
     let cv = options.get_connect_via();
     match cv {

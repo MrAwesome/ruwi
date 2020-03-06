@@ -11,7 +11,7 @@ pub(crate) fn connect_to_network<O>(
     encryption_key: &Option<String>,
 ) -> Result<ConnectionResult, RuwiError>
 where
-    O: Global + Wifi + WifiConnect + LinuxNetworkingInterface,
+    O: Global + Wifi + WifiConnect + UsesLinuxNetworkingInterface,
 {
     manage_services(options)?;
 
@@ -99,7 +99,7 @@ fn connect_via_netctl<O>(
     selected_network: &AnnotatedWirelessNetwork,
 ) -> Result<ConnectionResult, RuwiError>
 where
-    O: Global + LinuxNetworkingInterface,
+    O: Global + UsesLinuxNetworkingInterface,
 {
     if options.get_dry_run() {
         return Ok(ConnectionResult {

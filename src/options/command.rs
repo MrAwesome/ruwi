@@ -31,7 +31,7 @@ impl RuwiCommand {
         match self {
             Self::Wifi(RuwiWifiCommand::Connect(options)) => options.run(),
             Self::Wifi(RuwiWifiCommand::Select(options)) => options.run(),
-            Self::Wired(RuwiWiredCommand::Connect(_options)) => unimplemented!(),
+            Self::Wired(RuwiWiredCommand::Connect(options)) => options.run(),
             Self::Bluetooth(RuwiBluetoothCommand::Pair) => unimplemented!(),
             Self::Clear(options) => NetworkingService::stop_all(options),
         }

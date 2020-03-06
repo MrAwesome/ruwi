@@ -16,7 +16,7 @@ pub(crate) fn run_nmcli_scan<O>(
     synchronous_rescan: &Option<SynchronousRescanType>,
 ) -> Result<ScanResult, RuwiError>
 where
-    O: Global + Wifi + LinuxNetworkingInterface,
+    O: Global + Wifi + UsesLinuxNetworkingInterface,
 {
     options.bring_interface_up()?;
     let scan_output = if options.get_force_synchronous_scan() || synchronous_rescan.is_some() {

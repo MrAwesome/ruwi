@@ -2,7 +2,7 @@ pub(crate) mod connect;
 
 use crate::enums::*;
 use crate::errors::*;
-use crate::interface_management::ip_interfaces::WiredIPInterface;
+use crate::interface_management::ip_interfaces::*;
 use crate::options::interfaces::*;
 use crate::options::GlobalOptions;
 use typed_builder::TypedBuilder;
@@ -45,7 +45,7 @@ impl Global for WiredOptions {
     }
 }
 
-impl LinuxNetworkingInterface for WiredOptions {
+impl UsesLinuxNetworkingInterface for WiredOptions {
     fn get_interface_name(&self) -> &str {
         &self.interface.get_ifname()
     }

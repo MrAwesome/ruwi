@@ -3,7 +3,7 @@ pub(crate) mod select;
 
 use crate::enums::*;
 use crate::errors::*;
-use crate::interface_management::ip_interfaces::WifiIPInterface;
+use crate::interface_management::ip_interfaces::*;
 use crate::options::interfaces::*;
 use crate::options::GlobalOptions;
 use typed_builder::TypedBuilder;
@@ -45,7 +45,7 @@ impl WifiOptions {
     }
 }
 
-impl LinuxNetworkingInterface for WifiOptions {
+impl UsesLinuxNetworkingInterface for WifiOptions {
     fn get_interface_name(&self) -> &str {
         &self.interface.get_ifname()
     }
