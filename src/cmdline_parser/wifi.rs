@@ -4,14 +4,14 @@ use super::{WIFI_CONNECT_TOKEN, WIFI_SELECT_TOKEN};
 use crate::interface_management::ip_interfaces::WifiIPInterface;
 
 use crate::enums::*;
-use crate::rerr;
-use crate::options::wifi::connect::WifiConnectOptions;
+use crate::errors::*;
 use crate::options::command::*;
+use crate::options::interfaces::*;
+use crate::options::wifi::connect::WifiConnectOptions;
 use crate::options::wifi::select::WifiSelectOptions;
 use crate::options::wifi::*;
-use crate::options::interfaces::*;
-use crate::errors::*;
 use crate::options::*;
+use crate::rerr;
 use crate::strum_utils::*;
 
 use clap::ArgMatches;
@@ -21,37 +21,51 @@ pub(super) fn get_wifi_cmd(
     globals: GlobalOptions,
     maybe_wifi_matcher: Option<&ArgMatches>,
 ) -> Result<RuwiWifiCommand, RuwiError> {
-    if let Some(wifi_matcher) = maybe_wifi_matcher {
-        let wifi_opts = get_wifi_opts_impl(globals, wifi_matcher)?;
-        let (subcommand_name, subcommand_matcher) = wifi_matcher.subcommand();
+    let cmd = if let Some(wifi_matcher) = maybe_wifi_matcher {
+        let wifi_opts = get_wifi_options(globals, wifi_matcher)?;
 
+        let (subcommand_name, subcommand_matcher) = wifi_matcher.subcommand();
         let cmd = if subcommand_name == "" || subcommand_name == WIFI_CONNECT_TOKEN {
             RuwiWifiCommand::Connect(get_wifi_connect_opts(wifi_opts, subcommand_matcher)?)
-
         } else if subcommand_name == WIFI_SELECT_TOKEN {
             RuwiWifiCommand::Select(get_wifi_select_opts(wifi_opts, subcommand_matcher)?)
         } else {
             handle_cmdline_parsing_error(subcommand_name, subcommand_matcher)?
         };
 
-        Ok(cmd)
+        cmd
     } else {
-        get_default_wifi_command(globals)
-    }
+        get_default_wifi_command(globals)?
+    };
+    Ok(cmd)
+}
+
+fn get_wifi_options(globals: GlobalOptions, sub_m: &ArgMatches) -> Result<WifiOptions, RuwiError> {
+    let scan_method = get_scan_method(sub_m);
+    let force_synchronous_scan = sub_m.is_present("force_synchronous_scan");
+    let ignore_known = sub_m.is_present("ignore_known");
+    let interface = get_wifi_interface(sub_m, &globals)?;
+    let scan_type = ScanType::Wifi(get_val_as_enum::<WifiScanType>(&sub_m, "scan_type"));
+
+    let wifi_opts = WifiOptions::builder()
+        .globals(globals)
+        .scan_type(scan_type)
+        .scan_method(scan_method)
+        .interface(interface)
+        .ignore_known(ignore_known)
+        .force_synchronous_scan(force_synchronous_scan)
+        .build();
+    validate_wifi_options(wifi_opts)
 }
 
 fn get_default_wifi_command(globals: GlobalOptions) -> Result<RuwiWifiCommand, RuwiError> {
     let interface = WifiIPInterface::find_first(&globals)?;
-    Ok(RuwiWifiCommand::Connect(
-        WifiConnectOptions::builder()
-            .wifi(
-                WifiOptions::builder()
-                    .globals(globals)
-                    .interface(interface)
-                    .build(),
-            )
-            .build(),
-    ))
+    let wifi_opts = WifiOptions::builder()
+        .globals(globals)
+        .interface(interface)
+        .build();
+    let connect_opts = WifiConnectOptions::builder().wifi(wifi_opts).build();
+    Ok(RuwiWifiCommand::Connect(connect_opts))
 }
 
 fn get_wifi_connect_opts(
@@ -82,7 +96,8 @@ fn get_wifi_connect_opts(
     } else {
         connect_builder.build()
     };
-    Ok(connect_opts)
+
+    validate_wifi_connect_options(connect_opts)
 }
 
 fn get_wifi_select_opts(
@@ -101,30 +116,7 @@ fn get_wifi_select_opts(
     } else {
         select_builder.build()
     };
-    Ok(select_opts)
-}
-
-fn get_wifi_opts_impl(
-    globals: GlobalOptions,
-    sub_m: &ArgMatches,
-) -> Result<WifiOptions, RuwiError> {
-    let scan_method = get_scan_method(sub_m);
-    let force_synchronous_scan = sub_m.is_present("force_synchronous_scan");
-    let ignore_known = sub_m.is_present("ignore_known");
-    let interface = get_wifi_interface(sub_m, &globals)?;
-    let scan_type = ScanType::Wifi(get_val_as_enum::<WifiScanType>(&sub_m, "scan_type"));
-    validate_scan_method_and_type(&scan_method, &scan_type)?;
-
-    let wifi_opts = WifiOptions::builder()
-        .globals(globals)
-        .scan_type(scan_type)
-        .scan_method(scan_method)
-        .interface(interface)
-        .ignore_known(ignore_known)
-        .force_synchronous_scan(force_synchronous_scan)
-        .build();
-
-    Ok(wifi_opts)
+    validate_wifi_select_options(select_opts)
 }
 
 fn get_scan_method(m: &ArgMatches) -> ScanMethod {
@@ -147,17 +139,43 @@ where
     })
 }
 
-// TODO: can this be expressed in the type system somehow?
-fn validate_scan_method_and_type(
-    scan_method: &ScanMethod,
-    scan_type: &ScanType,
-) -> Result<(), RuwiError> {
+// TODO: unit test these validation functions in option creation
+fn validate_wifi_options(options: WifiOptions) -> Result<WifiOptions, RuwiError> {
+    let scan_method = options.get_scan_method();
+    let scan_type = options.get_scan_type();
     match (scan_method, scan_type) {
         (ScanMethod::ByRunning, ScanType::Wifi(WifiScanType::RuwiJSON)) => Err(rerr!(
-                RuwiErrorKind::InvalidScanTypeAndMethod,
-                "There is currently no binary for providing JSON results, you must format them yourself and pass in via stdin or from a file.",
+            RuwiErrorKind::InvalidScanTypeAndMethod,
+            "There is currently no binary for providing JSON results, you must format them yourself and pass in via stdin or from a file.",
         )),
-        (_, _) => Ok(()),
+        _ => Ok(options),
     }
 }
 
+fn validate_wifi_connect_options(
+    options: WifiConnectOptions,
+) -> Result<WifiConnectOptions, RuwiError> {
+    let scan_method = options.get_scan_method();
+    let scan_type = options.get_scan_type();
+    let connect_via = options.get_connect_via();
+    match (scan_method, scan_type, connect_via) {
+        (ScanMethod::ByRunning, ScanType::Wifi(scan_type), WifiConnectionType::Nmcli) => {
+            if let WifiScanType::Nmcli = scan_type {
+                Ok(options)
+            } else {
+                Err(rerr!(
+                    RuwiErrorKind::InvalidScanTypeAndConnectType,
+                    "Non-nmcli scan types do not work when connect_via is set to nmcli, as nmcli needs the NetworkManager service enabled while it looks for known networks. You can pass in results from another scanning program with -I or -F, but most likely you just want to add \"-s nmcli\" to wifi."
+
+                ))
+            }
+        }
+        _ => Ok(options)
+    }
+}
+
+fn validate_wifi_select_options(
+    options: WifiSelectOptions,
+) -> Result<WifiSelectOptions, RuwiError> {
+    Ok(options)
+}

@@ -266,15 +266,32 @@ mod tests {
         }
     }
 
-
     fn getopts_safe(args: &[&str]) -> Result<RuwiCommand, RuwiError> {
-        dbg!(args);
-        get_command_from_command_line_impl(&get_matches_safe(args).map_err(|e| {
+        dbg!(&args);
+        let matcher = get_matches_safe(args).map_err(|e| {
             rerr!(
                 RuwiErrorKind::TestCmdLineOptParserSafeFailed,
                 e.description()
             )
-        })?)
+        });
+        dbg!(&matcher);
+        let res = get_command_from_command_line_impl(&matcher?);
+        dbg!(&res);
+        res
+    }
+
+    fn test_fail_incorrect_option(args: &[&str]) {
+        dbg!(&args);
+        let cmd_res = getopts_safe(args);
+        dbg!(&cmd_res);
+        if let Err(err) = cmd_res {
+            assert_eq![err.kind, RuwiErrorKind::TestCmdLineOptParserSafeFailed];
+        } else {
+            panic!(
+                "Expected command line args+opts \"{}\" to fail, but it passed instead!",
+                args.join(" ")
+            );
+        }
     }
 
     #[test]
@@ -463,40 +480,30 @@ mod tests {
         assert![opts.get_force_synchronous_scan()];
     }
 
-    // NOTE: These are not actually testing what you want. You need to look for more specific
-    // failures.
     #[test]
-    fn test_incorrect_selection_method() {
-        let short_res = getopts_safe(&["wifi", "-s", "BOOOBLOOOBOO"]);
-        let long_res = getopts_safe(&["wifi", "--selection-method", "BOOWOEOOOOOO"]);
-
-        let short_failed = short_res.is_err();
-        let long_failed = long_res.is_err();
-        assert![short_failed];
-        assert![long_failed];
+    fn test_incorrect_enum_variant_invocations() {
+        test_fail_incorrect_option(&["wifi", "-s", "BOOOBLOOOBOO"]);
+        test_fail_incorrect_option(&["wifi", "--selection-method", "BOOWOEOOOOOO"]);
+        test_fail_incorrect_option(&["-s", "HARBLGARBL"]);
+        test_fail_incorrect_option(&["--scan-type", "HARBLGARBL"]);
+        test_fail_incorrect_option(&["-c", "BLAHBLAHBLAHWHOO"]);
+        test_fail_incorrect_option(&["--connect-via", "YERAFKNWIZ"]);
     }
 
     #[test]
-    fn test_incorrect_scan_type() {
-        let short_res = getopts_safe(&["-t", "HARBLGARBL"]);
-        let long_res = getopts_safe(&["--scan-type", "HARBLGARBL"]);
-
-        let short_failed = short_res.is_err();
-        let long_failed = long_res.is_err();
-        assert![short_failed];
-        assert![long_failed];
+    fn test_fail_scan_type_and_method_validation() {
+        let err = getopts_safe(&["wifi", "-s", "ruwi_json"]).unwrap_err();
+        dbg!(&err);
+        assert_eq![err.kind, RuwiErrorKind::InvalidScanTypeAndMethod];
     }
 
     #[test]
-    fn test_incorrect_connection_method() {
-        let short_res = getopts_safe(&["-c", "BLAHBLAHBLAHWHOO"]);
-        let long_res = getopts_safe(&["--connect-via", "YERAFKNWIZ"]);
-
-        let short_failed = short_res.is_err();
-        let long_failed = long_res.is_err();
-        assert![short_failed];
-        assert![long_failed];
+    fn test_invalid_scan_type_and_connect_type() {
+        let err = getopts_safe(&["wifi", "-s", "iw", "connect", "-c", "nmcli"]).unwrap_err();
+        dbg!(&err);
+        assert_eq![err.kind, RuwiErrorKind::InvalidScanTypeAndConnectType];
     }
+
 
     #[test]
     fn test_wired_connect_via() {
@@ -506,7 +513,7 @@ mod tests {
                 "wired",
                 "connect",
                 "--connect-via",
-                &connect_type.to_string()
+                &connect_type.to_string(),
             ]));
             assert_eq![opts.get_connect_via(), &connect_type];
         }
