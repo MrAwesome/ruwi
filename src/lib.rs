@@ -1,7 +1,8 @@
 // Ensure serious cleanliness:
 #![warn(clippy::pedantic)]
-// But this one is a bit too pedantic:
+// But these are a bit too pedantic:
 #![allow(clippy::similar_names)]
+#![allow(clippy::missing_errors_doc)]
 
 extern crate clap;
 extern crate serde;
@@ -48,6 +49,7 @@ use errors::RuwiError;
 // Arch optional dependencies: dmenu, iwconfig, NetworkManager,
 
 
+// TODO(high): change to use given_interface, and determine it during runs
 // TODO(high): include netctl profile name with annotated wired/wireless networks
 // TODO(high): `clear` should be `wifi clear`? or at least call into it? i guess wired and wireless
 // may use the same services. bluetooth also will have services i suppose. should ip/bt be

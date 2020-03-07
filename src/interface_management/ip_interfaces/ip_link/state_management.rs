@@ -12,7 +12,6 @@ enum InterfaceState {
     DOWN,
 }
 
-// TODO: make this work for wired, wifi, and possibly bluetooth (if needed)
 fn bring_interface<O>(
     options: &O,
     interface_name: &str,

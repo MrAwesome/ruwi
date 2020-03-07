@@ -1,5 +1,5 @@
 mod ip_link;
-use ip_link::discovery::{get_first_wifi, get_first_wired};
+use ip_link::{WifiLinuxIPLinkInterface, WiredLinuxIPLinkInterface};
 
 use crate::errors::*;
 use crate::options::interfaces::Global;
@@ -52,7 +52,7 @@ impl WifiIPInterface {
         if opts.is_test_or_dry_run() {
             return Ok(Self::default());
         }
-        let first_seen_wifi_iface = get_first_wifi(opts)?;
+        let first_seen_wifi_iface = WifiLinuxIPLinkInterface::get_first(opts)?;
         Ok(Self::new(first_seen_wifi_iface.get_ifname()))
     }
 }
@@ -86,7 +86,7 @@ impl WiredIPInterface {
         if opts.is_test_or_dry_run() {
             return Ok(Self::default());
         }
-        let first_seen_wifi_iface = get_first_wired(opts)?;
+        let first_seen_wifi_iface = WiredLinuxIPLinkInterface::get_first(opts)?;
         Ok(Self::new(first_seen_wifi_iface.get_ifname()))
     }
 }
