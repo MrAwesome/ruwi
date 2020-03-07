@@ -36,13 +36,11 @@ pub(super) fn get_wired_cmd(
 }
 
 fn get_default_wired_command(globals: GlobalOptions) -> Result<RuwiWiredCommand, RuwiError> {
-    let interface = WiredIPInterface::find_first(&globals)?;
     Ok(RuwiWiredCommand::Connect(
         WiredConnectOptions::builder()
             .wired(
                 WiredOptions::builder()
                     .globals(globals)
-                    .interface(interface)
                     .build(),
             )
             .build(),
@@ -55,7 +53,7 @@ fn get_wired_connect_opts(
 ) -> Result<WiredConnectOptions, RuwiError> {
     let connect_builder = WiredConnectOptions::builder().wired(wired_opts);
     let connect_opts = if let Some(connect_matcher) = maybe_connect_matcher {
-        let connect_via = get_val_as_enum::<WiredConnectionType>(&connect_matcher, "connect_via");
+        let connect_via = get_val_as_enum::<RawInterfaceConnectionType>(&connect_matcher, "connect_via");
 
         connect_builder
             .connect_via(connect_via)
@@ -68,13 +66,13 @@ fn get_wired_connect_opts(
 
 fn get_wired_opts_impl(
     globals: GlobalOptions,
-    sub_m: &ArgMatches,
+    wired_matcher: &ArgMatches,
 ) -> Result<WiredOptions, RuwiError> {
-    let interface = get_wired_interface(sub_m, &globals)?;
+    let given_interface_name = wired_matcher.value_of("interface").map(String::from);
 
     let wired_opts = WiredOptions::builder()
         .globals(globals)
-        .interface(interface)
+        .given_interface_name(given_interface_name)
         .build();
 
     Ok(wired_opts)

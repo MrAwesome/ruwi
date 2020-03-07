@@ -128,8 +128,8 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .short("c")
         .long("connect-via")
         .takes_value(true)
-        .default_value(&WiredConnectionType::default().as_static())
-        .possible_values(&possible_string_vals::<WiredConnectionType, _>())
+        .default_value(&RawInterfaceConnectionType::default().as_static())
+        .possible_values(&possible_string_vals::<RawInterfaceConnectionType, _>())
         .help("Which network management suite to use to connect on the given interface.");
 
     App::new("Ruwi")
@@ -507,7 +507,7 @@ mod tests {
 
     #[test]
     fn test_wired_connect_via() {
-        for connect_type in WiredConnectionType::iter() {
+        for connect_type in RawInterfaceConnectionType::iter() {
             dbg!(&connect_type);
             let opts = expect_wired_connect_opts(getopts(&[
                 "wired",

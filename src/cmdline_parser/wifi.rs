@@ -39,14 +39,14 @@ fn get_wifi_options(globals: GlobalOptions, wifi_matcher: &ArgMatches) -> Result
     let scan_method = get_scan_method(wifi_matcher);
     let force_synchronous_scan = wifi_matcher.is_present("force_synchronous_scan");
     let ignore_known = wifi_matcher.is_present("ignore_known");
-    let interface = wifi_matcher.value_of("interface").map(String::from);
+    let given_interface_name = wifi_matcher.value_of("interface").map(String::from);
     let scan_type = ScanType::Wifi(get_val_as_enum::<WifiScanType>(&wifi_matcher, "scan_type"));
 
     let wifi_opts = WifiOptions::builder()
         .globals(globals)
         .scan_type(scan_type)
         .scan_method(scan_method)
-        .given_interface_name(interface)
+        .given_interface_name(given_interface_name)
         .ignore_known(ignore_known)
         .force_synchronous_scan(force_synchronous_scan)
         .build();

@@ -53,10 +53,10 @@ fn test_print_given_essid() -> Result<()> {
 #[test]
 fn test_wired_connect() -> Result<()> {
     let mut p = spawn_dryrun(
-        "wired connect",
+        "wired connect -c dhcpcd",
         
     )?;
-    p.exp_string(&format!("Successfully connected on \"{}\"", FAKE_INTERFACE_NAME))?;
+    p.exp_string(&format!("Successfully connected on \"{}\" using {}", FAKE_INTERFACE_NAME, "dhcpcd"))?;
     Ok(())
 }
 

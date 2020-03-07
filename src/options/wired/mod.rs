@@ -1,7 +1,6 @@
 pub(crate) mod connect;
 
 use crate::enums::*;
-use crate::interface_management::ip_interfaces::*;
 use crate::options::interfaces::*;
 use crate::options::GlobalOptions;
 use typed_builder::TypedBuilder;
@@ -14,14 +13,15 @@ use typed_builder::TypedBuilder;
 #[derive(Debug, Clone, TypedBuilder)]
 pub struct WiredOptions {
     globals: GlobalOptions,
-    interface: WiredIPInterface,
+    #[builder(default = None)]
+    given_interface_name: Option<String>,
 }
 
 impl Default for WiredOptions {
     fn default() -> Self {
         Self {
             globals: GlobalOptions::default(),
-            interface: WiredIPInterface::default(),
+            given_interface_name: None,
         }
     }
 }
@@ -41,5 +41,11 @@ impl Global for WiredOptions {
     }
     fn is_test_or_dry_run(&self) -> bool {
         self.globals.is_test_or_dry_run()
+    }
+}
+
+impl Wired for WiredOptions {
+    fn get_given_interface_name(&self) -> &Option<String> {
+        &self.given_interface_name
     }
 }

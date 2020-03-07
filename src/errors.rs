@@ -17,6 +17,7 @@ pub enum RuwiErrorKind {
     FailedToParseSelectedLine,
     FailedToReadScanResultsFromFile,
     FailedToReadScanResultsFromStdin,
+    FailedToRawConnectViaDhcpcd,
     FailedToRunCommand,
     FailedToRunIPLinkShow,
     FailedToRunIWDev,

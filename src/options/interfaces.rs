@@ -1,3 +1,5 @@
+// TODO: rename this file to something closer to context_traits
+
 use crate::errors::*;
 // TODO: remove reliance on naked structs here
 use crate::check_known_identifiers::KnownIdentifiers;
@@ -19,17 +21,15 @@ pub trait Global {
     fn is_test_or_dry_run(&self) -> bool;
 }
 
-//pub trait UsesLinuxNetworkingInterface {
-//    fn get_interface_name(&self) -> &str;
-//    fn bring_interface_up(&self) -> Result<(), RuwiError>;
-//    fn bring_interface_down(&self) -> Result<(), RuwiError>;
-//}
-//
 pub trait Wifi {
     fn get_scan_type(&self) -> &ScanType;
     fn get_scan_method(&self) -> &ScanMethod;
     fn get_ignore_known(&self) -> bool;
     fn get_force_synchronous_scan(&self) -> bool;
+    fn get_given_interface_name(&self) -> &Option<String>;
+}
+
+pub trait Wired {
     fn get_given_interface_name(&self) -> &Option<String>;
 }
 
@@ -45,7 +45,7 @@ pub trait WifiConnect {
 }
 
 pub trait WiredConnect {
-    fn get_connect_via(&self) -> &WiredConnectionType;
+    fn get_connect_via(&self) -> &RawInterfaceConnectionType;
 }
 
 pub trait WifiDataGatherer {
