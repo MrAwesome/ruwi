@@ -3,6 +3,7 @@ use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::rerr;
 use crate::structs::*;
+use crate::interface_management::ip_interfaces::*;
 use std::error::Error;
 use std::fs::File;
 use std::io;
@@ -10,13 +11,14 @@ use std::io::Write;
 
 pub(crate) fn netctl_config_write<O>(
     options: &O,
+    interface: &WifiIPInterface,
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> Result<ConfigResult, RuwiError>
 where
-    O: Global + UsesLinuxNetworkingInterface,
+    O: Global,
 {
-    let contents = get_netctl_config_contents(options, network, encryption_key);
+    let contents = get_netctl_config_contents(options, interface, network, encryption_key);
 
     let netctl_file_name = get_netctl_file_name(&network.essid);
     let netctl_location = "/etc/netctl/".to_string();
@@ -50,13 +52,16 @@ pub(crate) fn get_netctl_file_name(essid: &str) -> String {
     essid.replace(" ", "_")
 }
 
+// NOTE: This is wifi-specific, but the file overall can easily be refactored to work
+//       for other connection types
 pub(crate) fn get_netctl_config_contents<O>(
-    options: &O,
+    _options: &O,
+    interface: &WifiIPInterface,
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> String
 where
-    O: Global + UsesLinuxNetworkingInterface,
+    O: Global,
 {
     let wpa_line = if network.is_encrypted {
         format!(
@@ -81,7 +86,7 @@ IP=dhcp
 ",
         network.essid,
         if network.is_encrypted { "wpa" } else { "open" },
-        options.get_interface_name(),
+        interface.get_ifname(),
         if network.is_encrypted { "wpa" } else { "none" },
         network.essid,
         wpa_line,

@@ -1,7 +1,6 @@
 use typed_builder::TypedBuilder;
 
 use crate::enums::*;
-use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::options::wifi::WifiOptions;
 
@@ -51,18 +50,6 @@ impl Global for WifiConnectOptions {
     }
 }
 
-impl UsesLinuxNetworkingInterface for WifiConnectOptions {
-    fn get_interface_name(&self) -> &str {
-        self.wifi.get_interface_name()
-    }
-    fn bring_interface_up(&self) -> Result<(), RuwiError> {
-        self.wifi.bring_interface_up()
-    }
-    fn bring_interface_down(&self) -> Result<(), RuwiError> {
-        self.wifi.bring_interface_down()
-    }
-}
-
 impl Wifi for WifiConnectOptions {
     fn get_scan_type(&self) -> &ScanType {
         self.wifi.get_scan_type()
@@ -75,6 +62,9 @@ impl Wifi for WifiConnectOptions {
     }
     fn get_force_synchronous_scan(&self) -> bool {
         self.wifi.get_force_synchronous_scan()
+    }
+    fn get_given_interface_name(&self) -> &Option<String> {
+        self.wifi.get_given_interface_name()
     }
 }
 

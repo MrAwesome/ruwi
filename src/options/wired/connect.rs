@@ -1,7 +1,6 @@
 use typed_builder::TypedBuilder;
 
 use crate::enums::*;
-use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::options::wired::WiredOptions;
 
@@ -45,18 +44,6 @@ impl Global for WiredConnectOptions {
     }
     fn is_test_or_dry_run(&self) -> bool {
         self.wired.is_test_or_dry_run()
-    }
-}
-
-impl UsesLinuxNetworkingInterface for WiredConnectOptions {
-    fn get_interface_name(&self) -> &str {
-        self.wired.get_interface_name()
-    }
-    fn bring_interface_up(&self) -> Result<(), RuwiError> {
-        self.wired.bring_interface_up()
-    }
-    fn bring_interface_down(&self) -> Result<(), RuwiError> {
-        self.wired.bring_interface_down()
     }
 }
 

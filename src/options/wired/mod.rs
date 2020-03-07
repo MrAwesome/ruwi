@@ -1,7 +1,6 @@
 pub(crate) mod connect;
 
 use crate::enums::*;
-use crate::errors::*;
 use crate::interface_management::ip_interfaces::*;
 use crate::options::interfaces::*;
 use crate::options::GlobalOptions;
@@ -42,19 +41,5 @@ impl Global for WiredOptions {
     }
     fn is_test_or_dry_run(&self) -> bool {
         self.globals.is_test_or_dry_run()
-    }
-}
-
-impl UsesLinuxNetworkingInterface for WiredOptions {
-    fn get_interface_name(&self) -> &str {
-        &self.interface.get_ifname()
-    }
-    fn bring_interface_up(&self) -> Result<(), RuwiError> {
-        self.interface.bring_up(self)?;
-        Ok(())
-    }
-    fn bring_interface_down(&self) -> Result<(), RuwiError> {
-        self.interface.bring_down(self)?;
-        Ok(())
     }
 }

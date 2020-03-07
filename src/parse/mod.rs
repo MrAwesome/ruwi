@@ -1,27 +1,38 @@
 mod nmcli;
 use nmcli::parse_nmcli_scan;
 
-use crate::rerr;
-use crate::errors::*;
-use crate::structs::*;
 use crate::enums::*;
+use crate::errors::*;
 use crate::options::interfaces::*;
+use crate::rerr;
+use crate::structs::*;
 
 use unescape::unescape;
 
-// TODO: you can include the interface in ScanResult, and get rid of that trait here.
 pub(crate) fn parse_result<O>(
     options: &O,
+    interface_name_for_errors: &str,
     scan_result: &ScanResult,
-) -> Result<ParseResult, RuwiError> 
-where O: Global + UsesLinuxNetworkingInterface {
+) -> Result<ParseResult, RuwiError>
+where
+    O: Global,
+{
     let st = scan_result.scan_type.clone();
     // let TODO = "detangle scan type wifi etc?";
     let res = match &st {
         // Impl on ScanResult, match ScanType and then WifiScanType, then this all becomes scan_result.parse()
-        ScanType::Wifi(WifiScanType::Nmcli) => parse_nmcli_scan(options, &scan_result.scan_output, st),
-        ScanType::Wifi(WifiScanType::WpaCli) => parse_wpa_cli_scan(options, &scan_result.scan_output, st),
-        ScanType::Wifi(WifiScanType::IW) => parse_iw_scan(options, &scan_result.scan_output, st),
+        ScanType::Wifi(WifiScanType::Nmcli) => {
+            parse_nmcli_scan(options, &scan_result.scan_output, st)
+        }
+        ScanType::Wifi(WifiScanType::WpaCli) => {
+            parse_wpa_cli_scan(options, &scan_result.scan_output, st)
+        }
+        ScanType::Wifi(WifiScanType::IW) => parse_iw_scan(
+            options,
+            interface_name_for_errors,
+            &scan_result.scan_output,
+            st,
+        ),
         ScanType::Wifi(WifiScanType::RuwiJSON) => Err(nie("JSON support is coming soon!")),
     };
 
@@ -32,12 +43,15 @@ where O: Global + UsesLinuxNetworkingInterface {
 }
 
 fn parse_iw_scan<O>(
-    options: &O,
+    _options: &O,
+    interface_name: &str,
     output: &str,
     scan_type: ScanType,
-) -> Result<ParseResult, RuwiError> 
-where O: Global + UsesLinuxNetworkingInterface {
-    let network_chunks = break_iw_output_into_chunks_per_network(options, output)?;
+) -> Result<ParseResult, RuwiError>
+where
+    O: Global,
+{
+    let network_chunks = break_iw_output_into_chunks_per_network(interface_name, output)?;
     let mut seen_networks = vec![];
     let mut line_parse_errors = vec![];
     for chunk in network_chunks {
@@ -54,11 +68,10 @@ where O: Global + UsesLinuxNetworkingInterface {
     })
 }
 
-fn break_iw_output_into_chunks_per_network<'a, O>(
-    options: &O,
+fn break_iw_output_into_chunks_per_network<'a>(
+    interface_name: &str,
     output: &'a str,
-) -> Result<Vec<Vec<&'a str>>, RuwiError> 
-where O: Global + UsesLinuxNetworkingInterface {
+) -> Result<Vec<Vec<&'a str>>, RuwiError> {
     let mut untrimmed_lines = output.trim().lines();
     let mut iw_network_line_groups = vec![];
 
@@ -69,10 +82,10 @@ where O: Global + UsesLinuxNetworkingInterface {
             network.push(untrimmed_line.trim());
         } else {
             eprintln!("[ERR]: Culprit line: \"{}\"", untrimmed_line);
-            return Err(err_iw_malformed_output(options));
+            return Err(err_iw_malformed_output(interface_name));
         }
     } else {
-        return Err(err_iw_no_networks_seen(options));
+        return Err(err_iw_no_networks_seen(interface_name));
     }
 
     loop {
@@ -95,7 +108,13 @@ fn parse_iw_chunk_into_network(chunk: &[&str]) -> Result<WirelessNetwork, Indivi
     let essid = unescape(
         chunk
             .iter()
-            .find_map(|line| if line.starts_with("SSID: ") { Some(line.trim_start_matches("SSID: ")) } else { None })
+            .find_map(|line| {
+                if line.starts_with("SSID: ") {
+                    Some(line.trim_start_matches("SSID: "))
+                } else {
+                    None
+                }
+            })
             .ok_or(IndividualParseError::MissingIWSSIDField)?,
     )
     .ok_or(IndividualParseError::FailedToUnescapeSSIDField)?;
@@ -141,32 +160,34 @@ fn is_first_line_of_iw_network(line: &str) -> bool {
     line.starts_with("BSS ") && line.contains("(on ")
 }
 
-fn err_iw_malformed_output<O>(options: &O) -> RuwiError 
-where O: Global + UsesLinuxNetworkingInterface {
+fn err_iw_malformed_output(interface_name: &str) -> RuwiError {
     rerr!(
         RuwiErrorKind::MalformedIWOutput,
         format!(
             "Malformed output returned by `sudo iw {} scan dump`. Try running it manually, or rerunning ruwi with -d to see the parse error.",
-            options.get_interface_name()
+            interface_name,
         )
     )
 }
 
-fn err_iw_no_networks_seen<O>(options: &O) -> RuwiError 
-where O: Global + UsesLinuxNetworkingInterface {
+fn err_iw_no_networks_seen(interface_name: &str) -> RuwiError {
     rerr!(
         RuwiErrorKind::NoNetworksSeenWithIWScanDump,
-        format!("No networks seen by `sudo iw {} scan dump`. Are you near wireless networks? Try running `sudo iw {} scan`.", 
-            options.get_interface_name(), 
-            options.get_interface_name()))
+        format!("No networks seen by `sudo iw {} scan dump`. Are you near wireless networks? Try running `sudo iw {} scan`.",
+            interface_name,
+            interface_name,
+        )
+    )
 }
 
 fn parse_wpa_cli_scan<O>(
     _options: &O,
     output: &str,
     scan_type: ScanType,
-) -> Result<ParseResult, RuwiError> 
-where O: Global {
+) -> Result<ParseResult, RuwiError>
+where
+    O: Global,
+{
     let mut lines = output.trim().lines().map(ToString::to_string);
     let mut networks = vec![];
     let mut line_parse_errors = vec![];
@@ -247,12 +268,12 @@ mod tests {
     use super::*;
     use crate::options::wifi::connect::WifiConnectOptions;
 
-    fn compare_parsed_result_to_expected_result(options: &WifiConnectOptions, 
+    fn compare_parsed_result_to_expected_result(
+        options: &WifiConnectOptions,
         scan_result: &ScanResult,
         expected_parse_result: &Result<ParseResult, RuwiError>,
     ) {
-
-        let actual_parse_result = parse_result(options, &scan_result);
+        let actual_parse_result = parse_result(options, "fake_interface_name", &scan_result);
 
         dbg!(&expected_parse_result);
         dbg!(&actual_parse_result);
@@ -374,7 +395,10 @@ mod tests {
         let options = WifiConnectOptions::from_scan_type(st.clone());
         let scan_result = ScanResult {
             scan_type: st.clone(),
-            scan_output: include_str!("samples/wpa_cli_seven_networks_two_duplicates_two_empty.txt").to_string(),
+            scan_output: include_str!(
+                "samples/wpa_cli_seven_networks_two_duplicates_two_empty.txt"
+            )
+            .to_string(),
         };
         let expected_parse_result = Ok(ParseResult {
             scan_type: st,
@@ -471,7 +495,10 @@ mod tests {
         let options = WifiConnectOptions::from_scan_type(st.clone());
         let scan_result = ScanResult {
             scan_type: st.clone(),
-            scan_output: include_str!("samples/wpa_cli_two_networks_one_with_signal_level_parse_error.txt").to_string(),
+            scan_output: include_str!(
+                "samples/wpa_cli_two_networks_one_with_signal_level_parse_error.txt"
+            )
+            .to_string(),
         };
         let expected_parse_result = Ok(ParseResult {
             scan_type: st,

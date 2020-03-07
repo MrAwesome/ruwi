@@ -2,8 +2,6 @@ pub(crate) mod connect;
 pub(crate) mod select;
 
 use crate::enums::*;
-use crate::errors::*;
-use crate::interface_management::ip_interfaces::*;
 use crate::options::interfaces::*;
 use crate::options::GlobalOptions;
 use typed_builder::TypedBuilder;
@@ -11,7 +9,8 @@ use typed_builder::TypedBuilder;
 #[derive(Debug, Clone, TypedBuilder)]
 pub struct WifiOptions {
     globals: GlobalOptions,
-    interface: WifiIPInterface,
+    #[builder(default = None)]
+    given_interface_name: Option<String>,
     #[builder(default)]
     scan_type: ScanType,
     #[builder(default)]
@@ -28,7 +27,7 @@ impl Default for WifiOptions {
             globals: GlobalOptions::default(),
             scan_type: ScanType::default(),
             scan_method: ScanMethod::default(),
-            interface: WifiIPInterface::default(),
+            given_interface_name: None,
             ignore_known: false,
             force_synchronous_scan: false,
         }
@@ -45,20 +44,6 @@ impl WifiOptions {
     }
 }
 
-impl UsesLinuxNetworkingInterface for WifiOptions {
-    fn get_interface_name(&self) -> &str {
-        &self.interface.get_ifname()
-    }
-    fn bring_interface_up(&self) -> Result<(), RuwiError> {
-        self.interface.bring_up(self)?;
-        Ok(())
-    }
-    fn bring_interface_down(&self) -> Result<(), RuwiError> {
-        self.interface.bring_down(self)?;
-        Ok(())
-    }
-}
-
 impl Wifi for WifiOptions {
     fn get_scan_type(&self) -> &ScanType {
         &self.scan_type
@@ -71,6 +56,9 @@ impl Wifi for WifiOptions {
     }
     fn get_force_synchronous_scan(&self) -> bool {
         self.force_synchronous_scan
+    }
+    fn get_given_interface_name(&self) -> &Option<String> {
+        &self.given_interface_name
     }
 }
 

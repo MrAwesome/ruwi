@@ -12,7 +12,7 @@ fn main() {
             eprintln!("[ERR]: Run failed! ({:?})", err.kind);
             eprintln!("[ERR]: {}", err);
             if let Some(extra_data) = err.extra_data {
-                for (key, val) in extra_data.iter() {
+                for (key, val) in &extra_data {
                     eprintln!("* {}: {}", key, val);
                 }
             }

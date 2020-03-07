@@ -3,6 +3,7 @@ use crate::errors::*;
 use crate::check_known_identifiers::KnownIdentifiers;
 use crate::enums::*;
 use crate::structs::ScanResult;
+use crate::interface_management::ip_interfaces::WifiIPInterface;
 use std::fmt::Debug;
 
 // TODO: Remove networks from here and put elsewhere
@@ -18,17 +19,18 @@ pub trait Global {
     fn is_test_or_dry_run(&self) -> bool;
 }
 
-pub trait UsesLinuxNetworkingInterface {
-    fn get_interface_name(&self) -> &str;
-    fn bring_interface_up(&self) -> Result<(), RuwiError>;
-    fn bring_interface_down(&self) -> Result<(), RuwiError>;
-}
-
+//pub trait UsesLinuxNetworkingInterface {
+//    fn get_interface_name(&self) -> &str;
+//    fn bring_interface_up(&self) -> Result<(), RuwiError>;
+//    fn bring_interface_down(&self) -> Result<(), RuwiError>;
+//}
+//
 pub trait Wifi {
     fn get_scan_type(&self) -> &ScanType;
     fn get_scan_method(&self) -> &ScanMethod;
     fn get_ignore_known(&self) -> bool;
     fn get_force_synchronous_scan(&self) -> bool;
+    fn get_given_interface_name(&self) -> &Option<String>;
 }
 
 pub trait AutoSelect {
@@ -49,6 +51,7 @@ pub trait WiredConnect {
 pub trait WifiDataGatherer {
     fn get_wifi_data(
         &self,
+        interface: &WifiIPInterface,
         synchronous_rescan: &Option<SynchronousRescanType>,
     ) -> Result<(KnownIdentifiers, ScanResult), RuwiError>;
 }

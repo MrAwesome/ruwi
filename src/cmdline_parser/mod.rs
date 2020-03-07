@@ -317,9 +317,9 @@ mod tests {
     #[test]
     fn test_interface() {
         let opts = expect_wifi_connect_opts(getopts(&["wifi", "-i", "BFUGG"]));
-        assert_eq![opts.get_interface_name(), "BFUGG"];
+        assert_eq![opts.get_given_interface_name(), &Some("BFUGG".to_string())];
         let opts = expect_wifi_connect_opts(getopts(&["wifi", "--interface", "BLEEBLOO"]));
-        assert_eq![opts.get_interface_name(), "BLEEBLOO"];
+        assert_eq![opts.get_given_interface_name(), &Some("BLEEBLOO".to_string())];
     }
 
     #[test]

@@ -1,8 +1,6 @@
 use super::utils::*;
 use super::{WIFI_CONNECT_TOKEN, WIFI_SELECT_TOKEN};
 
-use crate::interface_management::ip_interfaces::WifiIPInterface;
-
 use crate::enums::*;
 use crate::errors::*;
 use crate::options::command::*;
@@ -15,7 +13,6 @@ use crate::rerr;
 use crate::strum_utils::*;
 
 use clap::ArgMatches;
-use std::fmt::Debug;
 
 pub(super) fn get_wifi_cmd(
     globals: GlobalOptions,
@@ -25,33 +22,31 @@ pub(super) fn get_wifi_cmd(
         let wifi_opts = get_wifi_options(globals, wifi_matcher)?;
 
         let (subcommand_name, subcommand_matcher) = wifi_matcher.subcommand();
-        let cmd = if subcommand_name == "" || subcommand_name == WIFI_CONNECT_TOKEN {
+        if subcommand_name == "" || subcommand_name == WIFI_CONNECT_TOKEN {
             RuwiWifiCommand::Connect(get_wifi_connect_opts(wifi_opts, subcommand_matcher)?)
         } else if subcommand_name == WIFI_SELECT_TOKEN {
             RuwiWifiCommand::Select(get_wifi_select_opts(wifi_opts, subcommand_matcher)?)
         } else {
             handle_cmdline_parsing_error(subcommand_name, subcommand_matcher)?
-        };
-
-        cmd
+        }
     } else {
         get_default_wifi_command(globals)?
     };
     Ok(cmd)
 }
 
-fn get_wifi_options(globals: GlobalOptions, sub_m: &ArgMatches) -> Result<WifiOptions, RuwiError> {
-    let scan_method = get_scan_method(sub_m);
-    let force_synchronous_scan = sub_m.is_present("force_synchronous_scan");
-    let ignore_known = sub_m.is_present("ignore_known");
-    let interface = get_wifi_interface(sub_m, &globals)?;
-    let scan_type = ScanType::Wifi(get_val_as_enum::<WifiScanType>(&sub_m, "scan_type"));
+fn get_wifi_options(globals: GlobalOptions, wifi_matcher: &ArgMatches) -> Result<WifiOptions, RuwiError> {
+    let scan_method = get_scan_method(wifi_matcher);
+    let force_synchronous_scan = wifi_matcher.is_present("force_synchronous_scan");
+    let ignore_known = wifi_matcher.is_present("ignore_known");
+    let interface = wifi_matcher.value_of("interface").map(String::from);
+    let scan_type = ScanType::Wifi(get_val_as_enum::<WifiScanType>(&wifi_matcher, "scan_type"));
 
     let wifi_opts = WifiOptions::builder()
         .globals(globals)
         .scan_type(scan_type)
         .scan_method(scan_method)
-        .interface(interface)
+        .given_interface_name(interface)
         .ignore_known(ignore_known)
         .force_synchronous_scan(force_synchronous_scan)
         .build();
@@ -59,10 +54,8 @@ fn get_wifi_options(globals: GlobalOptions, sub_m: &ArgMatches) -> Result<WifiOp
 }
 
 fn get_default_wifi_command(globals: GlobalOptions) -> Result<RuwiWifiCommand, RuwiError> {
-    let interface = WifiIPInterface::find_first(&globals)?;
     let wifi_opts = WifiOptions::builder()
         .globals(globals)
-        .interface(interface)
         .build();
     let connect_opts = WifiConnectOptions::builder().wifi(wifi_opts).build();
     Ok(RuwiWifiCommand::Connect(connect_opts))
@@ -127,16 +120,6 @@ fn get_scan_method(m: &ArgMatches) -> ScanMethod {
     } else {
         ScanMethod::ByRunning
     }
-}
-
-fn get_wifi_interface<O>(m: &ArgMatches, opts: &O) -> Result<WifiIPInterface, RuwiError>
-where
-    O: Global + Debug,
-{
-    Ok(match m.value_of("interface") {
-        Some(given_ifname) => WifiIPInterface::new(given_ifname),
-        None => WifiIPInterface::find_first(opts)?,
-    })
 }
 
 // TODO: unit test these validation functions in option creation

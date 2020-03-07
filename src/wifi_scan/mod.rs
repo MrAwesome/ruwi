@@ -12,6 +12,7 @@ use crate::errors::*;
 use crate::enums::*;
 use crate::structs::*;
 use crate::options::interfaces::*;
+use crate::interface_management::ip_interfaces::WifiIPInterface;
 
 use std::fs::File;
 use std::io;
@@ -22,7 +23,14 @@ pub(crate) static SYNCHRONOUS_RETRY_DELAY_SECS: f64 = 0.2;
 
 pub(crate) static DEVICE_OR_RESOURCE_BUSY_EXIT_CODE: i32 = 240;
 
-pub(crate) fn wifi_scan<O>(options: &O, synchronous_rescan: &Option<SynchronousRescanType>) -> Result<ScanResult, RuwiError> where O: Global + Wifi + UsesLinuxNetworkingInterface {
+pub(crate) fn wifi_scan<O>(
+    options: &O, 
+    interface: &WifiIPInterface,
+    synchronous_rescan: &Option<SynchronousRescanType>
+) -> Result<ScanResult, RuwiError> 
+where 
+    O: Global + Wifi 
+{
     let sm = options.get_scan_method().clone();
     let st = options.get_scan_type().clone();
 
@@ -31,9 +39,9 @@ pub(crate) fn wifi_scan<O>(options: &O, synchronous_rescan: &Option<SynchronousR
             // TODO: integration test that service is only started on byrunning scan
             st.get_service().start(options)?;
             match &st {
-                ScanType::Wifi(WifiScanType::Nmcli) => run_nmcli_scan(options, st, synchronous_rescan),
+                ScanType::Wifi(WifiScanType::Nmcli) => run_nmcli_scan(options, interface, st, synchronous_rescan),
                 ScanType::Wifi(WifiScanType::WpaCli) => run_wpa_cli_scan(options, st),
-                ScanType::Wifi(WifiScanType::IW) => run_iw_scan(options, st, synchronous_rescan),
+                ScanType::Wifi(WifiScanType::IW) => run_iw_scan(options, interface, st, synchronous_rescan),
                 ScanType::Wifi(WifiScanType::RuwiJSON) => 
                     Err(rerr!(
                         RuwiErrorKind::InvalidScanTypeAndMethod,
@@ -101,7 +109,8 @@ mod tests {
     use std::process::{Output, Command, Stdio};
 
     pub(crate) static FAKE_OUTPUT: &str = "LOLWUTFAKEIWLOL";
-    pub(crate) fn command_fail_with_exitcode(code: i32) -> Output {
+
+    fn command_fail_with_exitcode(code: i32) -> Output {
         Command::new("/bin/sh")
             .arg("-c")
             .arg(format!("exit {}", code))
@@ -111,17 +120,17 @@ mod tests {
             .unwrap()
     }
 
-    pub(crate) fn command_fail_with_exitcode_1<O>(_options: &O) -> Result<Output, RuwiError> where O: Global {
+    pub(crate) fn command_fail_with_exitcode_1<O>(_options: &O, _interface: &WifiIPInterface) -> Result<Output, RuwiError> where O: Global {
         Ok(command_fail_with_exitcode(1))
     }
 
-    pub(crate) fn command_fail_with_device_or_resource_busy<O>(_options: &O) -> Result<Output, RuwiError> where O: Global {
+    pub(crate) fn command_fail_with_device_or_resource_busy<O>(_options: &O, _interface: &WifiIPInterface) -> Result<Output, RuwiError> where O: Global {
         Ok(command_fail_with_exitcode(
             DEVICE_OR_RESOURCE_BUSY_EXIT_CODE,
         ))
     }
 
-    pub(crate) fn command_pass<O>(_opts: &O) -> Result<Output, RuwiError> where O: Global {
+    pub(crate) fn command_pass<O>(_opts: &O, _interface: &WifiIPInterface) -> Result<Output, RuwiError> where O: Global {
         Ok(Command::new("/bin/echo")
             .arg(FAKE_OUTPUT)
             .stdout(Stdio::piped())

@@ -1,3 +1,4 @@
+use crate::interface_management::ip_interfaces::*;
 use crate::enums::*;
 use crate::errors::*;
 use crate::options::interfaces::*;
@@ -12,13 +13,14 @@ const NMCLI_SCAN_ERR_MSG: &str = concat!(
 
 pub(crate) fn run_nmcli_scan<O>(
     options: &O,
+    interface: &WifiIPInterface,
     scan_type: ScanType,
     synchronous_rescan: &Option<SynchronousRescanType>,
 ) -> Result<ScanResult, RuwiError>
 where
-    O: Global + Wifi + UsesLinuxNetworkingInterface,
+    O: Global + Wifi,
 {
-    options.bring_interface_up()?;
+    interface.bring_up(options)?;
     let scan_output = if options.get_force_synchronous_scan() || synchronous_rescan.is_some() {
         run_nmcli_scan_cmd_synchronous(options)?
     } else {

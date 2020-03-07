@@ -2,6 +2,7 @@ use std::thread;
 
 use crate::annotate_networks::annotate_networks;
 use crate::check_known_identifiers::KnownIdentifiers;
+use crate::interface_management::ip_interfaces::*;
 use crate::enums::*;
 use crate::errors::*;
 use crate::find_known_network_names::find_known_network_names;
@@ -15,16 +16,19 @@ use crate::wifi_scan::wifi_scan;
 
 const LOOP_MAX: u16 = 1000;
 
-pub(crate) fn get_selected_network<O>(options: &O) -> Result<AnnotatedWirelessNetwork, RuwiError>
+pub(crate) fn scan_and_select_network<O>(
+    options: &O,
+    interface: &WifiIPInterface,
+) -> Result<AnnotatedWirelessNetwork, RuwiError>
 where
-    O: Send + Sync + Global + UsesLinuxNetworkingInterface + AutoSelect + WifiDataGatherer,
+    O: Send + Sync + Global + AutoSelect + WifiDataGatherer,
 {
     let mut synchronous_retry = None;
     let mut loop_protection = 0;
     loop {
         loop_check(&mut loop_protection, LOOP_MAX)?;
-        let (known_network_names, scan_result) = options.get_wifi_data(&synchronous_retry)?;
-        let parse_results = parse_result(options, &scan_result)?;
+        let (known_network_names, scan_result) = options.get_wifi_data(interface, &synchronous_retry)?;
+        let parse_results = parse_result(options, interface.get_ifname(), &scan_result)?;
 
         let annotated_networks =
             annotate_networks(options, &parse_results.seen_networks, &known_network_names);
@@ -47,16 +51,18 @@ where
 
 pub(super) fn gather_wifi_network_data<O>(
     options: &O,
+    interface: &WifiIPInterface,
     synchronous_rescan: &Option<SynchronousRescanType>,
 ) -> Result<(KnownIdentifiers, ScanResult), RuwiError>
 where
-    O: 'static + Global + Wifi + WifiConnect + UsesLinuxNetworkingInterface + Send + Sync + Clone,
+    O: 'static + Global + Wifi + WifiConnect + Send + Sync + Clone,
 {
     let options: &'static O = Box::leak(Box::new(options.clone()));
     let synchronous_rescan = synchronous_rescan.clone();
+    let interface = interface.clone();
 
     let get_nw_names = thread::spawn(move || find_known_network_names(options));
-    let get_scan_results = thread::spawn(move || wifi_scan(options, &synchronous_rescan));
+    let get_scan_results = thread::spawn(move || wifi_scan(options, &interface, &synchronous_rescan));
 
     let known_network_names = await_thread(get_nw_names)??;
     let scan_result = await_thread(get_scan_results)??;
@@ -78,7 +84,7 @@ pub(super) fn get_network_from_given_essid<O>(
     essid: &str,
 ) -> Result<AnnotatedWirelessNetwork, RuwiError>
 where
-    O: Global + Wifi + WifiConnect + UsesLinuxNetworkingInterface,
+    O: Global + Wifi + WifiConnect,
 {
     let is_known = find_known_network_names(options)?.check_for(essid);
     let is_encrypted = options.get_given_encryption_key().is_some();

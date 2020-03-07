@@ -9,10 +9,17 @@ pub const FAKE_INTERFACE_NAME: &str =
 
 pub trait LinuxIPInterface {
     fn get_ifname(&self) -> &str;
+    fn from_name_or_first<O: Global>(
+        opts: &O,
+        maybe_name: &Option<String>,
+    ) -> Result<Self, RuwiError>
+    where
+        Self: Sized;
     fn bring_up<O: Global>(&self, opts: &O) -> Result<(), RuwiError>;
     fn bring_down<O: Global>(&self, opts: &O) -> Result<(), RuwiError>;
 }
 
+// TODO: Remove code duplication between wifi and wired
 #[derive(Debug, Clone)]
 pub struct WifiIPInterface {
     ifname: String,
@@ -26,7 +33,7 @@ impl Default for WifiIPInterface {
     }
 }
 
-impl LinuxIPInterface  for WifiIPInterface {
+impl LinuxIPInterface for WifiIPInterface {
     fn get_ifname(&self) -> &str {
         &self.ifname
     }
@@ -38,8 +45,18 @@ impl LinuxIPInterface  for WifiIPInterface {
     fn bring_down<O: Global>(&self, opts: &O) -> Result<(), RuwiError> {
         ip_link::state_management::bring_down(opts, self.get_ifname())
     }
-}
 
+    fn from_name_or_first<O: Global>(
+        opts: &O,
+        maybe_name: &Option<String>,
+    ) -> Result<Self, RuwiError> {
+        if let Some(ifname) = maybe_name {
+            Ok(Self::new(ifname))
+        } else {
+            Self::find_first(opts)
+        }
+    }
+}
 
 impl WifiIPInterface {
     pub(crate) fn new(ifname: &str) -> Self {
@@ -62,7 +79,7 @@ pub struct WiredIPInterface {
     ifname: String,
 }
 
-impl LinuxIPInterface  for WiredIPInterface {
+impl LinuxIPInterface for WiredIPInterface {
     fn get_ifname(&self) -> &str {
         &self.ifname
     }
@@ -72,6 +89,17 @@ impl LinuxIPInterface  for WiredIPInterface {
 
     fn bring_down<O: Global>(&self, opts: &O) -> Result<(), RuwiError> {
         ip_link::state_management::bring_down(opts, self.get_ifname())
+    }
+
+    fn from_name_or_first<O: Global>(
+        opts: &O,
+        maybe_name: &Option<String>,
+    ) -> Result<Self, RuwiError> {
+        if let Some(ifname) = maybe_name {
+            Ok(Self::new(ifname))
+        } else {
+            Self::find_first(opts)
+        }
     }
 }
 
@@ -98,4 +126,3 @@ impl Default for WiredIPInterface {
         }
     }
 }
-

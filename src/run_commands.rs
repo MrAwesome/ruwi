@@ -21,6 +21,7 @@ pub(crate) fn run_command_pass<O>(
 where
     O: Global,
 {
+    // NOTE: To run silent, if that is faster:
     //let output_res = run_command_silent_impl(opts, cmd_name, args);
     run_command_output_pass(opts, cmd_name, args, err_kind, err_msg)?;
     Ok(())
@@ -38,7 +39,7 @@ where
 {
     // TODO: allow the err_msg to be or contain stderr somehow, esp for netctl switch-to
     let output = run_command_output_pass(opts, cmd_name, args, err_kind, err_msg)?;
-    return Ok(String::from_utf8_lossy(&output.stdout).to_string());
+    Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
 
 pub(crate) fn run_command_output_pass<O>(

@@ -1,3 +1,4 @@
+use crate::interface_management::ip_interfaces::*;
 use crate::enums::*;
 use crate::errors::*;
 use crate::netctl_config_writer::get_netctl_file_name;
@@ -7,11 +8,12 @@ use crate::structs::*;
 
 pub(crate) fn connect_to_network<O>(
     options: &O,
+    interface: &WifiIPInterface,
     selected_network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
 ) -> Result<ConnectionResult, RuwiError>
 where
-    O: Global + Wifi + WifiConnect + UsesLinuxNetworkingInterface,
+    O: Global + Wifi + WifiConnect,
 {
     manage_services(options)?;
 
@@ -33,7 +35,7 @@ where
     }
 
     let res = match connect_via {
-        WifiConnectionType::Netctl => connect_via_netctl(options, selected_network),
+        WifiConnectionType::Netctl => connect_via_netctl(options, interface, selected_network),
         WifiConnectionType::Nmcli => {
             connect_via_networkmanager(options, selected_network, encryption_key)
         }
@@ -96,17 +98,18 @@ where
 
 fn connect_via_netctl<O>(
     options: &O,
+    interface: &WifiIPInterface,
     selected_network: &AnnotatedWirelessNetwork,
 ) -> Result<ConnectionResult, RuwiError>
 where
-    O: Global + UsesLinuxNetworkingInterface,
+    O: Global,
 {
     if options.get_dry_run() {
         return Ok(ConnectionResult {
             connection_type: WifiConnectionType::Netctl,
         });
     }
-    options.bring_interface_down()?;
+    interface.bring_down(options)?;
 
     // TODO: don't lock so hard into filename?
     let netctl_file_name = get_netctl_file_name(&selected_network.essid);
