@@ -27,12 +27,14 @@ impl RuwiCommand {
     pub fn run(&self) -> Result<(), RuwiError> {
         // This slightly odd-looking structure is to give us strong typing of 
         // our "options" context objects, which each impl the logic for their
-        // respective runs.
+        // respective runs. A cleaner-looking alternative to this is a function 
+        // which returns "Box<dyn Runner>" or such, but that requires heap allocation.
         match self {
             Self::Wifi(RuwiWifiCommand::Connect(options)) => options.run(),
             Self::Wifi(RuwiWifiCommand::Select(options)) => options.run(),
             Self::Wired(RuwiWiredCommand::Connect(options)) => options.run(),
             Self::Bluetooth(RuwiBluetoothCommand::Pair) => unimplemented!(),
+            // TODO: give clear its own options, and make it match this format
             Self::Clear(options) => NetworkingService::stop_all(options),
         }
     }
