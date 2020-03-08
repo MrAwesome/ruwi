@@ -53,7 +53,6 @@ impl NetworkingService {
 
         Ok(())
     }
-
 }
 
 fn start_netctl<O>(options: &O) -> Result<(), RuwiError>
