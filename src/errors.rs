@@ -18,6 +18,8 @@ pub enum RuwiErrorKind {
     FailedToReadScanResultsFromFile,
     FailedToReadScanResultsFromStdin,
     FailedToRawConnectViaDhcpcd,
+    FailedToRawConnectViaDhclient,
+    FailedToRawConnectViaNmcli,
     FailedToRunCommand,
     FailedToRunIPLinkShow,
     FailedToRunIWDev,

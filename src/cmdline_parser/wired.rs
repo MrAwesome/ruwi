@@ -1,19 +1,15 @@
 use super::utils::*;
 use super::WIRED_CONNECT_TOKEN;
 
-use crate::interface_management::ip_interfaces::WiredIPInterface;
-
 use crate::enums::*;
 use crate::options::wired::connect::WiredConnectOptions;
 use crate::options::command::*;
 use crate::options::wired::*;
-use crate::options::interfaces::*;
 use crate::errors::*;
 use crate::options::*;
 use crate::strum_utils::*;
 
 use clap::ArgMatches;
-use std::fmt::Debug;
 
 pub(super) fn get_wired_cmd(
     globals: GlobalOptions,
@@ -77,14 +73,3 @@ fn get_wired_opts_impl(
 
     Ok(wired_opts)
 }
-
-fn get_wired_interface<O>(m: &ArgMatches, opts: &O) -> Result<WiredIPInterface, RuwiError>
-where
-    O: Global + Debug,
-{
-    Ok(match m.value_of("interface") {
-        Some(given_ifname) => WiredIPInterface::new(given_ifname),
-        None => WiredIPInterface::find_first(opts)?,
-    })
-}
-
