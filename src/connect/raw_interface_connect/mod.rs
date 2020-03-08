@@ -29,7 +29,7 @@ impl<'a, O: Global, T: LinuxIPInterface> RawInterfaceConnector<'a, O, T> {
             RawInterfaceConnectionType::Dhcpcd => self.dhcpcd_connect(),
             RawInterfaceConnectionType::Dhclient => self.dhclient_connect(),
             RawInterfaceConnectionType::Nmcli => self.nmcli_connect(),
-            _ => unimplemented!("Other connection types not yet implemented!"),
+            RawInterfaceConnectionType::Netctl => unimplemented!("Netctl raw connection is not yet implemented!"),
         }
     }
 

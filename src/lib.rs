@@ -50,6 +50,7 @@ use errors::RuwiError;
 
 
 // TODO(high): include netctl profile name with annotated wired/wireless networks, for connecting to known networks with non-ruwified names - have known netctl networks return essid + config name, for matching/annotation with config name
+// TODO(high): implement Selectable for netctl profiles, for wired connections (and wifi as well, since that seems like a reasonable use case)
 // TODO(high): `clear` should be `wifi clear`? or at least call into it? i guess wired and wireless
 // may use the same services. bluetooth also will have services i suppose. should ip/bt be
 // different service types?
