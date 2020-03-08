@@ -49,32 +49,28 @@ use errors::RuwiError;
 // Arch optional dependencies: dmenu, iwconfig, NetworkManager,
 
 
-// TODO(high): change to use given_interface, and determine it during runs
-// TODO(high): include netctl profile name with annotated wired/wireless networks
+// TODO(high): include netctl profile name with annotated wired/wireless networks, for connecting to known networks with non-ruwified names - have known netctl networks return essid + config name, for matching/annotation with config name
 // TODO(high): `clear` should be `wifi clear`? or at least call into it? i guess wired and wireless
 // may use the same services. bluetooth also will have services i suppose. should ip/bt be
 // different service types?
-// TODO(high): implement speed/connection/dns test - `nmcli networking connectivity` for networkmanager mode
-// TODO(high): implement wired/bluetooth
-// TODO(high): fix error messages. -F kfdjsalkf will give "ERR: entity not found"
+// TODO(high): implement speed/connection/dns test - see `nmcli networking connectivity` for networkmanager mode
+// TODO(high): implement wired
+// TODO(high): implement bluetooth
 // TODO(high): write benchmark tests: ~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/liballoc/benches/slice.rs
 // TODO(mid): add colors to output / use a real logging library
+// TODO(mid): ability to do -o "wired.connect_via=netctl", overriding config file entries
 // TODO(mid): add a "list seen networks" mode?
-// TODO(mid): have known netctl networks return essid, for matching/annotation with config name
-// TODO(mid): kill, or suggest killing, wpa_supplicant if netctl fails to connect
+// TODO(mid): kill, or suggest killing, wpa_supplicant if netctl fails to connect (clear does this, can you just suggest clear in error messages?)
 // TODO(mid): have `ruwi -a` detect wired (can you detect a plugged-in ethernet?), try to connect to it, then try wifi -a if not
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
 // TODO(low): flag to disable looking for known networks
-// TODO(wishlist): `ruwi wifi get_default_interface` and/or `ruwi wifi select_interface`
+// TODO(wishlist): `ruwi wifi get_default_interface` and/or `ruwi wifi select_interface`?
 // TODO(wishlist): JSON output for `select`
-// TODO(wishlist): if there are multiple interfaces seen by 'iw dev', bring up selection, otherwise pick the default
-// TODO(wishlist): implement json scan output mode
+// TODO(wishlist): implement json scan output/input mode
 // TODO(wishlist): find a generalized way to do x notifications, for dmenu mode, use to surface failures
 // TODO(wishlist): connection/scan type: wicd-cli
 // TODO(wishlist): fzf keyboard shortcuts for getting more info about a network?
 // TODO(later): make sure fzf and dmenu are listed as dependencies
-// TODO(think): instead of functions which take options, make a big struct/impl? maybe more than one?
-// TODO(think): add a -w/--wait or --verify or something to attempt to connect to google/etc?
 
 pub fn run_ruwi() -> Result<(), RuwiError> {
     let command = get_command_from_command_line()?;
