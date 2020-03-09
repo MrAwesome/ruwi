@@ -11,6 +11,12 @@ use std::process::{Command, ExitStatus, Stdio};
 // TODO: find a way to namespace O for modules like this
 // TODO: time silent vs output command
 
+struct CommandRunner<'a, O: Global> {
+    opts: &'a O,
+    cmd_name: &'a str,
+    args: &'a [&'a str],
+}
+
 pub(crate) fn run_command_pass<O>(
     opts: &O,
     cmd_name: &str,
