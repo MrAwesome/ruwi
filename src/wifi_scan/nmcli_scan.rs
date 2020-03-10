@@ -2,7 +2,7 @@ use crate::interface_management::ip_interfaces::*;
 use crate::enums::*;
 use crate::errors::*;
 use crate::options::interfaces::*;
-use crate::run_commands::*;
+use crate::run_commands::SystemCommandRunner;
 use crate::structs::*;
 
 const NMCLI_SCAN_ERR_MSG: &str = concat!(
@@ -37,7 +37,7 @@ fn run_nmcli_scan_cmd<O>(options: &O) -> Result<String, RuwiError>
 where
     O: Global,
 {
-    run_command_pass_stdout(
+    SystemCommandRunner::new(
         options,
         "nmcli",
         &[
@@ -51,6 +51,7 @@ where
             "wifi",
             "list",
         ],
+    ).run_command_pass_stdout(
         RuwiErrorKind::FailedToRunNmcliScan,
         NMCLI_SCAN_ERR_MSG,
     )
@@ -60,7 +61,7 @@ fn run_nmcli_scan_cmd_synchronous<O>(options: &O) -> Result<String, RuwiError>
 where
     O: Global,
 {
-    run_command_pass_stdout(
+    SystemCommandRunner::new(
         options,
         "nmcli",
         &[
@@ -76,6 +77,7 @@ where
             "--rescan",
             "yes",
         ],
+    ).run_command_pass_stdout(
         RuwiErrorKind::FailedToRunNmcliScanSynchronous,
         NMCLI_SCAN_ERR_MSG,
     )

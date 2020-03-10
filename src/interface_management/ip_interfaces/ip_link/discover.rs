@@ -3,7 +3,7 @@ use super::LinuxIPLinkInterface;
 use crate::errors::*;
 use crate::options::interfaces::Global;
 use crate::rerr;
-use crate::run_commands::run_command_pass_stdout;
+use crate::run_commands::SystemCommandRunner;
 
 use serde_json;
 
@@ -12,10 +12,11 @@ impl LinuxIPLinkInterface {
     where
         O: Global,
     {
-        let stdout = run_command_pass_stdout(
+        let stdout = SystemCommandRunner::new( 
             opts,
             "ip",
             &["-j", "link", "show"],
+        ).run_command_pass_stdout(
             RuwiErrorKind::FailedToRunIPLinkShow,
             "Failed to discover interfaces with `ip link show`! It should be included with the 'iproute2' package.",
         )?;
@@ -31,10 +32,11 @@ impl LinuxIPLinkInterface {
     {
         let err_msg = format!("No interface named \"{}\" found with `ip link show dev {}`! Is \"iproute2\" installed? Does that interface exist? Try `ip link show`.", name, name);
 
-        let stdout = run_command_pass_stdout(
+        let stdout = SystemCommandRunner::new( 
             opts,
             "ip",
             &["-j", "link", "show", name],
+        ).run_command_pass_stdout(
             RuwiErrorKind::FailedToRunIPLinkShow,
             &err_msg,
         )?;

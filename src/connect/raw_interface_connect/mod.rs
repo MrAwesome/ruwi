@@ -3,7 +3,7 @@ use crate::enums::RawInterfaceConnectionType;
 use crate::errors::*;
 use crate::interface_management::ip_interfaces::*;
 use crate::options::interfaces::*;
-use crate::run_commands::*;
+use crate::run_commands::SystemCommandRunner;
 
 pub(crate) struct RawInterfaceConnector<'a, O: Global, T: LinuxIPInterface> {
     options: &'a O,
@@ -34,10 +34,11 @@ impl<'a, O: Global, T: LinuxIPInterface> RawInterfaceConnector<'a, O, T> {
     }
 
     fn dhcpcd_connect(&self) -> Result<(), RuwiError> {
-        run_command_pass(
+        SystemCommandRunner::new( 
             self.options,
             "dhcpcd",
             &[self.interface.get_ifname()],
+        ).run_command_pass(
             RuwiErrorKind::FailedToRawConnectViaDhcpcd,
             &format!(
                 "Failed to connect on \"{}\" using dhcpcd!",
@@ -47,10 +48,11 @@ impl<'a, O: Global, T: LinuxIPInterface> RawInterfaceConnector<'a, O, T> {
     }
 
     fn dhclient_connect(&self) -> Result<(), RuwiError> {
-        run_command_pass(
+        SystemCommandRunner::new( 
             self.options,
             "dhclient",
             &[self.interface.get_ifname()],
+        ).run_command_pass(
             RuwiErrorKind::FailedToRawConnectViaDhclient,
             &format!(
                 "Failed to connect on \"{}\" using dhclient!",
@@ -61,10 +63,11 @@ impl<'a, O: Global, T: LinuxIPInterface> RawInterfaceConnector<'a, O, T> {
 
     fn nmcli_connect(&self) -> Result<(), RuwiError> {
         NetworkingService::Netctl.start(self.options)?;
-        run_command_pass(
+        SystemCommandRunner::new( 
             self.options,
             "nmcli",
             &["device", "connect", self.interface.get_ifname()],
+        ).run_command_pass(
             RuwiErrorKind::FailedToRawConnectViaNmcli,
             &format!(
                 "Failed to connect on \"{}\" using nmcli!",

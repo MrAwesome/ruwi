@@ -1,6 +1,6 @@
 use crate::options::interfaces::*;
 use crate::rerr;
-use crate::run_commands::*;
+use crate::run_commands::PromptCommandRunner;
 use crate::errors::*;
 use std::error::Error;
 
@@ -13,7 +13,7 @@ pub(crate) fn run_dmenu<O>(
     prompt: &str,
     elements: &[String],
 ) -> Result<String, RuwiError> where O: Global {
-    run_prompt_cmd(options, "dmenu", &["-i", "-p", prompt], elements)
+    PromptCommandRunner::new(options, "dmenu", &["-i", "-p", prompt], elements).run()
 }
 
 pub(crate) fn run_fzf<O>(
@@ -21,7 +21,7 @@ pub(crate) fn run_fzf<O>(
     prompt: &str,
     elements: &[String],
 ) -> Result<String, RuwiError> where O: Global {
-    run_prompt_cmd(
+    PromptCommandRunner::new(
         options,
         "fzf",
         &[
@@ -32,7 +32,7 @@ pub(crate) fn run_fzf<O>(
             "ctrl-r:execute(echo refresh)+end-of-line+unix-line-discard+print-query",
         ],
         elements,
-    )
+    ).run()
 }
 
 pub(crate) fn run_select_nocurses<O>(

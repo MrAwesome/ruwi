@@ -3,7 +3,7 @@ use crate::errors::*;
 use crate::interface_management::ip_interfaces::*;
 use crate::options::interfaces::*;
 use crate::rerr;
-use crate::run_commands::*;
+use crate::run_commands::SystemCommandRunner;
 use crate::structs::*;
 use std::process::Output;
 
@@ -123,10 +123,11 @@ fn run_iw_scan_synchronous_cmd<O>(
 where
     O: Global,
 {
-    run_command_output_pass(
+    SystemCommandRunner::new( 
         options,
         "iw",
         &[interface.get_ifname(), "scan"],
+    ).run_command_output_pass(
         RuwiErrorKind::FailedToRunIWScanSynchronous,
         IW_SCAN_SYNC_ERR_MSG,
     )
@@ -136,10 +137,11 @@ fn run_iw_scan_dump<O>(options: &O, interface: &WifiIPInterface) -> Result<Strin
 where
     O: Global,
 {
-    run_command_pass_stdout(
+    SystemCommandRunner::new(
         options,
         "iw",
         &[interface.get_ifname(), "scan", "dump"],
+    ).run_command_pass_stdout(
         RuwiErrorKind::FailedToRunIWScanDump,
         IW_SCAN_DUMP_ERR_MSG,
     )
@@ -150,10 +152,11 @@ where
     O: Global,
 {
     // Initiate a rescan. This command should return instantaneously.
-    run_command_pass_stdout(
+    SystemCommandRunner::new( 
         options,
         "iw",
         &[interface.get_ifname(), "scan", "trigger"],
+    ).run_command_pass_stdout(
         RuwiErrorKind::FailedToRunIWScanTrigger,
         "Triggering scan with iw failed. This should be ignored.",
     )
@@ -166,10 +169,11 @@ fn abort_ongoing_iw_scan<O>(options: &O,
 where
     O: Global,
 {
-    run_command_pass_stdout(
+    SystemCommandRunner::new(
         options,
         "iw",
         &[interface.get_ifname(), "scan", "abort"],
+    ).run_command_pass_stdout(
         RuwiErrorKind::FailedToRunIWScanAbort,
         "Aborting iw scan iw failed. This should be ignored.",
     )

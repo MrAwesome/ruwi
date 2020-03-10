@@ -1,7 +1,7 @@
 use crate::enums::*;
 use crate::errors::*;
 use crate::options::interfaces::*;
-use crate::run_commands::run_command_pass;
+use crate::run_commands::SystemCommandRunner;
 use crate::wpa_cli_initialize::*;
 
 use strum::IntoEnumIterator;
@@ -59,10 +59,11 @@ fn start_netctl<O>(options: &O) -> Result<(), RuwiError>
 where
     O: Global,
 {
-    run_command_pass(
+    SystemCommandRunner::new(
         options,
         "systemctl",
         &["start", "netctl"],
+    ).run_command_pass(
         RuwiErrorKind::FailedToStartNetctl,
         "Failed to start netctl. Is it installed? Are you running as root?",
     )
@@ -72,17 +73,19 @@ fn stop_netctl<O>(options: &O) -> Result<(), RuwiError>
 where
     O: Global,
 {
-    run_command_pass(
+    SystemCommandRunner::new( 
         options,
         "netctl",
         &["stop-all"],
+    ).run_command_pass(
         RuwiErrorKind::FailedToStopNetctl,
         "Failed to stop netctl. Are you running as root?",
     )?;
-    run_command_pass(
+    SystemCommandRunner::new( 
         options,
         "systemctl",
         &["stop", "netctl"],
+    ).run_command_pass(
         RuwiErrorKind::FailedToStopNetctl,
         "Failed to stop netctl. Are you running as root?",
     )?;
@@ -93,10 +96,11 @@ fn start_networkmanager<O>(options: &O) -> Result<(), RuwiError>
 where
     O: Global,
 {
-    run_command_pass(
+    SystemCommandRunner::new( 
         options,
         "systemctl",
         &["start", "NetworkManager"],
+    ).run_command_pass(
         RuwiErrorKind::FailedToStartNetworkManager,
         "Failed to start NetworkManager. Is it installed? Are you running as root?",
     )
@@ -106,10 +110,11 @@ fn stop_networkmanager<O>(options: &O) -> Result<(), RuwiError>
 where
     O: Global,
 {
-    run_command_pass(
+    SystemCommandRunner::new( 
         options,
         "systemctl",
         &["stop", "NetworkManager"],
+    ).run_command_pass(
         RuwiErrorKind::FailedToStopNetworkManager,
         "Failed to stop NetworkManager. Are you running as root?",
     )

@@ -3,7 +3,7 @@ use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::rerr;
 #[cfg(not(test))]
-use crate::run_commands::*;
+use crate::run_commands::SystemCommandRunner;
 #[cfg(not(test))]
 use std::fs::{read_dir, DirEntry, File};
 use std::io;
@@ -53,10 +53,11 @@ where
     O: Global,
 {
     NetworkingService::NetworkManager.start(options)?;
-    let output = run_command_pass_stdout(
+    let output = SystemCommandRunner::new( 
         options,
         "nmcli",
         &["-g", "NAME", "connection", "show"],
+    ).run_command_pass_stdout(
         RuwiErrorKind::FailedToListKnownNetworksWithNetworkManager,
         "Failed to list known networks with NetworkManager. Try running `nmcli -g NAME connection show`.",
     ).map(|x| x.lines().map(String::from).collect());

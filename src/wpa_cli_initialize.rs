@@ -1,6 +1,6 @@
 use crate::errors::*;
 use crate::options::interfaces::*;
-use crate::run_commands::*;
+use crate::run_commands::SystemCommandRunner;
 use std::thread;
 use std::time::Duration;
 
@@ -29,7 +29,7 @@ where
         eprintln!(
             "[NOTE]: wpa_cli was not functioning correctly. Attempting to start it manually."
         );
-        let supplicant_status = run_command_status_dumb(
+        let supplicant_status = SystemCommandRunner::new(
             options,
             "wpa_supplicant",
             &[
@@ -39,10 +39,10 @@ where
                 "-c",
                 "/etc/wpa_supplicant/wpa_supplicant.conf",
             ],
-        );
+        ).run_command_status_dumb();
 
         if supplicant_status {
-            run_command_status_dumb(options, "wpa_cli", &["scan"]);
+            SystemCommandRunner::new(options, "wpa_cli", &["scan"]).run_command_status_dumb();
 
             eprintln!("[NOTE]: Sleeping to wait for results from wpa_cli. This should only happen when you first start wpa_supplicant. If you aren't seeing results, or you see stale results, try `sudo killall wpa_supplicant` or using a different scanning method with -s.");
             thread::sleep(Duration::from_secs(5));
@@ -63,17 +63,18 @@ fn wpa_ping_success<O>(options: &O) -> bool
 where
     O: Global,
 {
-    run_command_status_dumb(options, "wpa_cli", &["ping"])
+    SystemCommandRunner::new(options, "wpa_cli", &["ping"]).run_command_status_dumb()
 }
 
 pub(crate) fn kill_wpa_supplicant<O>(options: &O) -> Result<(), RuwiError>
 where
     O: Global,
 {
-    run_command_pass(
+    SystemCommandRunner::new(
         options,
         "pkill",
         &["wpa_supplicant"],
+    ).run_command_pass(
         RuwiErrorKind::FailedToStopWpaSupplicant,
         "Failed to stop wpa_supplicant! Are you running as root?",
     )

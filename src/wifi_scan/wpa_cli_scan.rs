@@ -1,7 +1,7 @@
 use crate::enums::*;
 use crate::errors::*;
 use crate::options::interfaces::*;
-use crate::run_commands::*;
+use crate::run_commands::SystemCommandRunner;
 use crate::structs::*;
 
 pub(crate) fn run_wpa_cli_scan<O>(options: &O, scan_type: ScanType) -> Result<ScanResult, RuwiError>
@@ -16,10 +16,11 @@ where
     );
 
     // TODO: add scan_results latest
-    let scan_output = run_command_pass_stdout(
+    let scan_output = SystemCommandRunner::new(
         options,
         "wpa_cli",
         &["scan_results"],
+    ).run_command_pass_stdout(
         RuwiErrorKind::FailedToScanWithWPACli,
         err_msg,
     )?;

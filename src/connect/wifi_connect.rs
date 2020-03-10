@@ -3,7 +3,7 @@ use crate::enums::*;
 use crate::errors::*;
 use crate::netctl_config_writer::get_netctl_file_name;
 use crate::options::interfaces::*;
-use crate::run_commands::*;
+use crate::run_commands::SystemCommandRunner;
 use crate::structs::*;
 
 pub(crate) fn connect_to_network<O>(
@@ -114,10 +114,11 @@ where
     // TODO: don't lock so hard into filename?
     let netctl_file_name = get_netctl_file_name(&selected_network.essid);
 
-    run_command_pass(
+    SystemCommandRunner::new( 
         options,
         "netctl",
         &["switch-to", &netctl_file_name],
+    ).run_command_pass(
         RuwiErrorKind::FailedToConnectViaNetctl,
         &format!(
             "Failed to connect to \"{}\" via netctl!",
@@ -148,7 +149,7 @@ where
 
     // Refresh NetworkManager's list of known networks, otherwise the connect will
     // fail if we've scanned using another method.
-    run_command_status_dumb(options, "nmcli", &["device", "wifi", "list"]);
+    SystemCommandRunner::new(options, "nmcli", &["device", "wifi", "list"]).run_command_status_dumb();
 
     let args = vec!["device", "wifi", "connect", &selected_network.essid];
     let args = if let Some(pw) = encryption_key {
@@ -158,10 +159,11 @@ where
         args
     };
 
-    run_command_pass(
+    SystemCommandRunner::new( 
         options,
         "nmcli",
         &args,
+    ).run_command_pass(
         RuwiErrorKind::FailedToConnectViaNetworkManager,
         "Failed to connect to \"{}\" using nmcli!",
     )

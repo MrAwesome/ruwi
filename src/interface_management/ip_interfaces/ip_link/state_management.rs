@@ -1,7 +1,7 @@
 use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::options::PROG_NAME;
-use crate::run_commands::*;
+use crate::run_commands::SystemCommandRunner;
 
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
@@ -30,10 +30,11 @@ where
         &interface_state.to_string(),
     ];
     if !options.get_dry_run() {
-        run_command_pass_stdout(
+        SystemCommandRunner::new(
             options,
             cmd,
             cmd_args,
+        ).run_command_pass_stdout(
             err_kind,
             &format!(
                 "Failed to bring interface {} {} with `{} {}`. Try running {} with `sudo`.",
