@@ -5,8 +5,72 @@ use crate::rerr;
 use std::io;
 use std::process::Output;
 use std::process::{Command, Stdio};
+
+#[cfg(not(test))]
+use std::fs::Metadata;
+#[cfg(not(test))]
+use std::os::unix::fs::MetadataExt;
+#[cfg(not(test))]
+use std::path::Path;
+
+#[cfg(not(test))]
+use nix::unistd::getuid;
 #[cfg(not(test))]
 use std::io::Write;
+#[cfg(not(test))]
+use std::os::unix::fs::PermissionsExt;
+
+// TODO: combine codepaths for prompt and piped, since the two paths can mask functions being unused
+
+#[derive(Debug)]
+pub(super) struct FullCommandPath {
+    short_cmd_name: String,
+    full_pathname: String,
+}
+
+impl FullCommandPath {
+    fn new_from<O>(opts: &O, short_cmd_name: &str) -> Result<Self, RuwiError>
+    where
+        O: Global,
+    {
+        let full_pathname = Self::get_full_command_path(opts, short_cmd_name)?;
+        Ok(Self {
+            short_cmd_name: short_cmd_name.to_string(),
+            full_pathname,
+        })
+    }
+
+    fn get_full_command_path<O>(opts: &O, cmd_name: &str) -> Result<String, RuwiError>
+    where
+        O: Global,
+    {
+        let mut cmd = Command::new("/bin/which");
+        cmd.arg(cmd_name)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
+
+        let spawn_res = spawn_and_await_output_command(opts, &mut cmd);
+        if let Ok(output) = spawn_res {
+            if output.status.success() {
+                let full_path_untrimmed = String::from_utf8_lossy(&output.stdout).to_string();
+                return Ok(full_path_untrimmed.trim().to_string());
+            }
+        }
+        Err(rerr!(
+            RuwiErrorKind::CommandNotFound,
+            format!("`{}` is not installed or is not in $PATH.", cmd_name),
+        ))
+    }
+
+    fn as_str(&self) -> &str {
+        &self.full_pathname
+    }
+
+    #[cfg(not(test))]
+    fn as_path(&self) -> &Path {
+        Path::new(self.as_str())
+    }
+}
 
 pub(super) fn spawn_and_await_output_command<O>(opts: &O, cmd: &mut Command) -> io::Result<Output>
 where
@@ -15,7 +79,7 @@ where
     #[cfg(test)]
     {
         dbg!(&cmd);
-        let _ = opts.d();
+        let _ = opts;
         panic!("Prevented command usage in test!");
     }
 
@@ -41,24 +105,32 @@ pub(super) fn get_output_command<O>(
     opts: &O,
     cmd_name: &str,
     args: &[&str],
-) -> Command 
-    where O: Global
+) -> Result<Command, RuwiError>
+where
+    O: Global,
 {
-    let cmd = if opts.get_dry_run() {
+    Ok(
+    if opts.get_dry_run() {
         empty_command_dryrun(cmd_name, args)
     } else {
-        let mut cmd = Command::new(cmd_name);
-        cmd.args(args)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped());
-        cmd
-    };
-
-    if opts.d() {
-        dbg!(&cmd);
+        let full_path = FullCommandPath::new_from(opts, cmd_name)?;
+        verify_command_safety(&full_path)?;
+        make_piped_command_raw(full_path, args)
     }
+    )
+}
 
-    cmd
+pub(super) fn get_prompt_command<O>(
+    opts: &O,
+    cmd_name: &str,
+    args: &[&str],
+) -> Result<Command, RuwiError>
+where
+    O: Global,
+{
+    let full_path = FullCommandPath::new_from(opts, cmd_name)?;
+    verify_command_safety(&full_path)?;
+    Ok(make_prompt_stdin_command_raw(full_path, args))
 }
 
 pub(super) fn empty_command_dryrun(cmd_name: &str, args: &[&str]) -> Command {
@@ -70,52 +142,20 @@ pub(super) fn empty_command_dryrun(cmd_name: &str, args: &[&str]) -> Command {
     Command::new("true")
 }
 
-pub(super) fn is_cmd_installed<O>(
-    opts: &O,
-    cmd_name: &str,
-) -> Result<(), RuwiError>
-where
-    O: Global,
-{
-    if opts.get_dry_run() {
-        return Ok(());
-    }
-
-    let mut cmd = get_output_command(opts, "which", &[cmd_name]);
-    let cmd_res = spawn_and_await_output_command(opts, &mut cmd);
-    let is_installed = match cmd_res {
-        Ok(res) => res.status.success(),
-        Err(_) => false,
-    };
-
-    if is_installed {
-        Ok(())
-    } else {
-        Err(rerr!(
-            RuwiErrorKind::CommandNotInstalled,
-            format!("`{}` is not installed or is not in $PATH.", cmd_name),
-        ))
-    }
+fn make_piped_command_raw(full_path: FullCommandPath, args: &[&str]) -> Command {
+    let mut cmd = Command::new(full_path.as_str());
+    cmd.args(args).stdout(Stdio::piped()).stderr(Stdio::piped());
+    cmd
 }
 
-pub(super) fn get_prompt_command<O>(opts: &O, cmd_name: &str, args: &[&str]) -> Command
-where
-    O: Global,
-{
-    // NOTE: prompt commands are run in dryrun mode, as they should have
-    //       no effect on the external state of the system, and should be
-    //       tested thoroughly in integration tests.
-    let mut cmd = Command::new(cmd_name);
+// TODO: use VerifiedSafeFullCommandPath
+fn make_prompt_stdin_command_raw(full_path: FullCommandPath, args: &[&str]) -> Command {
+    let mut cmd = Command::new(full_path.as_str());
     cmd.args(args)
         .stdin(Stdio::piped())
         // Taking stderr breaks fzf.
         //.stderr(Stdio::piped())
         .stdout(Stdio::piped());
-
-    if opts.d() {
-        dbg![&cmd];
-    }
-
     cmd
 }
 
@@ -159,4 +199,64 @@ where
 
         Ok(output)
     }
+}
+
+// TODO: unit test that this is run
+pub(super) fn verify_command_safety(cmd_path: &FullCommandPath) -> Result<(), RuwiError> {
+    #[cfg(test)]
+    dbg!(&cmd_path);
+    #[cfg(not(test))]
+    verify_command_safety_while_running_as_root(cmd_path)?;
+    Ok(())
+}
+
+#[cfg(not(test))]
+fn verify_command_safety_while_running_as_root(cmd_path: &FullCommandPath) -> Result<(), RuwiError> {
+    if running_as_root() {
+        let path_obj = cmd_path.as_path();
+        let metadata_res = path_obj.metadata();
+        let metadata = metadata_res.map_err(|e| {
+            rerr!(
+                RuwiErrorKind::UnableToReadMetadataForBinary,
+                format!(
+                    "Unable to read metadata for binary \"{}\". Does it exist?",
+                    cmd_path.as_str()
+                ),
+                "Path" => match path_obj.to_str() {
+                    Some(path_str) => path_str,
+                    None => "Could not determine path!",
+                },
+                "OS Err" => e
+            )
+        })?;
+        if is_owned_by_non_root(&metadata) || is_world_or_group_writable(&metadata) {
+            return Err(rerr!(
+                    RuwiErrorKind::BinaryWritableByNonRootWhenRunningAsRoot,
+                    format!("Attempted to run external binary \"{}\" while running as root, but it is writable by non-root users!", cmd_path.as_str())
+                    ));
+        }
+    }
+    Ok(())
+}
+
+#[cfg(not(test))]
+fn is_world_or_group_writable(metadata: &Metadata) -> bool {
+    let world_writable_mask = 0o0022;
+
+    let mode = metadata.permissions().mode();
+    world_writable_mask & mode != 0
+}
+
+#[cfg(not(test))]
+fn running_as_root() -> bool {
+    let uid = getuid();
+    uid.is_root()
+}
+
+#[cfg(not(test))]
+pub(super) fn is_owned_by_non_root(metadata: &Metadata) -> bool {
+    let uid = metadata.uid();
+    let gid = metadata.gid();
+
+    !(uid == 0 && gid == 0)
 }

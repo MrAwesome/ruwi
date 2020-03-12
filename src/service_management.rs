@@ -47,7 +47,7 @@ impl NetworkingService {
                 .expect("Failure joining thread while stopping networking services!");
             match res {
                 Ok(()) => (),
-                Err(err) => eprintln!("[ERR]: {}", err),
+                Err(err) => eprintln!("[ERR]: {}", err.to_string()),
             }
         }
 

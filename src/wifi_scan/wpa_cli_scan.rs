@@ -4,6 +4,8 @@ use crate::options::interfaces::*;
 use crate::run_commands::SystemCommandRunner;
 use crate::structs::*;
 
+// TODO: synchronous rescan if no results seen (make a generic rescan logic for scans?)
+
 pub(crate) fn run_wpa_cli_scan<O>(options: &O, scan_type: ScanType) -> Result<ScanResult, RuwiError>
 where
     O: Global,

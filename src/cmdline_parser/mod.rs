@@ -216,7 +216,6 @@ mod tests {
     use crate::rerr;
 
     use clap::ArgMatches;
-    use std::error::Error;
     use strum::IntoEnumIterator;
 
     static FAKE_BINARY_NAME: &str = "fake_binary_name";
@@ -271,7 +270,7 @@ mod tests {
         let matcher = get_matches_safe(args).map_err(|e| {
             rerr!(
                 RuwiErrorKind::TestCmdLineOptParserSafeFailed,
-                e.description()
+                e.to_string()
             )
         });
         dbg!(&matcher);

@@ -5,8 +5,11 @@ mod utils;
 pub(crate) use system_commands::SystemCommandRunner;
 pub(crate) use prompt_commands::PromptCommandRunner;
 
+// TODO: integration test binary safety in archlinux test
 // TODO: find a way to namespace O for modules like this
 // TODO: time silent vs output command
+// TODO: make commands root-safe
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -35,17 +38,6 @@ mod tests {
 
     #[test]
     #[should_panic = "Prevented command usage in test!"]
-    fn test_cmd_output_use_in_test_panics() {
-        SystemCommandRunner::new(
-            &get_default_opts(true, false),
-            "echo",
-            &["lawl"],
-        ).run_command_output_raw()
-        .unwrap();
-    }
-
-    #[test]
-    #[should_panic = "Prevented command usage in test!"]
     fn test_cmd_silent_use_in_test_panics() {
         SystemCommandRunner::new(
             &get_default_opts(true, false),
@@ -64,16 +56,6 @@ mod tests {
             &["loooool"],
             &["lawl".to_string()],
         ).run().unwrap();
-    }
-
-    #[test]
-    #[should_panic = "Prevented command usage in test!"]
-    fn test_is_cmd_installed_use_in_test_panics() {
-        utils::is_cmd_installed(
-            &get_default_opts(true, false),
-            "FUFAJKFL",
-        )
-        .unwrap();
     }
 
     #[test]

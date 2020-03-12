@@ -2,7 +2,6 @@ use crate::options::interfaces::*;
 use crate::rerr;
 use crate::run_commands::PromptCommandRunner;
 use crate::errors::*;
-use std::error::Error;
 
 use std::io;
 use std::io::BufRead;
@@ -41,7 +40,7 @@ pub(crate) fn run_select_nocurses<O>(
     elements: &[String],
 ) -> Result<String, RuwiError> where O: Global {
     run_stdin_prompt_single_line_impl(options, prompt, elements)
-        .map_err(|e| rerr!(RuwiErrorKind::SingleLinePromptFailed, e.description()))
+        .map_err(|e| rerr!(RuwiErrorKind::SingleLinePromptFailed, e.to_string()))
 }
 
 pub(crate) fn run_stdin_prompt_single_line<O>(
@@ -50,7 +49,7 @@ pub(crate) fn run_stdin_prompt_single_line<O>(
     elements: &[String],
 ) -> Result<String, RuwiError> where O: Global {
     run_stdin_prompt_single_line_impl(options, prompt, elements)
-        .map_err(|e| rerr!(RuwiErrorKind::SingleLinePromptFailed, e.description()))
+        .map_err(|e| rerr!(RuwiErrorKind::SingleLinePromptFailed, e.to_string()))
 }
 
 fn run_stdin_prompt_single_line_impl<O>(

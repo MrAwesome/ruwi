@@ -9,6 +9,7 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 extern crate strum;
+extern crate nix;
 extern crate strum_macros;
 extern crate typed_builder;
 
@@ -48,6 +49,7 @@ use errors::RuwiError;
 // Arch dependencies: wireless_tools, netctl, iw, bluetooth things?, fzf
 // Arch optional dependencies: dmenu, iwconfig, NetworkManager,
 
+// TODO(high): make external command-running sudo-safe? maybe it's not an issue, but it seems like someone can add an e.g. "fzf" binary in ~/bin while someone doesn't have fzf installed, and run arbitrary code as root
 // TODO(high): include netctl profile name with annotated wired/wireless networks, for connecting to known networks with non-ruwified names - have known netctl networks return essid + config name, for matching/annotation with config name
 // TODO(high): implement Selectable for netctl profiles, for wired connections (and wifi as well, since that seems like a reasonable use case)
 // TODO(high): `clear` should be `wifi clear`? or at least call into it? i guess wired and wireless

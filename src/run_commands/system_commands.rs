@@ -1,11 +1,12 @@
+//use super::types::*;
 use super::utils::*;
 
 use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::rerr;
-use std::error::Error;
 use std::io;
-use std::process::Output;
+use std::process::{Command, Output};
+//use std::path::Path;
 
 pub(crate) struct SystemCommandRunner<'a, O: Global> {
     opts: &'a O,
@@ -56,33 +57,21 @@ impl<'a, O: Global> SystemCommandRunner<'a, O> {
             dbg!(&self.cmd_name, &self.args, &err_kind, &err_msg);
         }
 
-        let output_res = self.run_command_output_raw();
+        let mut cmd = get_output_command(self.opts, self.cmd_name, &self.args)?;
+        let output_res = spawn_and_await_output_command(self.opts, &mut cmd);
         let res = match output_res {
             Ok(output) => {
                 if output.status.success() {
                     Ok(output)
                 } else {
-                    Err(self.format_output_and_given_err(&output, err_kind, err_msg))
+                    Err(self.format_output_and_given_err(&cmd, &output, err_kind, err_msg))
                 }
             }
             Err(io_err) => {
-                Err(self.format_failure_to_run_command_and_given_err(&io_err, err_kind, err_msg))
+                Err(self.format_failure_to_run_command_and_given_err(&cmd, &io_err, err_kind, err_msg))
             }
         };
-        if res.is_err() {
-            is_cmd_installed(self.opts, self.cmd_name)?;
-        }
         res
-    }
-
-    pub(crate) fn run_command_output_raw(&self) -> io::Result<Output> {
-        if self.opts.d() {
-            dbg!(&self.cmd_name, &self.args);
-        }
-
-        // TODO: instead of e.description, use stderr?
-        let mut cmd = get_output_command(self.opts, self.cmd_name, &self.args);
-        spawn_and_await_output_command(self.opts, &mut cmd)
     }
 
     pub(crate) fn run_command_status_dumb(&self) -> bool {
@@ -90,18 +79,20 @@ impl<'a, O: Global> SystemCommandRunner<'a, O> {
             dbg!(&self.cmd_name, &self.args);
         }
 
-        let mut cmd = get_output_command(self.opts, self.cmd_name, &self.args);
-        let cmd_res = spawn_and_await_output_command(self.opts, &mut cmd);
+        let mut cmd = get_output_command(self.opts, self.cmd_name, &self.args).unwrap();
 
-        if let Ok(output) = cmd_res {
-            output.status.success()
-        } else {
-            false
-        }
+            let spawn_res = spawn_and_await_output_command(self.opts, &mut cmd);
+
+            if let Ok(output) = spawn_res {
+                return output.status.success();
+            }
+
+        false
     }
 
     fn format_output_and_given_err(
         &self,
+        cmd: &Command,
         output: &Output,
         err_kind: RuwiErrorKind,
         err_msg: &str,
@@ -109,7 +100,7 @@ impl<'a, O: Global> SystemCommandRunner<'a, O> {
         rerr!(
             err_kind,
             err_msg,
-            "Command" => format!("`{} {}`", self.cmd_name, self.args.join(" ")),
+            "Command" => format!("{:?}", cmd),
             "STDOUT" => String::from_utf8_lossy(&output.stdout),
             "STDERR" => String::from_utf8_lossy(&output.stderr)
         )
@@ -117,6 +108,7 @@ impl<'a, O: Global> SystemCommandRunner<'a, O> {
 
     fn format_failure_to_run_command_and_given_err(
         &self,
+        cmd: &Command,
         io_error: &io::Error,
         err_kind: RuwiErrorKind,
         err_msg: &str,
@@ -124,8 +116,8 @@ impl<'a, O: Global> SystemCommandRunner<'a, O> {
         rerr!(
             err_kind,
             err_msg,
-            "Command" => format!("`{} {}`", self.cmd_name, self.args.join(" ")),
-            "OS Error" => io_error.description()
+            "Command" => format!("{:?}", cmd),
+            "OS Error" => io_error.to_string()
         )
     }
 

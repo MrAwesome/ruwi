@@ -4,7 +4,6 @@ use crate::options::interfaces::*;
 use crate::rerr;
 use crate::structs::*;
 use crate::interface_management::ip_interfaces::*;
-use std::error::Error;
 use std::fs::File;
 use std::io;
 use std::io::Write;
@@ -27,7 +26,7 @@ where
 
     if !options.get_dry_run() {
         write_to_netctl_config(&fullpath, &contents)
-            .map_err(|e| rerr!(RuwiErrorKind::FailedToWriteNetctlConfig, e.description()))?;
+            .map_err(|e| rerr!(RuwiErrorKind::FailedToWriteNetctlConfig, e.to_string()))?;
         eprintln!("[NOTE]: Wrote netctl config: {}", &fullpath);
         eprintln!(
             "[NOTE]: If you encounter problems with your connection, try 

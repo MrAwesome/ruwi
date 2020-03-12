@@ -35,14 +35,14 @@ impl<'a, O: Global> PromptCommandRunner<'a, O> {
             dbg!(&self.cmd_name, &self.args, &self.elements);
         }
 
-        let mut cmd = get_prompt_command(self.opts, self.cmd_name, self.args);
+        let mut cmd = get_prompt_command(self.opts, self.cmd_name, self.args)?;
         let prompt_res = spawn_and_await_prompt_command(self.opts, &mut cmd, self.elements);
 
         if self.opts.d() {
             dbg!(&prompt_res);
         }
 
-        let res = match prompt_res {
+        match prompt_res {
             Ok(output) => {
                 if output.status.success() {
                     Ok(String::from_utf8_lossy(&output.stdout)
@@ -56,13 +56,7 @@ impl<'a, O: Global> PromptCommandRunner<'a, O> {
                 }
             },
             Err(err) => Err(rerr!(RuwiErrorKind::PromptCommandSpawnFailed, format!("{}", err))),
-        };
-
-        if res.is_err() {
-            is_cmd_installed(self.opts, self.cmd_name)?;
         }
-
-        res
 
 
     }

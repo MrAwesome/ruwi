@@ -5,14 +5,13 @@ use std::fmt;
 // TODO: set to pub(crate) temporarily to find unused values
 #[derive(Debug, PartialEq, Eq)]
 pub enum RuwiErrorKind {
-    CommandNotInstalled,
+    CommandNotFound,
+    BinaryWritableByNonRootWhenRunningAsRoot,
     FailedToBringLinuxNetworkingInterfaceDown,
     FailedToBringLinuxNetworkingInterfaceUp,
     FailedToConnectViaNetctl,
     FailedToConnectViaNetworkManager,
-    FailedToConnectViaWPACli,
     FailedToListKnownNetworksWithNetworkManager,
-    FailedToParseCommandLine,
     FailedToParseIPLinkOutput,
     FailedToParseSelectedLine,
     FailedToReadScanResultsFromFile,
@@ -20,9 +19,7 @@ pub enum RuwiErrorKind {
     FailedToRawConnectViaDhcpcd,
     FailedToRawConnectViaDhclient,
     FailedToRawConnectViaNmcli,
-    FailedToRunCommand,
     FailedToRunIPLinkShow,
-    FailedToRunIWDev,
     FailedToRunIWScanAbort,
     FailedToRunIWScanDump,
     FailedToRunIWScanSynchronous,
@@ -47,7 +44,6 @@ pub enum RuwiErrorKind {
     LoopProtectionMaxExceeded,
     MalformedIWOutput,
     NoInterfaceFoundWithGivenName,
-    NoInterfacesFoundWithIW,
     NoKnownNetworksFound,
     NoNetworksFoundMatchingSelectionResult,
     NoNetworksSeenWithIWScanDump,
@@ -58,7 +54,6 @@ pub enum RuwiErrorKind {
     PromptCommandFailed,
     PromptCommandSpawnFailed,
     RefreshRequested,
-    RetryWithSynchronousScan,
     SingleLinePromptFailed,
     StepRunnerLoopPreventionCapExceeded,
     TestCmdLineOptParserSafeFailed,
@@ -71,6 +66,7 @@ pub enum RuwiErrorKind {
     TestUsedAutoWhenNotExpected,
     TestUsedManualWhenNotExpected,
     UsedTerminalStep,
+    UnableToReadMetadataForBinary,
     WPACliHeaderMalformedOrMissing,
 }
 
@@ -81,15 +77,11 @@ pub struct RuwiError {
     pub extra_data: Option<Vec<(String, String)>>,
 }
 
-impl Error for RuwiError {
-    fn description(&self) -> &str {
-        self.desc.as_ref()
-    }
-}
+impl Error for RuwiError {}
 
 impl fmt::Display for RuwiError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(&self.description(), f)
+        write!(f, "{}", &self.desc)
     }
 }
 
