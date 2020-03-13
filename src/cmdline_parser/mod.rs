@@ -13,6 +13,8 @@ use crate::options::command::*;
 use crate::options::*;
 use crate::strum_utils::*;
 
+use std::env;
+
 use clap::{App, Arg, ArgMatches, SubCommand};
 use strum::AsStaticRef;
 
@@ -183,10 +185,13 @@ fn get_command_from_command_line_impl(m: &ArgMatches) -> Result<RuwiCommand, Ruw
         eprintln!("[NOTE] Running in dryrun mode! Will not run any external commands (besides the requested prompt command) or write/read configs on disk, and will only use cached scan results.");
     }
 
+    let pretend_to_be_root = is_env_var_set_to_1("PRETEND_TO_BE_ROOT");
+
     let globals = GlobalOptions::builder()
         .debug(debug)
         .dry_run(dry_run)
         .selection_method(selection_method)
+        .pretend_to_be_root(pretend_to_be_root)
         .build();
 
     let (command_name, maybe_cmd_matcher) = m.subcommand();
@@ -204,6 +209,14 @@ fn get_command_from_command_line_impl(m: &ArgMatches) -> Result<RuwiCommand, Ruw
         dbg![&cmd];
     }
     Ok(cmd)
+}
+
+fn is_env_var_set_to_1(name: &str) -> bool {
+    let var_res = env::var(name);
+    match var_res {
+        Ok(var_val) => var_val == "1",
+        Err(_) => false,
+    }
 }
 
 #[cfg(test)]

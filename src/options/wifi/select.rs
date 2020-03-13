@@ -43,6 +43,9 @@ impl Global for WifiSelectOptions {
     fn is_test_or_dry_run(&self) -> bool {
         self.wifi.is_test_or_dry_run()
     }
+    fn pretend_to_be_root(&self) -> bool {
+        self.wifi.pretend_to_be_root()
+    }
 }
 
 impl Wifi for WifiSelectOptions {

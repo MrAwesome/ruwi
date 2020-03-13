@@ -3,6 +3,7 @@ use std::error::Error;
 use std::fmt;
 
 // TODO: set to pub(crate) temporarily to find unused values
+#[non_exhaustive]
 #[derive(Debug, PartialEq, Eq)]
 pub enum RuwiErrorKind {
     CommandNotFound,

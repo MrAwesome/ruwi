@@ -5,6 +5,7 @@ mod utils;
 pub(crate) use system_commands::SystemCommandRunner;
 pub(crate) use prompt_commands::PromptCommandRunner;
 
+// TODO: instead of panicking, allow a test-only "give me this output" method? is there a crate which will do that for you?
 // TODO: integration test binary safety in archlinux test
 // TODO: find a way to namespace O for modules like this
 // TODO: time silent vs output command
@@ -48,7 +49,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic = "Prevented prompt command usage in test!"]
+    #[should_panic = "Prevented command usage in test!"]
     fn test_prompt_cmd_use_in_test_panics() {
         PromptCommandRunner::new(
             &get_default_opts(true, false),

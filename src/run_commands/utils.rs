@@ -114,7 +114,7 @@ where
         empty_command_dryrun(cmd_name, args)
     } else {
         let full_path = FullCommandPath::new_from(opts, cmd_name)?;
-        verify_command_safety(&full_path)?;
+        verify_command_safety(opts, &full_path)?;
         make_piped_command_raw(full_path, args)
     }
     )
@@ -129,7 +129,7 @@ where
     O: Global,
 {
     let full_path = FullCommandPath::new_from(opts, cmd_name)?;
-    verify_command_safety(&full_path)?;
+    verify_command_safety(opts, &full_path)?;
     Ok(make_prompt_stdin_command_raw(full_path, args))
 }
 
@@ -202,17 +202,20 @@ where
 }
 
 // TODO: unit test that this is run
-pub(super) fn verify_command_safety(cmd_path: &FullCommandPath) -> Result<(), RuwiError> {
+pub(super) fn verify_command_safety<O>(opts: &O, cmd_path: &FullCommandPath) -> Result<(), RuwiError> 
+where O: Global {
     #[cfg(test)]
-    dbg!(&cmd_path);
+    dbg!(&opts.pretend_to_be_root(), &cmd_path);
     #[cfg(not(test))]
-    verify_command_safety_while_running_as_root(cmd_path)?;
+    verify_command_safety_while_running_as_root(opts, cmd_path)?;
     Ok(())
 }
 
 #[cfg(not(test))]
-fn verify_command_safety_while_running_as_root(cmd_path: &FullCommandPath) -> Result<(), RuwiError> {
-    if running_as_root() {
+fn verify_command_safety_while_running_as_root<O>(opts: &O, cmd_path: &FullCommandPath) -> Result<(), RuwiError> 
+where O: Global
+{
+    if opts.pretend_to_be_root() || running_as_root() {
         let path_obj = cmd_path.as_path();
         let metadata_res = path_obj.metadata();
         let metadata = metadata_res.map_err(|e| {

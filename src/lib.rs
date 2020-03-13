@@ -25,7 +25,7 @@ pub(crate) mod configure_network;
 pub(crate) mod connect;
 pub(crate) mod encryption_key;
 pub(crate) mod enums;
-pub(crate) mod errors;
+pub mod errors;
 pub(crate) mod find_known_network_names;
 pub mod interface_management;
 pub(crate) mod netctl_config_writer;

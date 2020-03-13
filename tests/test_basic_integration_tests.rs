@@ -2,15 +2,14 @@ use rexpect::errors::*;
 use rexpect::{spawn, spawn_bash};
 
 mod utils;
-use utils::spawn_dryrun;
+use utils::*;
 
 extern crate ruwi;
 use ruwi::interface_management::ip_interfaces::FAKE_INTERFACE_NAME;
 
-
 #[test]
 fn test_cli_help() -> Result<()> {
-    let mut p = spawn("./target/debug/ruwi --help", Some(20))?;
+    let mut p = spawn(&get_dryrun_cmd_with_args("--help"), Some(20))?;
     p.exp_string("USAGE:")?;
     p.exp_string("FLAGS:")?;
     p.exp_string("OPTIONS:")?;
@@ -33,7 +32,6 @@ fn test_iw_first_network_from_file() -> Result<()> {
     // build times so we'll just use rexpect for now. The stdlib Command module would work as well.
     let mut p = spawn_dryrun(
         "wifi -F src/parse/samples/iw_two_different_networks.txt -s iw connect -c print -A first",
-        
     )?;
     p.exp_string("[NOTE]: Selected network: \"Valparaiso_Guest_House 2\"")?;
     p.exp_string("Valparaiso_Guest_House 2")?;
@@ -42,21 +40,18 @@ fn test_iw_first_network_from_file() -> Result<()> {
 
 #[test]
 fn test_print_given_essid() -> Result<()> {
-    let mut p = spawn_dryrun(
-        "wifi connect -e FUCKAHOL -c print",
-        
-    )?;
+    let mut p = spawn_dryrun("wifi connect -e FUCKAHOL -c print")?;
     p.exp_string("FUCKAHOL")?;
     Ok(())
 }
 
 #[test]
 fn test_wired_connect() -> Result<()> {
-    let mut p = spawn_dryrun(
-        "wired connect -c dhcpcd",
-        
-    )?;
-    p.exp_string(&format!("Successfully connected on \"{}\" using {}", FAKE_INTERFACE_NAME, "dhcpcd"))?;
+    let mut p = spawn_dryrun("wired connect -c dhcpcd")?;
+    p.exp_string(&format!(
+        "Successfully connected on \"{}\" using {}",
+        FAKE_INTERFACE_NAME, "dhcpcd"
+    ))?;
     Ok(())
 }
 
@@ -64,7 +59,6 @@ fn test_wired_connect() -> Result<()> {
 fn test_iw_first_network_from_file_with_select() -> Result<()> {
     let mut p = spawn_dryrun(
         "wifi -F src/parse/samples/iw_two_different_networks.txt -s iw select -A first",
-        
     )?;
     p.exp_string("[NOTE]: Selected network: \"Valparaiso_Guest_House 2\"")?;
     p.exp_regex("Valparaiso_Guest_House 2")?;
@@ -74,25 +68,20 @@ fn test_iw_first_network_from_file_with_select() -> Result<()> {
 #[test]
 fn test_iw_many_networks_from_stdin_with_select() -> Result<()> {
     let mut p = spawn_bash(Some(200))?;
-    p.execute(
-        "cat src/parse/samples/iw_many_networks.txt | ./target/debug/ruwi -D wifi -s iw -I select -A first",
-        ".NOTE.: Selected network: \"Patrician Pad\"",
-    )?;
+    let select_cmd = format!(
+        "cat src/parse/samples/iw_many_networks.txt | {}",
+        get_dryrun_cmd_with_args("wifi -s iw -I select -A first")
+    );
+    p.execute(&select_cmd, ".NOTE.: Selected network: \"Patrician Pad\"")?;
     p.exp_regex("Patrician Pad")?;
     Ok(())
 }
 
 #[test]
 fn test_dryrun_does_not_hang() -> Result<()> {
-    let mut p = spawn_dryrun(
-        "wifi -s nmcli connect -c nmcli -e MADE_UP_ESSID",
-        
-    )?;
+    let mut p = spawn_dryrun("wifi -s nmcli connect -c nmcli -e MADE_UP_ESSID")?;
     p.exp_regex("Successfully connected to: \"MADE_UP_ESSID\"")?;
-    let mut p = spawn_dryrun(
-        "wifi -s iw connect -c netctl -e MADE_UP_ESSID",
-        
-    )?;
+    let mut p = spawn_dryrun("wifi -s iw connect -c netctl -e MADE_UP_ESSID")?;
     p.exp_regex("Successfully connected to: \"MADE_UP_ESSID\"")?;
     Ok(())
 }
@@ -100,17 +89,11 @@ fn test_dryrun_does_not_hang() -> Result<()> {
 #[test]
 fn test_correct_services_started() -> Result<()> {
     // Start netctl if we want to use it to connect
-    let mut p = spawn_dryrun(
-        "wifi -s iw connect -c netctl -e MADE_UP_ESSID",
-        
-    )?;
+    let mut p = spawn_dryrun("wifi -s iw connect -c netctl -e MADE_UP_ESSID")?;
     p.exp_regex("Not running command in dryrun mode: .?systemctl start netctl")?;
 
     // Don't interact with NetworkManager from an iw+netctl run
-    let mut p = spawn_dryrun(
-        "wifi -s iw connect -c netctl -e MADE_UP_ESSID",
-        
-    )?;
+    let mut p = spawn_dryrun("wifi -s iw connect -c netctl -e MADE_UP_ESSID")?;
     assert![p.exp_string("NetworkManager").is_err()];
 
     // Stop networkmanager before attempting to connect with something else
@@ -118,10 +101,7 @@ fn test_correct_services_started() -> Result<()> {
     //       NetworkManager doesn't make a lot of sense - but it makes testing much easier, and seems
     //       harmless, so the behavior stays for now. Plus, if we're parsing an nmcli scan from
     //       stdin or elsewhere, it's very likely it was recently run.
-    let mut p = spawn_dryrun(
-        "wifi -s nmcli connect -c netctl -e MADE_UP_ESSID",
-        
-    )?;
+    let mut p = spawn_dryrun("wifi -s nmcli connect -c netctl -e MADE_UP_ESSID")?;
     p.exp_regex("Not running command in dryrun mode: .?systemctl stop NetworkManager")?;
     p.exp_regex("Not running command in dryrun mode: .?systemctl start netctl")?;
 
@@ -133,10 +113,7 @@ fn test_nmcli_cached_scan_and_synchronous_retry() -> Result<()> {
     // Scan twice in force mode, then fail before connecting
     // NOTE: we scan twice because even in force-synchronous mode,
     //       we rescan if no results at all were returned from the first scan
-    let mut p = spawn_dryrun(
-        "wifi -s nmcli connect -c nmcli -A known_or_fail",
-        
-    )?;
+    let mut p = spawn_dryrun("wifi -s nmcli connect -c nmcli -A known_or_fail")?;
     let output = p.exp_eof()?;
     dbg!(&output);
     let num_count = output.matches("systemctl start NetworkManager").count();
@@ -153,10 +130,7 @@ fn test_nmcli_force_synchronous_scan() -> Result<()> {
     // Scan twice in force mode, then fail before connecting
     // NOTE: we scan twice because even in force-synchronous mode,
     //       we rescan if no results at all were returned from the first scan
-    let mut p = spawn_dryrun(
-        "wifi -f -s nmcli connect -c nmcli -A known_or_fail",
-        
-    )?;
+    let mut p = spawn_dryrun("wifi -f -s nmcli connect -c nmcli -A known_or_fail")?;
     let output = p.exp_eof()?;
     dbg!(&output);
     let num_count = output.matches("systemctl start NetworkManager").count();
@@ -170,10 +144,7 @@ fn test_nmcli_force_synchronous_scan() -> Result<()> {
 
 #[test]
 fn test_rescan_and_fail_in_auto_mode() -> Result<()> {
-    let mut p = spawn_dryrun(
-        "wifi -s nmcli connect -c netctl -A known_or_fail",
-        
-    )?;
+    let mut p = spawn_dryrun("wifi -s nmcli connect -c netctl -A known_or_fail")?;
     p.exp_regex("Not running command in dryrun mode: .?systemctl start NetworkManager")?;
     p.exp_regex("Not running command in dryrun mode:.*?device wifi list")?;
     p.exp_regex("Not running command in dryrun mode: .?systemctl start NetworkManager")?;
@@ -185,10 +156,7 @@ fn test_rescan_and_fail_in_auto_mode() -> Result<()> {
 
 #[test]
 fn test_no_nmcli_connect_with_non_nmcli_scan() -> Result<()> {
-    let mut p = spawn_dryrun(
-        "wifi -s iw connect -c nmcli -e MADE_UP_ESSID",
-        
-    )?;
+    let mut p = spawn_dryrun("wifi -s iw connect -c nmcli -e MADE_UP_ESSID")?;
     p.exp_string("Non-nmcli scan types do not work when connect_via")?;
     Ok(())
 }

@@ -23,6 +23,8 @@ pub struct GlobalOptions {
     dry_run: bool,
     #[builder(default)]
     selection_method: SelectionMethod,
+    #[builder(default = false)]
+    pretend_to_be_root: bool,
 }
 
 impl Global for GlobalOptions {
@@ -49,6 +51,9 @@ impl Global for GlobalOptions {
         is_test || self.get_dry_run()
     }
 
+    fn pretend_to_be_root(&self) -> bool {
+        self.pretend_to_be_root
+    }
 }
 
 impl Default for GlobalOptions {
@@ -60,6 +65,7 @@ impl Default for GlobalOptions {
             dry_run: false,
             #[cfg(test)]
             dry_run: true,
+            pretend_to_be_root: false,
         }
     }
 }

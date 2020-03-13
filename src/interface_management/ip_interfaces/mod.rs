@@ -4,8 +4,7 @@ use ip_link::{WifiLinuxIPLinkInterface, WiredLinuxIPLinkInterface};
 use crate::errors::*;
 use crate::options::interfaces::Global;
 
-pub const FAKE_INTERFACE_NAME: &str =
-    "FAKE_INTERFACE_NAME_WHICH_SHOULD_ONLY_BE_SEEN_IN_TESTS_AND_DRYRUNS";
+pub const FAKE_INTERFACE_NAME: &str = "FAKE_INTERFACE";
 
 pub trait LinuxIPInterface {
     fn get_ifname(&self) -> &str;

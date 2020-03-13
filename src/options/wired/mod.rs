@@ -42,6 +42,9 @@ impl Global for WiredOptions {
     fn is_test_or_dry_run(&self) -> bool {
         self.globals.is_test_or_dry_run()
     }
+    fn pretend_to_be_root(&self) -> bool {
+        self.globals.pretend_to_be_root()
+    }
 }
 
 impl Wired for WiredOptions {

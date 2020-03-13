@@ -19,6 +19,7 @@ pub trait Global {
     fn get_dry_run(&self) -> bool;
     fn get_selection_method(&self) -> &SelectionMethod;
     fn is_test_or_dry_run(&self) -> bool;
+    fn pretend_to_be_root(&self) -> bool;
 }
 
 pub trait Wifi {

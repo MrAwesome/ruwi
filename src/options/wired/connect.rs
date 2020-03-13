@@ -36,6 +36,9 @@ impl Global for WiredConnectOptions {
     fn is_test_or_dry_run(&self) -> bool {
         self.wired.is_test_or_dry_run()
     }
+    fn pretend_to_be_root(&self) -> bool {
+        self.wired.pretend_to_be_root()
+    }
 }
 
 impl Wired for WiredConnectOptions {
