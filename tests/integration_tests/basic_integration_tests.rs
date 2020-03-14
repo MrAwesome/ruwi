@@ -1,10 +1,8 @@
 use rexpect::errors::*;
 use rexpect::{spawn, spawn_bash};
 
-mod utils;
-use utils::*;
+use super::utils::*;
 
-extern crate ruwi;
 use ruwi::interface_management::ip_interfaces::FAKE_INTERFACE_NAME;
 
 #[test]

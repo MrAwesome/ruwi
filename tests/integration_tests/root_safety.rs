@@ -1,10 +1,7 @@
 use rexpect::errors::*;
 use rexpect::spawn_bash;
 
-mod utils;
-use utils::*;
-
-extern crate ruwi;
+use super::utils::*;
 
 const BINARY_CREATED_TOKEN: &str = "CREATED_YOUR_BINARY_MLORD";
 
@@ -16,11 +13,6 @@ fn test_malicious_interface_determinator_binary() -> Result<()> {
 #[test]
 fn test_malicious_selection_binary() -> Result<()> {
     impl_test_malicious_binary("fzf", "-m fzf wifi -F src/parse/samples/iw_many_networks.txt -s iw connect")
-}
-
-#[test]
-fn test_malicious_scanning_binary() -> Result<()> {
-    impl_test_malicious_binary("iw", "wifi -i FAKEFAKEINTERFACE -s iw connect")
 }
 
 fn get_full_malicious_binary_name(malicious_dir: &str, malicious_binary_name: &str) -> String {

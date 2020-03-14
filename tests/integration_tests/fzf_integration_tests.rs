@@ -1,7 +1,6 @@
 use rexpect::errors::*;
 
-mod utils;
-use utils::spawn_dryrun;
+use super::utils::spawn_dryrun;
 
 #[test]
 fn test_iw_fourth_of_many_networks_with_fzf() -> Result<()> {
