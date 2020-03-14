@@ -27,6 +27,11 @@ const WIRED_CONNECT_TOKEN: &str = "connect";
 const WIFI_SELECT_TOKEN: &str = "select";
 const WIFI_CONNECT_TOKEN: &str = "connect";
 
+const PRETEND_TO_BE_ROOT_TOKEN: &str = "PRETEND_TO_BE_ROOT";
+
+const CMDLINE_BAILOUT_TOKEN: &str = "ONLY_PARSE_CMDLINE";
+const CMDLINE_BAILOUT_MSG: &str = "Command line parsing was successful, but cmdline bailout was requested!";
+
 // TODO: find a better place for interface to live (perhaps not on options at all?)
 // TODO: add help for connect and clear and select!
 // TODO: respect force_ask_password
@@ -176,6 +181,8 @@ pub(crate) fn get_command_from_command_line() -> Result<RuwiCommand, RuwiError> 
 
 // TODO: return an enum of options/commands types
 fn get_command_from_command_line_impl(m: &ArgMatches) -> Result<RuwiCommand, RuwiError> {
+    let pretend_to_be_root = is_env_var_set_to_1(PRETEND_TO_BE_ROOT_TOKEN);
+
     let debug = m.is_present("debug");
     let selection_method = get_val_as_enum::<SelectionMethod>(&m, "selection_method");
 
@@ -184,8 +191,6 @@ fn get_command_from_command_line_impl(m: &ArgMatches) -> Result<RuwiCommand, Ruw
         // TODO: actually use cached results, or remove that from the message here.
         eprintln!("[NOTE] Running in dryrun mode! Will not run any external commands (besides the requested prompt command) or write/read configs on disk, and will only use cached scan results.");
     }
-
-    let pretend_to_be_root = is_env_var_set_to_1("PRETEND_TO_BE_ROOT");
 
     let globals = GlobalOptions::builder()
         .debug(debug)
@@ -208,6 +213,8 @@ fn get_command_from_command_line_impl(m: &ArgMatches) -> Result<RuwiCommand, Ruw
     if debug {
         dbg![&cmd];
     }
+
+    only_parse_cmdline_check()?;
     Ok(cmd)
 }
 
@@ -218,6 +225,18 @@ fn is_env_var_set_to_1(name: &str) -> bool {
         Err(_) => false,
     }
 }
+
+fn only_parse_cmdline_check() -> Result<(), RuwiError> {
+    if is_env_var_set_to_1(CMDLINE_BAILOUT_TOKEN) {
+        Err(rerr!(
+            RuwiErrorKind::OnlyParseCmdlineBailout,
+            CMDLINE_BAILOUT_MSG,
+        ))
+    } else {
+        Ok(())
+    }
+}
+
 
 #[cfg(test)]
 mod tests {

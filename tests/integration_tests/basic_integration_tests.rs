@@ -76,6 +76,29 @@ fn test_iw_many_networks_from_stdin_with_select() -> Result<()> {
 }
 
 #[test]
+fn test_dryrun_flag_is_respected() -> Result<()> {
+    let dryrun_msg = "Running in dryrun mode";
+    let cmdline_bailout_errmsg =
+        &format!("{:?}", ruwi::errors::RuwiErrorKind::OnlyParseCmdlineBailout);
+
+    let mut p = spawn_bash(Some(200))?;
+    p.send_line("export ONLY_PARSE_CMDLINE=1")?;
+
+    let dryrun_cmd = get_dryrun_cmd_with_args("wifi connect -e FAKE_ESSID");
+    p.execute(&dryrun_cmd, dryrun_msg)?;
+    p.exp_string(cmdline_bailout_errmsg)?;
+    p.wait_for_prompt()?;
+
+    let unguarded_cmd = get_unguarded_cmd_with_args("wifi connect -e FAKE_ESSID");
+    p.send_line(&unguarded_cmd)?;
+    let output = p.wait_for_prompt()?;
+    assert![output.contains(cmdline_bailout_errmsg)];
+    assert![!output.contains(dryrun_msg)];
+
+    Ok(())
+}
+
+#[test]
 fn test_dryrun_does_not_hang() -> Result<()> {
     let mut p = spawn_dryrun("wifi -s nmcli connect -c nmcli -e MADE_UP_ESSID")?;
     p.exp_regex("Successfully connected to: \"MADE_UP_ESSID\"")?;
