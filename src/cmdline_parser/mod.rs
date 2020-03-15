@@ -1,10 +1,9 @@
 mod utils;
-use utils::*;
-
 mod wifi;
-use wifi::get_wifi_cmd;
-
 mod wired;
+
+use utils::*;
+use wifi::get_wifi_cmd;
 use wired::get_wired_cmd;
 
 use crate::enums::*;
