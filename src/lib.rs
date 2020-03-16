@@ -34,6 +34,7 @@ pub(crate) mod parse;
 pub(crate) mod run_commands;
 pub(crate) mod runner;
 pub(crate) mod select;
+pub(crate) mod service_detection;
 pub(crate) mod service_management;
 pub(crate) mod sort_networks;
 pub(crate) mod structs;

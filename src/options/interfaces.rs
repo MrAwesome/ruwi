@@ -1,4 +1,7 @@
 // TODO: rename this file to something closer to context_traits
+// TODO: use trait-associated functions to just have e.g. d() return self.globals().d()?
+//       in other words, Find a way to reduce the need for so much new boilerplate when a new
+//       method or command is added
 
 use crate::errors::*;
 // TODO: remove reliance on naked structs here
