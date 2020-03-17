@@ -11,6 +11,7 @@ use crate::options::wifi::*;
 use crate::options::*;
 use crate::rerr;
 use crate::strum_utils::*;
+use crate::service_detection::*;
 
 use clap::ArgMatches;
 
@@ -65,8 +66,10 @@ fn get_wifi_connect_opts(
     wifi_opts: WifiOptions,
     maybe_connect_matcher: Option<&ArgMatches>,
 ) -> Result<WifiConnectOptions, RuwiError> {
-    let connect_builder = WifiConnectOptions::builder().wifi(wifi_opts);
+    let connect_builder = WifiConnectOptions::builder();
     let connect_opts = if let Some(connect_matcher) = maybe_connect_matcher {
+        let checker = SystemCheckerReal::new(&wifi_opts);
+
         let force_ask_password = connect_matcher.is_present("force_ask_password");
         let given_essid = connect_matcher.value_of("essid").map(String::from);
         let given_encryption_key = connect_matcher.value_of("password").map(String::from);
@@ -77,9 +80,15 @@ fn get_wifi_connect_opts(
             get_val_as_enum::<AutoMode>(&connect_matcher, "auto_mode")
         };
 
-        let connect_via = get_val_as_enum::<WifiConnectionType>(&connect_matcher, "connect_via");
+        let connect_via = if connect_matcher.is_present("connect_via") {
+            get_val_as_enum::<WifiConnectionType>(&connect_matcher, "connect_via")
+        } else {
+            let todo = "make this work";
+            WifiConnectionType::choose_best_from_system(&checker)
+        };
 
         connect_builder
+            .wifi(wifi_opts)
             .connect_via(connect_via)
             .given_essid(given_essid)
             .given_encryption_key(given_encryption_key)
@@ -87,7 +96,9 @@ fn get_wifi_connect_opts(
             .force_ask_password(force_ask_password)
             .build()
     } else {
-        connect_builder.build()
+        connect_builder
+            .wifi(wifi_opts)
+            .build()
     };
 
     validate_wifi_connect_options(connect_opts)

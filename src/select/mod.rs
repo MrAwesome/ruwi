@@ -129,7 +129,7 @@ impl<N: AnnotatedRuwiNetwork> SortedFilteredNetworks<N> {
             .next()
             .ok_or_else(|| {
                 rerr!(
-                    RuwiErrorKind::TestNoNetworksFoundWhenLookingForFirst,
+                    RuwiErrorKind::NoNetworksFoundWhenLookingForFirst,
                     "No networks found!"
                 )
             })

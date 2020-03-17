@@ -1,6 +1,8 @@
 mod check_mappings;
 mod system_checker_real;
 
+pub(crate) use system_checker_real::SystemCheckerReal;
+
 use crate::options::interfaces::Global;
 
 // if connection type isn't given:
@@ -10,7 +12,7 @@ use crate::options::interfaces::Global;
 // if scanning type isn't given:
 //    check NetworkingServices installed/running, check scanning binaries installed/running, pick a WifiScanType
 
-trait HasSystemCheckMapping {
+pub(crate) trait HasSystemCheckMapping {
     fn get_system_check_mapping() -> Vec<(SystemCheck, Self)> where Self: Sized;
 
     fn choose_best_from_system<'a, O, S>(checker: &S) -> Self 
@@ -29,7 +31,7 @@ trait HasSystemCheckMapping {
     }
 }
 
-trait SystemChecker<'a, O: Global> {
+pub(crate) trait SystemChecker<'a, O: Global> {
     fn new(opts: &'a O) -> Self;
 
     fn run_check(&self, check: &SystemCheck) -> bool 
@@ -44,7 +46,7 @@ trait SystemChecker<'a, O: Global> {
     }
 }
 
-trait SystemChecksImpl<'a, O: Global> {
+pub(crate) trait SystemChecksImpl<'a, O: Global> {
     fn get_opts(&self) -> &'a O;
     fn check_networkmanager_running(&self) -> bool;
     fn check_netctl_running(&self) -> bool;

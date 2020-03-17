@@ -1,11 +1,11 @@
 #[cfg(target_os = "linux")]
-use ruwi::run_ruwi;
+use ruwi::run_ruwi_cli;
 #[cfg(target_os = "linux")]
 use std::process::exit;
 
 #[cfg(target_os = "linux")]
 fn main() {
-    let x = run_ruwi();
+    let x = run_ruwi_cli();
     match x {
         Ok(()) => (),
         Err(err) => {
@@ -17,7 +17,6 @@ fn main() {
                 }
             }
             // TODO: Different error codes for different errors? Default exit code, with the ability to pass in custom codes?
-            // TODO: Ability to print stdout/stderr of failing commands?
             exit(1);
         }
     };

@@ -2,12 +2,13 @@ use crate::rerr;
 use std::error::Error;
 use std::fmt;
 
-// TODO: set to pub(crate) temporarily to find unused values
+// NOTE: set to pub(crate) temporarily to find unused values
 #[non_exhaustive]
 #[derive(Debug, PartialEq, Eq)]
 pub enum RuwiErrorKind {
-    CommandNotFound,
     BinaryWritableByNonRootWhenRunningAsRoot,
+    CmdLineOptParserSafeFailedInTest,
+    CommandNotFound,
     FailedToBringLinuxNetworkingInterfaceDown,
     FailedToBringLinuxNetworkingInterfaceUp,
     FailedToConnectViaNetctl,
@@ -15,11 +16,11 @@ pub enum RuwiErrorKind {
     FailedToListKnownNetworksWithNetworkManager,
     FailedToParseIPLinkOutput,
     FailedToParseSelectedLine,
+    FailedToRawConnectViaDhclient,
+    FailedToRawConnectViaDhcpcd,
+    FailedToRawConnectViaNmcli,
     FailedToReadScanResultsFromFile,
     FailedToReadScanResultsFromStdin,
-    FailedToRawConnectViaDhcpcd,
-    FailedToRawConnectViaDhclient,
-    FailedToRawConnectViaNmcli,
     FailedToRunIPLinkShow,
     FailedToRunIWScanAbort,
     FailedToRunIWScanDump,
@@ -47,6 +48,7 @@ pub enum RuwiErrorKind {
     NoInterfaceFoundWithGivenName,
     NoKnownNetworksFound,
     NoNetworksFoundMatchingSelectionResult,
+    NoNetworksFoundWhenLookingForFirst,
     NoNetworksSeenWithIWScanDump,
     NoNetworksSeenWithWPACliScanResults,
     NoWifiInterfacesFound,
@@ -57,17 +59,13 @@ pub enum RuwiErrorKind {
     PromptCommandSpawnFailed,
     RefreshRequested,
     SingleLinePromptFailed,
-    StepRunnerLoopPreventionCapExceeded,
-    TestCmdLineOptParserSafeFailed,
     TestDeliberatelyFailedToFindNetworks,
-    TestNoNetworksFoundWhenLookingForFirst,
     TestNoNetworksFoundWhenLookingForLast,
     TestNoRefreshOptionFound,
     TestShouldNeverBeSeen,
     TestUsedAutoNoAskWhenNotExpected,
     TestUsedAutoWhenNotExpected,
     TestUsedManualWhenNotExpected,
-    UsedTerminalStep,
     UnableToReadMetadataForBinary,
     WPACliHeaderMalformedOrMissing,
 }
@@ -87,7 +85,10 @@ impl fmt::Display for RuwiError {
     }
 }
 
-pub(crate) fn nie<T: fmt::Debug>(prog: T) -> RuwiError {
+pub(crate) fn nie<T>(prog: T) -> RuwiError
+where
+    T: fmt::Debug,
+{
     rerr!(
         RuwiErrorKind::NotImplementedError,
         format!("Functionality not implemented: {:?}", prog)

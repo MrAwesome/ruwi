@@ -300,7 +300,7 @@ mod tests {
         dbg!(&args);
         let matcher = get_matches_safe(args).map_err(|e| {
             rerr!(
-                RuwiErrorKind::TestCmdLineOptParserSafeFailed,
+                RuwiErrorKind::CmdLineOptParserSafeFailedInTest,
                 e.to_string()
             )
         });

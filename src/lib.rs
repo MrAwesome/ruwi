@@ -75,7 +75,7 @@ use errors::RuwiError;
 // TODO(wishlist): fzf keyboard shortcuts for getting more info about a network?
 // TODO(later): make sure fzf and dmenu are listed as dependencies
 
-pub fn run_ruwi() -> Result<(), RuwiError> {
+pub fn run_ruwi_cli() -> Result<(), RuwiError> {
     let command = get_command_from_command_line()?;
     command.run()
 }
