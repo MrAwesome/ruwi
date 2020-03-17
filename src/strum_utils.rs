@@ -11,8 +11,9 @@ where
     E::iter().map(|x| x.as_static()).collect::<Vec<_>>()
 }
 
-pub(crate) fn get_val_as_enum<T: FromStr + Default>(m: &ArgMatches, arg: &str) -> T
+pub(crate) fn get_val_as_enum<T>(m: &ArgMatches, arg: &str) -> T
 where
+    T: FromStr + Default,
     T::Err: std::fmt::Debug,
 {
     match m.value_of(arg) {
@@ -21,6 +22,9 @@ where
     }
 }
 
-pub(crate) fn parse_as_enum<T: FromStr>(x: &str) -> T {
+pub(crate) fn parse_as_enum<T>(x: &str) -> T
+where
+    T: FromStr,
+{
     T::from_str(x).unwrap_or_else(|_| panic!(format!("Failed to parse: {}", x)))
 }

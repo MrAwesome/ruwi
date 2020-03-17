@@ -315,7 +315,7 @@ mod tests {
         let cmd_res = getopts_safe(args);
         dbg!(&cmd_res);
         if let Err(err) = cmd_res {
-            assert_eq![err.kind, RuwiErrorKind::TestCmdLineOptParserSafeFailed];
+            assert_eq![err.kind, RuwiErrorKind::CmdLineOptParserSafeFailedInTest];
         } else {
             panic!(
                 "Expected command line args+opts \"{}\" to fail, but it passed instead!",

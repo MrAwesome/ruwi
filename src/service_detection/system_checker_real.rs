@@ -6,19 +6,15 @@ pub(crate) struct SystemCheckerReal<'a, O: Global> {
 }
 
 
-impl<'a, O: Global> SystemChecker<'a, O> for SystemCheckerReal<'a, O> {
-    fn new(opts: &'a O) -> Self {
+impl<'a, O: Global> SystemCheckerReal<'a, O> {
+    pub(crate) fn new(opts: &'a O) -> Self {
         Self {
             opts
         }
     }
 }
 
-impl<'a, O: Global> SystemChecksImpl<'a, O> for SystemCheckerReal<'a, O> {
-    fn get_opts(&self) -> &'a O {
-        self.opts
-    }
-
+impl<'a, O: Global> SystemChecksImpl for SystemCheckerReal<'a, O> {
     fn check_networkmanager_running(&self) -> bool {
         true
     }
@@ -35,4 +31,3 @@ impl<'a, O: Global> SystemChecksImpl<'a, O> for SystemCheckerReal<'a, O> {
         false
     }
 }
-

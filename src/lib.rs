@@ -10,6 +10,10 @@ extern crate serde_derive;
 extern crate serde_json;
 extern crate strum;
 extern crate nix;
+#[cfg(test)]
+extern crate mockall;
+#[cfg(test)]
+extern crate paste;
 extern crate strum_macros;
 extern crate typed_builder;
 

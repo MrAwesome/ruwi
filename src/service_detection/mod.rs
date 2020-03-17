@@ -1,29 +1,24 @@
 mod check_mappings;
 mod system_checker_real;
 
+#[cfg(test)]
+use mockall::{automock, predicate::*};
+
 pub(crate) use system_checker_real::SystemCheckerReal;
 
-use crate::options::interfaces::Global;
+pub(crate) trait HasSystemCheckMapping
+where
+    Self: Sized,
+{
+    fn get_system_check_mapping() -> Vec<(SystemCheckPredicate, Self)>;
 
-// if connection type isn't given:
-//    check NetworkingServices installed/running, pick a WifiConnectionType
-//    check NetworkingServices installed/running, pick a WiredConnectionType
-//
-// if scanning type isn't given:
-//    check NetworkingServices installed/running, check scanning binaries installed/running, pick a WifiScanType
-
-pub(crate) trait HasSystemCheckMapping {
-    fn get_system_check_mapping() -> Vec<(SystemCheck, Self)> where Self: Sized;
-
-    fn choose_best_from_system<'a, O, S>(checker: &S) -> Self 
-        where 
-            S: SystemChecker<'a, O> + SystemChecksImpl<'a, O>,
-            O: Global + 'a,
-            Self: 'a + Default,
+    fn choose_best_from_system<S>(checker: &S) -> Self
+    where
+        S: SystemChecksImpl,
+        Self: Default + HasSystemCheckMapping,
     {
-        
         for (predicate, val) in Self::get_system_check_mapping() {
-            if checker.run_check(&predicate) {
+            if check_predicate(checker, &predicate) {
                 return val;
             }
         }
@@ -31,23 +26,8 @@ pub(crate) trait HasSystemCheckMapping {
     }
 }
 
-pub(crate) trait SystemChecker<'a, O: Global> {
-    fn new(opts: &'a O) -> Self;
-
-    fn run_check(&self, check: &SystemCheck) -> bool 
-        where Self: SystemChecksImpl<'a, O>
-    {
-        match check {
-            SystemCheck::NetworkManagerRunning => self.check_networkmanager_running(),
-            SystemCheck::NetctlRunning => self.check_netctl_running(),
-            SystemCheck::NetctlInstalled => self.check_netctl_installed(),
-            SystemCheck::NetworkManagerInstalled => self.check_networkmanager_installed(),
-        }
-    }
-}
-
-pub(crate) trait SystemChecksImpl<'a, O: Global> {
-    fn get_opts(&self) -> &'a O;
+#[cfg_attr(test, automock)]
+pub(crate) trait SystemChecksImpl {
     fn check_networkmanager_running(&self) -> bool;
     fn check_netctl_running(&self) -> bool;
     fn check_netctl_installed(&self) -> bool;
@@ -55,9 +35,18 @@ pub(crate) trait SystemChecksImpl<'a, O: Global> {
 }
 
 #[derive(Debug)]
-pub(crate) enum SystemCheck {
+pub(crate) enum SystemCheckPredicate {
     NetworkManagerRunning,
     NetctlRunning,
     NetctlInstalled,
     NetworkManagerInstalled,
+}
+
+fn check_predicate<T: SystemChecksImpl>(checker: &T, check: &SystemCheckPredicate) -> bool {
+    match check {
+        SystemCheckPredicate::NetworkManagerRunning => checker.check_networkmanager_running(),
+        SystemCheckPredicate::NetctlRunning => checker.check_netctl_running(),
+        SystemCheckPredicate::NetctlInstalled => checker.check_netctl_installed(),
+        SystemCheckPredicate::NetworkManagerInstalled => checker.check_networkmanager_installed(),
+    }
 }
