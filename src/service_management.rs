@@ -6,6 +6,8 @@ use crate::wpa_cli_initialize::*;
 
 use strum::IntoEnumIterator;
 
+// TODO: check systemctl is-active before starting
+
 impl NetworkingService {
     pub(crate) fn start<O>(&self, options: &O) -> Result<(), RuwiError>
     where

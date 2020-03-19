@@ -127,7 +127,7 @@ where
         options,
         "iw",
         &[interface.get_ifname(), "scan"],
-    ).run_command_output_pass(
+    ).run_command_output_raw(
         RuwiErrorKind::FailedToRunIWScanSynchronous,
         IW_SCAN_SYNC_ERR_MSG,
     )

@@ -110,7 +110,6 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .short("s")
         .long("scan-type")
         .takes_value(true)
-        .default_value(&WifiScanType::default().as_static())
         .possible_values(&possible_string_vals::<WifiScanType, _>())
         .help("The wifi scanning program to use to get results.");
 
@@ -126,9 +125,8 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .short("c")
         .long("connect-via")
         .takes_value(true)
-        .default_value(&WifiConnectionType::default().as_static())
         .possible_values(&possible_string_vals::<WifiConnectionType, _>())
-        .help("Which network management suite to use to connect to the selected SSID on the given interface..");
+        .help("Which network management suite to use to connect to the selected SSID on the given interface. Will attempt to automatically determine the best connector based on which programs are currently running/installed on the system.");
 
     let wired_connect_via = Arg::with_name("connect_via")
         .short("c")
@@ -188,7 +186,7 @@ fn get_command_from_command_line_impl(m: &ArgMatches) -> Result<RuwiCommand, Ruw
     let dry_run = m.is_present("dry_run");
     if dry_run {
         // TODO: actually use cached results, or remove that from the message here.
-        eprintln!("[NOTE] Running in dryrun mode! Will not run any external commands (besides the requested prompt command) or write/read configs on disk, and will only use cached scan results.");
+        eprintln!("[NOTE]: Running in dryrun mode! Will not run any external commands (besides the requested prompt command) or write/read configs on disk, and will only use cached scan results.");
     }
 
     let globals = GlobalOptions::builder()

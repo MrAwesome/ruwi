@@ -15,6 +15,9 @@ use crate::service_detection::*;
 
 use clap::ArgMatches;
 
+const CONNECT_VIA_TOKEN: &str = "connect_via";
+const SCAN_TYPE_TOKEN: &str = "scan_type";
+
 pub(super) fn get_wifi_cmd(
     globals: GlobalOptions,
     maybe_wifi_matcher: Option<&ArgMatches>,
@@ -41,7 +44,14 @@ fn get_wifi_options(globals: GlobalOptions, wifi_matcher: &ArgMatches) -> Result
     let force_synchronous_scan = wifi_matcher.is_present("force_synchronous_scan");
     let ignore_known = wifi_matcher.is_present("ignore_known");
     let given_interface_name = wifi_matcher.value_of("interface").map(String::from);
-    let scan_type = ScanType::Wifi(get_val_as_enum::<WifiScanType>(&wifi_matcher, "scan_type"));
+    let scan_type = ScanType::Wifi(
+        if wifi_matcher.is_present(SCAN_TYPE_TOKEN) {
+            get_val_as_enum::<WifiScanType>(&wifi_matcher, SCAN_TYPE_TOKEN)
+        } else {
+            let checker = SystemCheckerReal::new(&globals);
+            WifiScanType::choose_best_from_system(&checker, SCAN_TYPE_TOKEN)
+        }
+    );
 
     let wifi_opts = WifiOptions::builder()
         .globals(globals)
@@ -80,11 +90,10 @@ fn get_wifi_connect_opts(
             get_val_as_enum::<AutoMode>(&connect_matcher, "auto_mode")
         };
 
-        let connect_via = if connect_matcher.is_present("connect_via") {
-            get_val_as_enum::<WifiConnectionType>(&connect_matcher, "connect_via")
+        let connect_via = if connect_matcher.is_present(CONNECT_VIA_TOKEN) {
+            get_val_as_enum::<WifiConnectionType>(&connect_matcher, CONNECT_VIA_TOKEN)
         } else {
-            let todo = "make this work";
-            WifiConnectionType::choose_best_from_system(&checker)
+            WifiConnectionType::choose_best_from_system(&checker, CONNECT_VIA_TOKEN)
         };
 
         connect_builder
