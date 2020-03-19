@@ -40,4 +40,12 @@ impl<'a, O: Global> SystemChecksImpl for SystemCheckerReal<'a, O> {
     fn check_networkmanager_installed(&self) -> bool {
         SystemCommandRunner::new(self.opts, "NetworkManager", &[]).check_command_exists()
     }
+
+    fn check_dhclient_installed(&self) -> bool {
+        SystemCommandRunner::new(self.opts, "dhclient", &[]).check_command_exists()
+    }
+
+    fn check_dhcpcd_installed(&self) -> bool {
+        SystemCommandRunner::new(self.opts, "dhcpcd", &[]).check_command_exists()
+    }
 }

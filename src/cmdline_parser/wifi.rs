@@ -78,7 +78,6 @@ fn get_wifi_connect_opts(
 ) -> Result<WifiConnectOptions, RuwiError> {
     let connect_builder = WifiConnectOptions::builder();
     let connect_opts = if let Some(connect_matcher) = maybe_connect_matcher {
-        let checker = SystemCheckerReal::new(&wifi_opts);
 
         let force_ask_password = connect_matcher.is_present("force_ask_password");
         let given_essid = connect_matcher.value_of("essid").map(String::from);
@@ -93,6 +92,7 @@ fn get_wifi_connect_opts(
         let connect_via = if connect_matcher.is_present(CONNECT_VIA_TOKEN) {
             get_val_as_enum::<WifiConnectionType>(&connect_matcher, CONNECT_VIA_TOKEN)
         } else {
+            let checker = SystemCheckerReal::new(&wifi_opts);
             WifiConnectionType::choose_best_from_system(&checker, CONNECT_VIA_TOKEN)
         };
 

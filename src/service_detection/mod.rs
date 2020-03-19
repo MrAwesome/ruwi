@@ -71,6 +71,8 @@ pub(crate) trait SystemChecksImpl {
     fn check_netctl_running(&self) -> bool;
     fn check_netctl_installed(&self) -> bool;
     fn check_networkmanager_installed(&self) -> bool;
+    fn check_dhclient_installed(&self) -> bool;
+    fn check_dhcpcd_installed(&self) -> bool;
 }
 
 use strum_macros::Display;
@@ -80,6 +82,8 @@ pub(crate) enum SystemCheckPredicate {
     NetctlRunning,
     NetctlInstalled,
     NetworkManagerInstalled,
+    DhclientInstalled,
+    DhcpcdInstalled,
 }
 
 fn check_predicate<T: SystemChecksImpl>(checker: &T, check: &SystemCheckPredicate) -> bool {
@@ -88,5 +92,7 @@ fn check_predicate<T: SystemChecksImpl>(checker: &T, check: &SystemCheckPredicat
         SystemCheckPredicate::NetctlRunning => checker.check_netctl_running(),
         SystemCheckPredicate::NetctlInstalled => checker.check_netctl_installed(),
         SystemCheckPredicate::NetworkManagerInstalled => checker.check_networkmanager_installed(),
+        SystemCheckPredicate::DhclientInstalled => checker.check_dhclient_installed(),
+        SystemCheckPredicate::DhcpcdInstalled => checker.check_dhcpcd_installed(),
     }
 }

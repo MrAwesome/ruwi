@@ -8,8 +8,11 @@ use crate::options::wired::*;
 use crate::errors::*;
 use crate::options::*;
 use crate::strum_utils::*;
+use crate::service_detection::*;
 
 use clap::ArgMatches;
+
+const CONNECT_VIA_TOKEN: &str = "connect_via";
 
 pub(super) fn get_wired_cmd(
     globals: GlobalOptions,
@@ -47,15 +50,23 @@ fn get_wired_connect_opts(
     wired_opts: WiredOptions,
     maybe_connect_matcher: Option<&ArgMatches>,
 ) -> Result<WiredConnectOptions, RuwiError> {
-    let connect_builder = WiredConnectOptions::builder().wired(wired_opts);
+    let connect_builder = WiredConnectOptions::builder();
     let connect_opts = if let Some(connect_matcher) = maybe_connect_matcher {
-        let connect_via = get_val_as_enum::<RawInterfaceConnectionType>(&connect_matcher, "connect_via");
+        let connect_via = if connect_matcher.is_present(CONNECT_VIA_TOKEN) {
+            get_val_as_enum::<RawInterfaceConnectionType>(&connect_matcher, CONNECT_VIA_TOKEN)
+        } else {
+            let checker = SystemCheckerReal::new(&wired_opts);
+            RawInterfaceConnectionType::choose_best_from_system(&checker, CONNECT_VIA_TOKEN)
+        };
 
         connect_builder
+            .wired(wired_opts)
             .connect_via(connect_via)
             .build()
     } else {
-        connect_builder.build()
+        connect_builder
+            .wired(wired_opts)
+            .build()
     };
     Ok(connect_opts)
 }
