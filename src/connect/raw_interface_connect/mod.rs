@@ -29,9 +29,11 @@ impl<'a, O: Global, T: LinuxIPInterface> RawInterfaceConnector<'a, O, T> {
             RawInterfaceConnectionType::Dhcpcd => self.dhcpcd_connect(),
             RawInterfaceConnectionType::Dhclient => self.dhclient_connect(),
             RawInterfaceConnectionType::Nmcli => self.nmcli_connect(),
-            RawInterfaceConnectionType::Netctl => unimplemented!("Netctl raw connection is not yet implemented!"),
+            RawInterfaceConnectionType::Netctl => todo!("Netctl raw connection is not yet implemented!"),
         }
     }
+
+    fn todo () { "implement raw interface connect for netctl - create config, just with no encryption info or essid"; }
 
     fn dhcpcd_connect(&self) -> Result<(), RuwiError> {
         SystemCommandRunner::new( 

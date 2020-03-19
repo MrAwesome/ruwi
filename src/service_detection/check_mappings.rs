@@ -62,46 +62,6 @@ mod tests {
         };
     }
 
-    //macro_rules! make_a_struct_and_getters {
-    //    ($name:ident { $($field:ident),* }) => {
-    //        // Define a struct. This expands to:
-    //        //
-    //        //     pub struct S {
-    //        //         a: String,
-    //        //         b: String,
-    //        //         c: String,
-    //        //     }
-    //        pub struct $name {
-    //            $(
-    //                $field: String,
-    //            )*
-    //        }
-    //
-    //        // Build an impl block with getters. This expands to:
-    //        //
-    //        //     impl S {
-    //        //         pub fn get_a(&self) -> &str { &self.a }
-    //        //         pub fn get_b(&self) -> &str { &self.b }
-    //        //         pub fn get_c(&self) -> &str { &self.c }
-    //        //     }
-    //        paste::item! {
-    //            impl $name {
-    //                $(
-    //                    pub fn [<get_ $field>](&self) -> &str {
-    //                        &self.$field
-    //                    }
-    //                )*
-    //            }
-    //        }
-    //    }
-    //}
-    //
-    //make_a_struct_and_getters!(S { a, b, c });
-    //
-    //fn call_some_getters(s: &S) -> bool {
-    //    s.get_a() == s.get_b() && s.get_c().is_empty()
-    //}
-
     #[test]
     fn test_wificonn_default() {
         let mut mock = MockSystemChecksImpl::new();
@@ -137,6 +97,36 @@ mod tests {
         mock_func_not_called!(mock, check_networkmanager_installed);
         assert_eq!(
             WifiConnectionType::default(),
+            choose_best_from_system_impl(&mock, "fake_name")
+        );
+    }
+
+    #[test]
+    fn test_wiredconn_dhcpcd_installed() {
+        let mut mock = MockSystemChecksImpl::new();
+        mock_func!(mock, 1, check_networkmanager_running, false);
+        mock_func!(mock, 1, check_netctl_running, false);
+        mock_func!(mock, 1, check_netctl_installed, false);
+        mock_func!(mock, 1, check_networkmanager_installed, false);
+        mock_func!(mock, 1, check_dhclient_installed, false);
+        mock_func!(mock, 1, check_dhcpcd_installed, true);
+        assert_eq!(
+            RawInterfaceConnectionType::Dhcpcd,
+            choose_best_from_system_impl(&mock, "fake_name")
+        );
+    }
+
+    #[test]
+    fn test_wiredconn_netctl_installed() {
+        let mut mock = MockSystemChecksImpl::new();
+        mock_func!(mock, 1, check_networkmanager_running, false);
+        mock_func!(mock, 1, check_netctl_running, false);
+        mock_func!(mock, 1, check_netctl_installed, true);
+        mock_func_not_called!(mock, check_networkmanager_installed);
+        mock_func_not_called!(mock, check_dhclient_installed);
+        mock_func_not_called!(mock, check_dhcpcd_installed);
+        assert_eq!(
+            RawInterfaceConnectionType::Netctl,
             choose_best_from_system_impl(&mock, "fake_name")
         );
     }
