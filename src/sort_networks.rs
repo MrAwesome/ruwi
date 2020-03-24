@@ -57,7 +57,7 @@ impl Ord for AnnotatedWirelessNetwork {
         if self.is_known() ^ other.is_known() {
             self.is_known().cmp(&other.is_known())
         } else {
-            self.signal_strength.cmp(&other.signal_strength)
+            self.get_signal_strength().cmp(&other.get_signal_strength())
         }
     }
 }
@@ -87,53 +87,47 @@ mod tests {
 
     #[test]
     fn test_strength_sorting() {
-        let higher_signal = AnnotatedWirelessNetwork {
-            essid: "Valparaiso_Guest_House 1".to_string(),
-            signal_strength: Some(-66),
-            ..AnnotatedWirelessNetwork::default()
-        };
+        let higher_signal = AnnotatedWirelessNetwork::builder()
+            .essid("Valparaiso_Guest_House 1".to_string())
+            .signal_strength(Some(-66))
+        .build();
 
-        let lower_signal = AnnotatedWirelessNetwork {
-            essid: "Valparaiso_Guest_House 1".to_string(),
-            signal_strength: Some(-69),
-            ..AnnotatedWirelessNetwork::default()
-        };
+        let lower_signal = AnnotatedWirelessNetwork::builder()
+            .essid("Valparaiso_Guest_House 1".to_string())
+            .signal_strength(Some(-69))
+        .build();
 
         compare_order(lower_signal, higher_signal);
     }
 
     #[test]
     fn test_known_higher_than_unknown() {
-        let known = AnnotatedWirelessNetwork {
-            essid: "Valparaiso_Guest_House 1".to_string(),
-            service_identifier: Some("some_id".to_string()),
-            ..AnnotatedWirelessNetwork::default()
-        };
+        let known = AnnotatedWirelessNetwork::builder()
+            .essid("Valparaiso_Guest_House 1".to_string())
+            .service_identifier(Some("some_id".to_string()))
+        .build();
 
-        let not_known = AnnotatedWirelessNetwork {
-            essid: "Valparaiso_Guest_House 1".to_string(),
-            service_identifier: None,
-            ..AnnotatedWirelessNetwork::default()
-        };
+        let not_known = AnnotatedWirelessNetwork::builder()
+            .essid("Valparaiso_Guest_House 1".to_string())
+            .service_identifier(None)
+        .build();
 
         compare_order(not_known, known);
     }
 
     #[test]
     fn test_known_higher_than_unknown_with_higher_signal() {
-        let known = AnnotatedWirelessNetwork {
-            essid: "Valparaiso_Guest_House 1".to_string(),
-            service_identifier: Some("some_id".to_string()),
-            signal_strength: Some(-80),
-            ..AnnotatedWirelessNetwork::default()
-        };
+        let known = AnnotatedWirelessNetwork::builder()
+            .essid("Valparaiso_Guest_House 1".to_string())
+            .service_identifier(Some("some_id".to_string()))
+            .signal_strength(Some(-80))
+        .build();
 
-        let not_known = AnnotatedWirelessNetwork {
-            essid: "Valparaiso_Guest_House 1".to_string(),
-            service_identifier: None,
-            signal_strength: Some(-20),
-            ..AnnotatedWirelessNetwork::default()
-        };
+        let not_known = AnnotatedWirelessNetwork::builder()
+            .essid("Valparaiso_Guest_House 1".to_string())
+            .service_identifier(None)
+            .signal_strength(Some(-20))
+        .build();
 
         compare_order(not_known, known);
     }
@@ -141,26 +135,22 @@ mod tests {
     #[test]
     fn test_unique_nw_name_sort() {
         let networks = vec![
-            AnnotatedWirelessNetwork {
-                essid: "DOOK".to_string(),
-                signal_strength: Some(-5),
-                ..AnnotatedWirelessNetwork::default()
-            },
-            AnnotatedWirelessNetwork {
-                essid: "BOYS".to_string(),
-                signal_strength: Some(-47),
-                ..AnnotatedWirelessNetwork::default()
-            },
-            AnnotatedWirelessNetwork {
-                essid: "DOOK".to_string(),
-                signal_strength: Some(-49),
-                ..AnnotatedWirelessNetwork::default()
-            },
-            AnnotatedWirelessNetwork {
-                essid: "YES".to_string(),
-                signal_strength: Some(-89),
-                ..AnnotatedWirelessNetwork::default()
-            },
+            AnnotatedWirelessNetwork::builder()
+                .essid("DOOK".to_string())
+                .signal_strength(Some(-5))
+            .build(),
+            AnnotatedWirelessNetwork::builder()
+                .essid("BOYS".to_string())
+                .signal_strength(Some(-47))
+            .build(),
+            AnnotatedWirelessNetwork::builder()
+                .essid("DOOK".to_string())
+                .signal_strength(Some(-49))
+            .build(),
+            AnnotatedWirelessNetwork::builder()
+                .essid("YES".to_string())
+                .signal_strength(Some(-89))
+            .build(),
         ];
 
         let expected_networks = vec![

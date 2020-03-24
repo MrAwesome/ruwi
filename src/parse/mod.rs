@@ -147,13 +147,13 @@ fn parse_iw_chunk_into_network(chunk: &[&str]) -> Result<WirelessNetwork, Indivi
         })
         .map(|x| x + 90);
 
-    Ok(WirelessNetwork {
-        essid,
-        is_encrypted,
-        bssid,
-        signal_strength,
-        ..WirelessNetwork::default()
-    })
+    let nw = WirelessNetwork::builder()
+        .essid(essid)
+        .is_encrypted(is_encrypted)
+        .bssid(bssid)
+        .signal_strength(signal_strength)
+        .build();
+    Ok(nw)
 }
 
 fn is_first_line_of_iw_network(line: &str) -> bool {
@@ -250,13 +250,13 @@ fn parse_wpa_line_into_network(line: &str) -> Result<WirelessNetwork, Individual
         .map(|x| x + 90)
         .or(Err(IndividualParseError::FailedToParseSignalLevel))?;
 
-    Ok(WirelessNetwork {
-        essid,
-        is_encrypted,
-        bssid: Some(bssid.to_string()),
-        signal_strength: Some(signal_strength),
-        ..WirelessNetwork::default()
-    })
+    let nw = WirelessNetwork::builder()
+        .essid(essid)
+        .is_encrypted(is_encrypted)
+        .bssid(Some(bssid.to_string()))
+        .signal_strength(Some(signal_strength))
+        .build();
+    Ok(nw)
 }
 
 // TODO: for networkmanager: shorten to nm in options
@@ -303,13 +303,12 @@ mod tests {
         };
         let expected_parse_result = Ok(ParseResult {
             scan_type: st,
-            seen_networks: vec![WirelessNetwork {
-                essid: "Pee Pee Poo Poo Man".to_string(),
-                is_encrypted: true,
-                bssid: Some("32:ac:a3:7b:ab:0b".to_string()),
-                signal_strength: Some(52),
-                ..WirelessNetwork::default()
-            }],
+            seen_networks: vec![WirelessNetwork::builder()
+                .essid("Pee Pee Poo Poo Man".to_string())
+                .is_encrypted(true)
+                .bssid(Some("32:ac:a3:7b:ab:0b".to_string()))
+                .signal_strength(Some(52))
+                .build()],
             line_parse_errors: vec![],
         });
         compare_parsed_result_to_expected_result(&options, &scan_result, &expected_parse_result);
@@ -326,20 +325,18 @@ mod tests {
         let expected_parse_result = Ok(ParseResult {
             scan_type: st,
             seen_networks: vec![
-                WirelessNetwork {
-                    essid: "Valparaiso_Guest_House 1".to_string(),
-                    is_encrypted: true,
-                    bssid: Some("f4:28:53:fe:a5:d0".to_string()),
-                    signal_strength: Some(25),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "Valparaiso_Guest_House 2".to_string(),
-                    is_encrypted: true,
-                    bssid: Some("68:72:51:68:73:da".to_string()),
-                    signal_strength: Some(44),
-                    ..WirelessNetwork::default()
-                },
+                WirelessNetwork::builder()
+                    .essid("Valparaiso_Guest_House 1".to_string())
+                    .is_encrypted(true)
+                    .bssid(Some("f4:28:53:fe:a5:d0".to_string()))
+                    .signal_strength(Some(25))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("Valparaiso_Guest_House 2".to_string())
+                    .is_encrypted(true)
+                    .bssid(Some("68:72:51:68:73:da".to_string()))
+                    .signal_strength(Some(44))
+                    .build(),
             ],
             line_parse_errors: vec![],
         });
@@ -369,20 +366,18 @@ mod tests {
         let expected_parse_result = Ok(ParseResult {
             scan_type: st,
             seen_networks: vec![
-                WirelessNetwork {
-                    essid: "Valparaiso_Guest_House 1".to_string(),
-                    is_encrypted: true,
-                    bssid: Some("f4:28:53:fe:a5:d0".to_string()),
-                    signal_strength: Some(24),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "Valparaiso_Guest_House 2".to_string(),
-                    is_encrypted: true,
-                    bssid: Some("68:72:51:68:73:da".to_string()),
-                    signal_strength: Some(43),
-                    ..WirelessNetwork::default()
-                },
+                WirelessNetwork::builder()
+                    .essid("Valparaiso_Guest_House 1".to_string())
+                    .is_encrypted(true)
+                    .bssid(Some("f4:28:53:fe:a5:d0".to_string()))
+                    .signal_strength(Some(24))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("Valparaiso_Guest_House 2".to_string())
+                    .is_encrypted(true)
+                    .bssid(Some("68:72:51:68:73:da".to_string()))
+                    .signal_strength(Some(43))
+                    .build(),
             ],
             line_parse_errors: vec![],
         });
@@ -403,55 +398,48 @@ mod tests {
         let expected_parse_result = Ok(ParseResult {
             scan_type: st,
             seen_networks: vec![
-                WirelessNetwork {
-                    essid: "Nima Lodge".to_string(),
-                    is_encrypted: true,
-                    bssid: Some("78:8a:20:e3:9d:62".to_string()),
-                    signal_strength: Some(49),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "DIRECT-AF-HP DeskJet 3830 series".to_string(),
-                    is_encrypted: true,
-                    bssid: Some("fc:3f:db:a1:5e:b0".to_string()),
-                    signal_strength: Some(22),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "Nima Lodge".to_string(),
-                    is_encrypted: true,
-                    bssid: Some("fc:ec:da:69:e0:3e".to_string()),
-                    signal_strength: Some(5),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "".to_string(),
-                    is_encrypted: true,
-                    bssid: Some("fe:ec:da:69:e0:3e".to_string()),
-                    signal_strength: Some(5),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "WISPerNET-George-Sentraal1".to_string(),
-                    is_encrypted: false,
-                    bssid: Some("ba:69:f4:1f:2d:15".to_string()),
-                    signal_strength: Some(1),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "WISPerNET-Bosplaas-SW-802.11".to_string(),
-                    is_encrypted: false,
-                    bssid: Some("b8:69:f4:1f:2d:15".to_string()),
-                    signal_strength: Some(1),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "".to_string(),
-                    is_encrypted: true,
-                    bssid: Some("7a:8a:20:e3:9d:62".to_string()),
-                    signal_strength: Some(51),
-                    ..WirelessNetwork::default()
-                },
+                WirelessNetwork::builder()
+                    .essid("Nima Lodge".to_string())
+                    .is_encrypted(true)
+                    .bssid(Some("78:8a:20:e3:9d:62".to_string()))
+                    .signal_strength(Some(49))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("DIRECT-AF-HP DeskJet 3830 series".to_string())
+                    .is_encrypted(true)
+                    .bssid(Some("fc:3f:db:a1:5e:b0".to_string()))
+                    .signal_strength(Some(22))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("Nima Lodge".to_string())
+                    .is_encrypted(true)
+                    .bssid(Some("fc:ec:da:69:e0:3e".to_string()))
+                    .signal_strength(Some(5))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("".to_string())
+                    .is_encrypted(true)
+                    .bssid(Some("fe:ec:da:69:e0:3e".to_string()))
+                    .signal_strength(Some(5))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("WISPerNET-George-Sentraal1".to_string())
+                    .is_encrypted(false)
+                    .bssid(Some("ba:69:f4:1f:2d:15".to_string()))
+                    .signal_strength(Some(1))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("WISPerNET-Bosplaas-SW-802.11".to_string())
+                    .is_encrypted(false)
+                    .bssid(Some("b8:69:f4:1f:2d:15".to_string()))
+                    .signal_strength(Some(1))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("".to_string())
+                    .is_encrypted(true)
+                    .bssid(Some("7a:8a:20:e3:9d:62".to_string()))
+                    .signal_strength(Some(51))
+                    .build(),
             ],
             line_parse_errors: vec![],
         });
@@ -468,13 +456,12 @@ mod tests {
         };
         let expected_parse_result = Ok(ParseResult {
             scan_type: st,
-            seen_networks: vec![WirelessNetwork {
-                essid: "Valparaiso_Guest_House 1".to_string(),
-                is_encrypted: true,
-                bssid: Some("f4:28:53:fe:a5:d0".to_string()),
-                signal_strength: Some(24),
-                ..WirelessNetwork::default()
-            }],
+            seen_networks: vec![WirelessNetwork::builder()
+                .essid("Valparaiso_Guest_House 1".to_string())
+                .is_encrypted(true)
+                .bssid(Some("f4:28:53:fe:a5:d0".to_string()))
+                .signal_strength(Some(24))
+                .build()],
             line_parse_errors: vec![
                 (
                     "f4:28:53:fe:a5:d0\t2437\t-66".to_string(),
@@ -502,13 +489,12 @@ mod tests {
         };
         let expected_parse_result = Ok(ParseResult {
             scan_type: st,
-            seen_networks: vec![WirelessNetwork {
-                essid: "Valparaiso_Guest_House 1".to_string(),
-                is_encrypted: true,
-                bssid: Some("f4:28:53:fe:a5:d0".to_string()),
-                signal_strength: Some(24),
-                ..WirelessNetwork::default()
-            }],
+            seen_networks: vec![WirelessNetwork::builder()
+                .essid("Valparaiso_Guest_House 1".to_string())
+                .is_encrypted(true)
+                .bssid(Some("f4:28:53:fe:a5:d0".to_string()))
+                .signal_strength(Some(24))
+                .build()],
             line_parse_errors: vec![(
                 "68:72:51:68:73:da\t2457\t-xx\t[WPA2-PSK-CCMP][ESS]\tValparaiso_Guest_House 2"
                     .to_string(),
@@ -541,84 +527,71 @@ mod tests {
         let expected_parse_result = Ok(ParseResult {
             scan_type: st,
             seen_networks: vec![
-                WirelessNetwork {
-                    essid: "alltheinternets".to_string(),
-                    is_encrypted: true,
-                    signal_strength: Some(95),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "Patrician Pad".to_string(),
-                    is_encrypted: true,
-                    signal_strength: Some(95),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "casa".to_string(),
-                    is_encrypted: true,
-                    signal_strength: Some(94),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "Patrician Pad".to_string(),
-                    is_encrypted: true,
-                    signal_strength: Some(94),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "xfinitywifi".to_string(),
-                    is_encrypted: false,
-                    signal_strength: Some(90),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "MeshResearch".to_string(),
-                    is_encrypted: true,
-                    signal_strength: Some(52),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "".to_string(),
-                    is_encrypted: true,
-                    signal_strength: Some(35),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "Lots:of:colons:lol:".to_string(),
-                    is_encrypted: false,
-                    signal_strength: Some(34),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "".to_string(),
-                    is_encrypted: true,
-                    signal_strength: Some(32),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "xfinitywifi".to_string(),
-                    is_encrypted: false,
-                    signal_strength: Some(32),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "Okonomiyaki".to_string(),
-                    is_encrypted: true,
-                    signal_strength: Some(30),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "XFINITY".to_string(),
-                    is_encrypted: true,
-                    signal_strength: Some(17),
-                    ..WirelessNetwork::default()
-                },
-                WirelessNetwork {
-                    essid: "".to_string(),
-                    is_encrypted: true,
-                    signal_strength: Some(15),
-                    ..WirelessNetwork::default()
-                },
+                WirelessNetwork::builder()
+                    .essid("alltheinternets".to_string())
+                    .is_encrypted(true)
+                    .signal_strength(Some(95))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("Patrician Pad".to_string())
+                    .is_encrypted(true)
+                    .signal_strength(Some(95))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("casa".to_string())
+                    .is_encrypted(true)
+                    .signal_strength(Some(94))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("Patrician Pad".to_string())
+                    .is_encrypted(true)
+                    .signal_strength(Some(94))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("xfinitywifi".to_string())
+                    .is_encrypted(false)
+                    .signal_strength(Some(90))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("MeshResearch".to_string())
+                    .is_encrypted(true)
+                    .signal_strength(Some(52))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("".to_string())
+                    .is_encrypted(true)
+                    .signal_strength(Some(35))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("Lots:of:colons:lol:".to_string())
+                    .is_encrypted(false)
+                    .signal_strength(Some(34))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("".to_string())
+                    .is_encrypted(true)
+                    .signal_strength(Some(32))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("xfinitywifi".to_string())
+                    .is_encrypted(false)
+                    .signal_strength(Some(32))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("Okonomiyaki".to_string())
+                    .is_encrypted(true)
+                    .signal_strength(Some(30))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("XFINITY".to_string())
+                    .is_encrypted(true)
+                    .signal_strength(Some(17))
+                    .build(),
+                WirelessNetwork::builder()
+                    .essid("".to_string())
+                    .is_encrypted(true)
+                    .signal_strength(Some(15))
+                    .build(),
             ],
             line_parse_errors: vec![],
         });

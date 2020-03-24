@@ -8,13 +8,13 @@ impl Selectable for AnnotatedWirelessNetwork {
     fn get_display_string(&self) -> String {
         let tags = self.get_tags_string();
         let strength = self.get_strenth_string();
-        format!("{}{}{}", strength, self.essid, tags)
+        format!("{}{}{}", strength, self.get_public_name(), tags)
     }
 }
 
 impl AnnotatedWirelessNetwork {
     pub(crate) fn get_tags_string(&self) -> String {
-        let open = !self.is_encrypted;
+        let open = !self.is_encrypted();
         let known = self.is_known();
         let open_tag = if open { OPEN_TOKEN } else { "" };
         let known_tag = if known { KNOWN_TOKEN } else { "" };
@@ -27,7 +27,7 @@ impl AnnotatedWirelessNetwork {
     }
 
     pub(crate) fn get_strenth_string(&self) -> String {
-        match self.signal_strength {
+        match self.get_signal_strength() {
             Some(st) => format!("[{}] ", st),
             None => "".to_string(),
         }
@@ -49,13 +49,12 @@ mod tests {
         } else {
             None
         };
-        let nw = AnnotatedWirelessNetwork {
-            essid: essid.clone(),
-            service_identifier,
-            is_encrypted: !is_open,
-            signal_strength,
-            ..AnnotatedWirelessNetwork::default()
-        };
+        let nw = AnnotatedWirelessNetwork::builder()
+            .essid(essid.clone())
+            .service_identifier(service_identifier)
+            .is_encrypted(!is_open)
+            .signal_strength(signal_strength)
+            .build();
         let token = nw.get_display_string();
         let tags_string = nw.get_tags_string();
         let strength_string = nw.get_strenth_string();

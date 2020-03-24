@@ -1,9 +1,9 @@
 // For typedbuilder:
 #![allow(clippy::used_underscore_binding)]
 
-use std::fmt::Debug;
 use crate::enums::*;
 use crate::options::interfaces::*;
+use std::fmt::Debug;
 use typed_builder::TypedBuilder;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -33,35 +33,32 @@ pub enum IndividualParseError {
 // TODO: make private, provide interface?
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
 pub struct WirelessNetwork {
-    pub essid: String,
-    pub is_encrypted: bool,
-    pub bssid: Option<String>,
-    pub signal_strength: Option<i32>,
-    pub channel_utilisation: Option<String>,
-}
-
-impl Default for WirelessNetwork {
-    fn default() -> Self {
-        Self {
-            essid: "FAKE_ESSID_SHOULD_NOT_BE_SEEN".to_string(),
-            is_encrypted: false,
-            bssid: None,
-            signal_strength: None,
-            channel_utilisation: None,
-        }
-    }
+    essid: String,
+    #[builder(default = false)]
+    is_encrypted: bool,
+    #[builder(default = None)]
+    bssid: Option<String>,
+    #[builder(default = None)]
+    signal_strength: Option<i32>,
+    #[builder(default = None)]
+    channel_utilisation: Option<String>,
 }
 
 impl RuwiNetwork for WirelessNetwork {}
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
 pub struct AnnotatedWirelessNetwork {
-    pub essid: String,
-    pub service_identifier: Option<String>,
-    pub is_encrypted: bool,
-    pub bssid: Option<String>,
-    pub signal_strength: Option<i32>,
-    pub channel_utilisation: Option<String>,
+    essid: String,
+    #[builder(default = false)]
+    is_encrypted: bool,
+    #[builder(default = None)]
+    service_identifier: Option<String>,
+    #[builder(default = None)]
+    bssid: Option<String>,
+    #[builder(default = None)]
+    signal_strength: Option<i32>,
+    #[builder(default = None)]
+    channel_utilisation: Option<String>,
 }
 
 impl Annotated<WirelessNetwork> for AnnotatedWirelessNetwork {
@@ -84,20 +81,32 @@ impl Annotated<WirelessNetwork> for AnnotatedWirelessNetwork {
 }
 
 impl AnnotatedWirelessNetwork {
+    pub fn is_encrypted(&self) -> bool {
+        self.is_encrypted
+    }
+    pub fn get_bssid(&self) -> Option<&String> {
+        self.bssid.as_ref()
+    }
+    pub fn get_signal_strength(&self) -> Option<i32> {
+        self.signal_strength
+    }
+    pub fn get_channel_utilisation(&self) -> Option<&String> {
+        self.channel_utilisation.as_ref()
+    }
+
     pub fn from_essid(essid: String, service_identifier: Option<&str>, is_encrypted: bool) -> Self {
-        Self {
-            essid,
-            service_identifier: service_identifier.map(String::from),
-            is_encrypted,
-            ..Self::default()
-        }
+        Self::builder()
+            .essid(essid)
+            .service_identifier(service_identifier.map(String::from))
+            .is_encrypted(is_encrypted)
+            .build()
     }
 }
 
-impl Default for AnnotatedWirelessNetwork {
-    fn default() -> Self {
-        let nw = WirelessNetwork::default();
-        Self::from_nw(nw, None)
+#[cfg(test)]
+impl AnnotatedWirelessNetwork {
+    pub(crate) fn set_service_identifier_for_tests(&mut self, service_identifier: Option<String>) {
+        self.service_identifier = service_identifier
     }
 }
 
@@ -116,6 +125,9 @@ impl Identifiable for AnnotatedWirelessNetwork {
 impl Known for AnnotatedWirelessNetwork {
     fn is_known(&self) -> bool {
         self.service_identifier.is_some()
+    }
+    fn get_service_identifier(&self) -> Option<&String> {
+        self.service_identifier.as_ref()
     }
 }
 

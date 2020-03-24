@@ -22,13 +22,13 @@ where
         conn_type @ WifiConnectionType::None => {
             eprintln!(
                 "[NOTE]: Running in `{}` connection mode, so will not connect to: \"{}\"",
-                conn_type, &selected_network.essid
+                conn_type, &selected_network.get_public_name()
             );
         }
         conn_type @ WifiConnectionType::Netctl | conn_type @ WifiConnectionType::Nmcli => {
             eprintln!(
                 "[NOTE]: Attempting to use {} to connect to: \"{}\"",
-                conn_type, &selected_network.essid
+                conn_type, &selected_network.get_public_name()
             );
         }
     }
@@ -39,7 +39,7 @@ where
             connect_via_networkmanager(options, selected_network, encryption_key)
         }
         WifiConnectionType::Print => {
-            let essid = selected_network.essid.clone();
+            let essid = selected_network.get_public_name().clone();
             // TODO: integration tests to ensure this happens
             println!("{}", essid);
             Ok(ConnectionResult {
@@ -62,14 +62,14 @@ where
             conn_type @ WifiConnectionType::None => {
                 eprintln!(
                     "[NOTE]: Running in `{}` connection mode, so did not connect to: \"{}\"",
-                    conn_type, &selected_network.essid
+                    conn_type, &selected_network.get_public_name()
                 );
             }
             WifiConnectionType::Print => {}
             WifiConnectionType::Netctl | WifiConnectionType::Nmcli => {
                 eprintln!(
                     "[NOTE]: Successfully connected to: \"{}\"",
-                    &selected_network.essid
+                    &selected_network.get_public_name()
                 );
             }
         }
@@ -110,10 +110,10 @@ where
     }
     interface.bring_down(options)?;
 
-    // TODO: remove clone
-    let netctl_file_name = match &selected_network.service_identifier {
-        Some(file_name) => file_name.clone(),
-        None => selected_network.essid.replace(" ", "_"),
+    let todo = "move into helper function";
+    let netctl_file_name = match selected_network.get_service_identifier() {
+        Some(file_name) => file_name.to_string(),
+        None => selected_network.get_public_name().replace(" ", "_")
     };
 
     SystemCommandRunner::new( 
@@ -124,7 +124,7 @@ where
         RuwiErrorKind::FailedToConnectViaNetctl,
         &format!(
             "Failed to connect to \"{}\" via netctl!",
-            selected_network.essid
+            selected_network.get_public_name()
         ),
     )
     .map(|_| ConnectionResult {
@@ -153,7 +153,7 @@ where
     // fail if we've scanned using another method.
     SystemCommandRunner::new(options, "nmcli", &["device", "wifi", "list"]).run_command_status_dumb();
 
-    let args = vec!["device", "wifi", "connect", &selected_network.essid];
+    let args = vec!["device", "wifi", "connect", &selected_network.get_public_name()];
     let args = if let Some(pw) = encryption_key {
         let pw_args = vec!["password", pw];
         args.into_iter().chain(pw_args).collect()

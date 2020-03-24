@@ -101,8 +101,8 @@ where
     }
 
     fn get_netctl_file_name(&self) -> String {
-        // TODO: look for existing configs here?
-        self.network.essid.replace(" ", "_")
+        let todo = "use code from wifi_connect, make into a function";
+        self.network.get_public_name().replace(" ", "_")
     }
 }
 
@@ -129,7 +129,7 @@ pub(crate) fn get_wifi_netctl_config_contents<O>(
 where
     O: Global,
 {
-    let wpa_line = if network.is_encrypted {
+    let wpa_line = if network.is_encrypted() {
         format!(
             "Key='{}'",
             // TODO: see if encryption status/key can be bundled together
@@ -150,11 +150,11 @@ ESSID='{}'
 IP=dhcp
 {}
 ",
-        network.essid,
-        if network.is_encrypted { "wpa" } else { "open" },
+        network.get_public_name(),
+        if network.is_encrypted() { "wpa" } else { "open" },
         interface.get_ifname(),
-        if network.is_encrypted { "wpa" } else { "none" },
-        network.essid,
+        if network.is_encrypted() { "wpa" } else { "none" },
+        network.get_public_name(),
         wpa_line,
     )
     .trim_end_matches(|x| x == '\n')

@@ -42,12 +42,11 @@ fn get_network_from_nmcli_line(line: &str) -> Result<WirelessNetwork, Individual
 
     let is_encrypted = !enc_txt.is_empty();
     let signal_strength = signal_strength_txt.parse::<i32>().ok();
-    let essid = essid_txt.into();
+    let essid = essid_txt.to_string();
 
-    Ok(WirelessNetwork {
-        essid,
-        is_encrypted,
-        signal_strength,
-        ..WirelessNetwork::default()
-    })
+    Ok(WirelessNetwork::builder()
+        .essid(essid)
+        .is_encrypted(is_encrypted)
+        .signal_strength(signal_strength)
+    .build())
 }

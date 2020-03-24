@@ -33,35 +33,35 @@ mod tests {
 
     fn get_three_unknown_networks() -> Vec<AnnotatedWirelessNetwork> {
         vec![
-            AnnotatedWirelessNetwork {
-                service_identifier: None,
-                ..AnnotatedWirelessNetwork::default()
-            },
-            AnnotatedWirelessNetwork {
-                service_identifier: None,
-                ..AnnotatedWirelessNetwork::default()
-            },
-            AnnotatedWirelessNetwork {
-                service_identifier: None,
-                ..AnnotatedWirelessNetwork::default()
-            },
+            AnnotatedWirelessNetwork::builder()
+                .essid("first_nw")
+                .service_identifier(None)
+            .build(),
+            AnnotatedWirelessNetwork::builder()
+                .essid("second_nw")
+                .service_identifier(None)
+            .build(),
+            AnnotatedWirelessNetwork::builder()
+                .essid("third_nw")
+                .service_identifier(None)
+            .build(),
         ]
     }
 
     fn get_three_known_networks() -> Vec<AnnotatedWirelessNetwork> {
         vec![
-            AnnotatedWirelessNetwork {
-                service_identifier: Some("service_id".to_string()),
-                ..AnnotatedWirelessNetwork::default()
-            },
-            AnnotatedWirelessNetwork {
-                service_identifier: Some("service_id".to_string()),
-                ..AnnotatedWirelessNetwork::default()
-            },
-            AnnotatedWirelessNetwork {
-                service_identifier: Some("service_id".to_string()),
-                ..AnnotatedWirelessNetwork::default()
-            },
+            AnnotatedWirelessNetwork::builder()
+                .essid("first_nw")
+                .service_identifier(Some("first_service_id".to_string()))
+            .build(),
+            AnnotatedWirelessNetwork::builder()
+                .essid("second_nw")
+                .service_identifier(Some("second_service_id".to_string()))
+            .build(),
+            AnnotatedWirelessNetwork::builder()
+                .essid("third_nw")
+                .service_identifier(Some("third_service_id".to_string()))
+            .build(),
         ]
     }
 

@@ -226,13 +226,13 @@ mod tests {
 
     fn get_3_networks_first_known() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
         let mut networks = get_3_networks();
-        networks.get_networks_mut()[0].service_identifier = Some("some_id".to_string());
+        networks.get_networks_mut()[0].set_service_identifier_for_tests(Some("some_id".to_string()));
         networks
     }
 
     fn get_3_networks_last_known() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
         let mut networks = get_3_networks();
-        networks.get_networks_mut()[2].service_identifier = Some("some_id".to_string());
+        networks.get_networks_mut()[2].set_service_identifier_for_tests(Some("some_id".to_string()));
         networks
     }
 

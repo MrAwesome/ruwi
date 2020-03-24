@@ -67,6 +67,7 @@ pub trait Identifiable {
 
 pub trait Known {
     fn is_known(&self) -> bool;
+    fn get_service_identifier(&self) -> Option<&String>;
 }
 
 pub trait Selectable {
