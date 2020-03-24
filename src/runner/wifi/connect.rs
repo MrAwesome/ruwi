@@ -1,6 +1,6 @@
 use super::utils::*;
 
-use crate::check_known_identifiers::KnownIdentifiers;
+use crate::known_networks::WifiKnownNetworks;
 use crate::interface_management::ip_interfaces::*;
 use crate::configure_network::possibly_configure_network;
 use crate::connect::wifi_connect::connect_to_network;
@@ -34,7 +34,7 @@ impl WifiDataGatherer for WifiConnectOptions {
         &self,
         interface: &WifiIPInterface,
         synchronous_rescan: &Option<SynchronousRescanType>,
-    ) -> Result<(KnownIdentifiers, ScanResult), RuwiError> {
+    ) -> Result<(WifiKnownNetworks, ScanResult), RuwiError> {
         gather_wifi_network_data(self, interface, synchronous_rescan)
     }
 }

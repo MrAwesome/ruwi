@@ -50,16 +50,29 @@ impl FullCommandPath {
             .stderr(Stdio::piped());
 
         let spawn_res = spawn_and_await_output_command(opts, &mut cmd);
-        if let Ok(output) = spawn_res {
-            if output.status.success() {
-                let full_path_untrimmed = String::from_utf8_lossy(&output.stdout).to_string();
-                return Ok(full_path_untrimmed.trim().to_string());
+        match spawn_res {
+            Ok(output) => {
+                if output.status.success() {
+                    let full_path_untrimmed = String::from_utf8_lossy(&output.stdout).to_string();
+                    return Ok(full_path_untrimmed.trim().to_string());
+                } else {
+                    Err(rerr!(
+                        RuwiErrorKind::CommandNotFound,
+                        format!("`{}` is not installed or is not in $PATH.", cmd_name),
+                        "`which` stderr" => String::from_utf8_lossy(&output.stderr),
+                        "`which` stdout" => String::from_utf8_lossy(&output.stderr)
+                    ))
+                }
+            }
+            Err(io_err) => {
+                Err(rerr!(
+                    RuwiErrorKind::CommandFindingSpawnError,
+                    format!("`{}` is not installed or is not in $PATH.", cmd_name),
+                    "OS err" => io_err
+                ))
             }
         }
-        Err(rerr!(
-            RuwiErrorKind::CommandNotFound,
-            format!("`{}` is not installed or is not in $PATH.", cmd_name),
-        ))
+
     }
 
     fn as_str(&self) -> &str {

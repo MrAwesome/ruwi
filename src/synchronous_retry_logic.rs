@@ -13,7 +13,7 @@ where
     synchronous_retry.is_none()
         && (networks.is_empty()
             || match options.get_auto_mode() {
-                AutoMode::KnownOrAsk | AutoMode::KnownOrFail => !networks.iter().any(|x| x.known),
+                AutoMode::KnownOrAsk | AutoMode::KnownOrFail => !networks.iter().any(|x| x.is_known()),
                 AutoMode::First | AutoMode::Ask => false,
             })
 }
@@ -34,15 +34,15 @@ mod tests {
     fn get_three_unknown_networks() -> Vec<AnnotatedWirelessNetwork> {
         vec![
             AnnotatedWirelessNetwork {
-                known: false,
+                service_identifier: None,
                 ..AnnotatedWirelessNetwork::default()
             },
             AnnotatedWirelessNetwork {
-                known: false,
+                service_identifier: None,
                 ..AnnotatedWirelessNetwork::default()
             },
             AnnotatedWirelessNetwork {
-                known: false,
+                service_identifier: None,
                 ..AnnotatedWirelessNetwork::default()
             },
         ]
@@ -51,15 +51,15 @@ mod tests {
     fn get_three_known_networks() -> Vec<AnnotatedWirelessNetwork> {
         vec![
             AnnotatedWirelessNetwork {
-                known: true,
+                service_identifier: Some("service_id".to_string()),
                 ..AnnotatedWirelessNetwork::default()
             },
             AnnotatedWirelessNetwork {
-                known: true,
+                service_identifier: Some("service_id".to_string()),
                 ..AnnotatedWirelessNetwork::default()
             },
             AnnotatedWirelessNetwork {
-                known: true,
+                service_identifier: Some("service_id".to_string()),
                 ..AnnotatedWirelessNetwork::default()
             },
         ]

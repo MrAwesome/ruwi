@@ -15,7 +15,7 @@ where
     O: Global + Wifi + WifiConnect,
 
 {
-    let res = if !network.known || options.get_given_encryption_key().is_some() {
+    let res = if !network.is_known() || options.get_given_encryption_key().is_some() {
         Some(configure_network(options, interface, network, encryption_key)).transpose()
     } else {
         Ok(None)
@@ -39,10 +39,10 @@ where
 {
     let cv = options.get_connect_via();
     match cv {
-        WifiConnectionType::Netctl => netctl_config_write(options, interface, network, encryption_key),
+        WifiConnectionType::Netctl => WifiNetctlConfigHandler::new(options, interface, network, encryption_key).write(),
         WifiConnectionType::Nmcli | WifiConnectionType::None | WifiConnectionType::Print => {
             Ok(ConfigResult {
-                connection_type: cv.clone(),
+                // connection_type: cv.clone(),
                 config_data: ConfigData::default(),
             })
         }

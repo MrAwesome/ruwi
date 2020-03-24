@@ -14,6 +14,9 @@ use crate::options::interfaces::*;
 use crate::rerr;
 use crate::sort_networks::SortedFilteredNetworks;
 
+// TODO: make a trait/API for selection
+// TODO: make a trait/API for selectors
+
 impl<N: AnnotatedRuwiNetwork> SortedFilteredNetworks<N> {
     pub fn get_tokens_for_selection(&self) -> Vec<String> {
         self.get_network_tokens()
@@ -53,7 +56,7 @@ impl<N: AnnotatedRuwiNetwork> SortedFilteredNetworks<N> {
 
         match &selected_network_res {
             // TODO: should there be a less machine-specific version of get_identifier?
-            Ok(nw) => eprintln!("[NOTE]: Selected network: \"{}\"", nw.get_identifier()),
+            Ok(nw) => eprintln!("[NOTE]: Selected network: \"{}\"", nw.get_public_name()),
             Err(_) => {
                 if options.get_auto_mode() == &AutoMode::KnownOrFail {
                     eprintln!(
@@ -212,7 +215,7 @@ mod tests {
     fn get_3_networks() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
         let networks = [FIRST_NW_NAME, SECND_NW_NAME, THIRD_NW_NAME]
             .iter()
-            .map(|name| AnnotatedWirelessNetwork::from_essid((*name).to_string(), false, false))
+            .map(|name| AnnotatedWirelessNetwork::from_essid((*name).to_string(), None, false))
             .collect::<Vec<AnnotatedWirelessNetwork>>();
         SortedFilteredNetworks::new(networks)
     }
@@ -223,13 +226,13 @@ mod tests {
 
     fn get_3_networks_first_known() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
         let mut networks = get_3_networks();
-        networks.get_networks_mut()[0].known = true;
+        networks.get_networks_mut()[0].service_identifier = Some("some_id".to_string());
         networks
     }
 
     fn get_3_networks_last_known() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
         let mut networks = get_3_networks();
-        networks.get_networks_mut()[2].known = true;
+        networks.get_networks_mut()[2].service_identifier = Some("some_id".to_string());
         networks
     }
 
@@ -359,10 +362,10 @@ mod tests {
     #[test]
     fn test_get_tokens_for_selection() {
         let networks = SortedFilteredNetworks::new(vec![
-            AnnotatedWirelessNetwork::from_essid("FAKE NEWS LOL OK".to_string(), true, true),
-            AnnotatedWirelessNetwork::from_essid("WOWWW OK FACEBO".to_string(), false, true),
-            AnnotatedWirelessNetwork::from_essid("LOOK, DISCOURSE".to_string(), true, false),
-            AnnotatedWirelessNetwork::from_essid("UWU MAMMMAAAAA".to_string(), false, false),
+            AnnotatedWirelessNetwork::from_essid("FAKE NEWS LOL OK".to_string(), Some("some_id"), true),
+            AnnotatedWirelessNetwork::from_essid("WOWWW OK FACEBO".to_string(), None, true),
+            AnnotatedWirelessNetwork::from_essid("LOOK, DISCOURSE".to_string(), Some("some_id"), false),
+            AnnotatedWirelessNetwork::from_essid("UWU MAMMMAAAAA".to_string(), None, false),
         ]);
         let tokens = networks.get_tokens_for_selection();
         for (i, (nw, token)) in networks.get_networks().iter().zip(tokens).enumerate() {

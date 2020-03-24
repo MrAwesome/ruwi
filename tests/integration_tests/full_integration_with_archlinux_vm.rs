@@ -1,6 +1,8 @@
 use rexpect::errors::*;
 use rexpect::spawn_bash;
 
+const ARCH_VERSION: &str = "2020.03.01";
+
 // An absolutely end-to-end test of ruwi:
 // * Downloads, starts, and gets a shell within a Linux VM
 // * Creates virtual wifi radios
@@ -23,21 +25,24 @@ fn test_full_integration_with_archlinux_vm() -> Result<()> {
     // TODO: update to the newest iso always?
     eprintln!("[TEST]: Fetching/checking LiveCD...");
     let mut shell_for_fetching_iso = spawn_bash(Some(900_000))?;
-    let command = "
+    let command = format!("
         set -euxo pipefail &&
-        ARCH_VERSION=2019.12.01 &&
         cd /tmp/archlinux/ &&
-        ( [ -f md5sums.txt ] || curl -O http://mirror.rackspace.com/archlinux/iso/${ARCH_VERSION}/md5sums.txt ) &&
-        ( grep archlinux-${ARCH_VERSION}-x86_64.iso md5sums.txt | md5sum -c || curl -O http://mirror.rackspace.com/archlinux/iso/${ARCH_VERSION}/archlinux-${ARCH_VERSION}-x86_64.iso ) &&
-        ( grep archlinux-${ARCH_VERSION}-x86_64.iso md5sums.txt | md5sum -c && echo DOWNLOADEDBRAH ) || exit 1
-    ";
-    shell_for_fetching_iso.execute(command, "DOWNLOADEDBRAH")?;
+        ( [ -f md5sums.txt ] || curl -O http://mirror.rackspace.com/archlinux/iso/{ARCH_VERSION}/md5sums.txt ) &&
+        ( grep archlinux-{ARCH_VERSION}-x86_64.iso md5sums.txt | md5sum -c || curl -O http://mirror.rackspace.com/archlinux/iso/{ARCH_VERSION}/archlinux-{ARCH_VERSION}-x86_64.iso ) &&
+        ( grep archlinux-{ARCH_VERSION}-x86_64.iso md5sums.txt | md5sum -c && echo DOWNLOADEDBRAH ) || exit 1
+    ", ARCH_VERSION=ARCH_VERSION);
+    shell_for_fetching_iso.execute(&command, "DOWNLOADEDBRAH")?;
     eprintln!("[TEST]: Successfully downloaded/checksummed LiveCD!");
 
     eprintln!("[TEST]: Starting VM.");
     let mut p = spawn_bash(Some(90000))?;
+    let qemu_command = format!(
+        "qemu-system-x86_64 -cdrom /tmp/archlinux/archlinux-{ARCH_VERSION}-x86_64.iso -m 1024 -enable-kvm -nographic -vga none -virtfs local,path=/tmp/archlinux/shared,mount_tag=host0,security_model=passthrough,id=host0", 
+        ARCH_VERSION=ARCH_VERSION,
+    );
     p.execute(
-        "qemu-system-x86_64 -cdrom /tmp/archlinux/archlinux-2019.12.01-x86_64.iso -m 1024 -enable-kvm -nographic -vga none -virtfs local,path=/tmp/archlinux/shared,mount_tag=host0,security_model=passthrough,id=host0", 
+        &qemu_command,
         "Arch Linux"
     )?;
     eprintln!("[TEST]: Reached kernel options...");
@@ -54,7 +59,7 @@ fn test_full_integration_with_archlinux_vm() -> Result<()> {
     eprintln!("[TEST]: Successfully logged in!");
 
     eprintln!("[TEST]: Installing packages...");
-    p.send_line("pacman -Sy --noconfirm hostapd && echo INSTALLEDITYES")?;
+    p.send_line("pacman -Sy --noconfirm hostapd which && echo INSTALLEDITYES")?;
     p.exp_string("INSTALLEDITYES")?;
     p.exp_string("@archiso")?;
     eprintln!("[TEST]: Successfully installed packages!");
@@ -92,7 +97,7 @@ fn test_full_integration_with_archlinux_vm() -> Result<()> {
     // TODO: test refresh with iw by adding a new radio and network on it while ruwi is running?
 
     // fzf doesn't recognize non-control inputs sent with rexpect
-    p.send_line("/tmp/host_shared/ruwi -m nocurses -i wlan2")?;
+    p.send_line("/tmp/host_shared/ruwi -m nocurses wifi -i wlan2 select")?;
     p.exp_string("Select a network")?;
     eprintln!("[TEST]: Started ruwi in nocurses mode!");
     p.send_line("refresh")?;
@@ -100,11 +105,14 @@ fn test_full_integration_with_archlinux_vm() -> Result<()> {
     p.exp_string("[NOTE]: Refresh requested, running synchronous scan.")?;
     eprintln!("[TEST]: Refresh recognized...");
     p.exp_string("bravery")?;
+    p.exp_string("Select a network")?;
     eprintln!("[TEST]: Refresh successful!");
-    p.send_line("")?;
+
     // TODO: implement prefix matching
+    p.send_control('c')?;
+    p.send_line("echo LAWL")?;
+    p.exp_string("LAWL")?;
     // p.exp_string("[NOTE]: Successfully connected to: \"bravery\"")?;
-    p.wait_for_prompt()?;
 
     eprintln!("[TEST]: Finished successfully!");
     eprintln!("[TEST]: Starting shutdown...");

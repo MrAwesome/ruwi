@@ -8,6 +8,8 @@ use strum::IntoEnumIterator;
 
 // TODO: check systemctl is-active before starting
 
+// TODO: use MockAll and ensure the correct services are started in the correct places in
+// raw_interface_connect, etc
 impl NetworkingService {
     pub(crate) fn start<O>(&self, options: &O) -> Result<(), RuwiError>
     where

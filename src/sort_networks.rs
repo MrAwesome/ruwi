@@ -41,7 +41,7 @@ impl<N: Identifiable + Clone + Debug> SortedFilteredNetworks<N> {
         let mut unique_networks = vec![];
         let mut seen_network_names = HashSet::new();
         for nw in networks {
-            let identifier = nw.get_identifier();
+            let identifier = nw.get_public_name();
             if !seen_network_names.contains(identifier) {
                 seen_network_names.insert(identifier.to_owned());
 
@@ -54,8 +54,8 @@ impl<N: Identifiable + Clone + Debug> SortedFilteredNetworks<N> {
 
 impl Ord for AnnotatedWirelessNetwork {
     fn cmp(&self, other: &Self) -> Ordering {
-        if self.known ^ other.known {
-            self.known.cmp(&other.known)
+        if self.is_known() ^ other.is_known() {
+            self.is_known().cmp(&other.is_known())
         } else {
             self.signal_strength.cmp(&other.signal_strength)
         }
@@ -106,13 +106,13 @@ mod tests {
     fn test_known_higher_than_unknown() {
         let known = AnnotatedWirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
-            known: true,
+            service_identifier: Some("some_id".to_string()),
             ..AnnotatedWirelessNetwork::default()
         };
 
         let not_known = AnnotatedWirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
-            known: false,
+            service_identifier: None,
             ..AnnotatedWirelessNetwork::default()
         };
 
@@ -123,14 +123,14 @@ mod tests {
     fn test_known_higher_than_unknown_with_higher_signal() {
         let known = AnnotatedWirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
-            known: true,
+            service_identifier: Some("some_id".to_string()),
             signal_strength: Some(-80),
             ..AnnotatedWirelessNetwork::default()
         };
 
         let not_known = AnnotatedWirelessNetwork {
             essid: "Valparaiso_Guest_House 1".to_string(),
-            known: false,
+            service_identifier: None,
             signal_strength: Some(-20),
             ..AnnotatedWirelessNetwork::default()
         };

@@ -5,7 +5,7 @@
 
 use crate::errors::*;
 // TODO: remove reliance on naked structs here
-use crate::check_known_identifiers::KnownIdentifiers;
+use crate::known_networks::WifiKnownNetworks;
 use crate::enums::*;
 use crate::structs::ScanResult;
 use crate::interface_management::ip_interfaces::WifiIPInterface;
@@ -57,11 +57,12 @@ pub trait WifiDataGatherer {
         &self,
         interface: &WifiIPInterface,
         synchronous_rescan: &Option<SynchronousRescanType>,
-    ) -> Result<(KnownIdentifiers, ScanResult), RuwiError>;
+    ) -> Result<(WifiKnownNetworks, ScanResult), RuwiError>;
 }
 
 pub trait Identifiable {
-    fn get_identifier(&self) -> &str;
+    // For wifi, this is ESSID.
+    fn get_public_name(&self) -> &str;
 }
 
 pub trait Known {
@@ -76,7 +77,7 @@ pub trait Selectable {
 // associated type defined everywhere it is used, since associated trait
 // bounds are unstable right now (Q1 2020).
 pub trait Annotated<T>: Known + Debug {
-    fn from_nw(nw: T, is_known: bool) -> Self;
+    fn from_nw(nw: T, service_identifier: Option<&str>) -> Self;
 }
 
 pub trait RuwiNetwork: Identifiable + Debug + Clone {}

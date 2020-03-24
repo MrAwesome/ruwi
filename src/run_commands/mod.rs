@@ -9,7 +9,6 @@ pub(crate) use prompt_commands::PromptCommandRunner;
 // TODO: integration test binary safety in archlinux test
 // TODO: find a way to namespace O for modules like this
 // TODO: time silent vs output command
-// TODO: make commands root-safe
 
 #[cfg(test)]
 mod tests {

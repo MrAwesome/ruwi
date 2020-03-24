@@ -5,11 +5,6 @@ use crate::options::interfaces::*;
 use crate::options::GlobalOptions;
 use typed_builder::TypedBuilder;
 
-// TODO: connect with netctl
-// TODO: connect with netctl (support encrypted connections?)
-// TODO: connect with dhcpcd
-// TODO: connect with dhclient
-
 #[derive(Debug, Clone, TypedBuilder)]
 pub struct WiredOptions {
     globals: GlobalOptions,

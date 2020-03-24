@@ -9,6 +9,7 @@ pub enum RuwiErrorKind {
     BinaryWritableByNonRootWhenRunningAsRoot,
     CmdLineOptParserSafeFailedInTest,
     CommandNotFound,
+    CommandFindingSpawnError,
     FailedToBringLinuxNetworkingInterfaceDown,
     FailedToBringLinuxNetworkingInterfaceUp,
     FailedToConnectViaNetctl,

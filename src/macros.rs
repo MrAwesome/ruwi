@@ -1,5 +1,3 @@
-// TODO: see if it's possible to check if String::from should be run here
-// TODO: add an optional stderr/etc message? an "extra data" blob?
 #[macro_export(local_inner_macros)]
 macro_rules! rerr {
     ( $kind:expr, $desc:expr $(,)? ) => {

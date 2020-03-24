@@ -1,6 +1,6 @@
 use super::utils::*;
 
-use crate::check_known_identifiers::KnownIdentifiers;
+use crate::known_networks::WifiKnownNetworks;
 use crate::interface_management::ip_interfaces::*;
 use crate::enums::*;
 use crate::errors::*;
@@ -14,7 +14,7 @@ impl Runner for WifiSelectOptions {
     fn run(&self) -> Result<(), RuwiError> {
         let interface = WifiIPInterface::from_name_or_first(self, self.get_given_interface_name())?;
         let selected_network = scan_and_select_network(self, &interface)?;
-        println!("{}", selected_network.get_identifier());
+        println!("{}", selected_network.get_public_name());
         Ok(())
     }
 }
@@ -24,8 +24,8 @@ impl WifiDataGatherer for WifiSelectOptions {
         &self,
         interface: &WifiIPInterface,
         synchronous_rescan: &Option<SynchronousRescanType>,
-    ) -> Result<(KnownIdentifiers, ScanResult), RuwiError> {
+    ) -> Result<(WifiKnownNetworks, ScanResult), RuwiError> {
         let scan_result = wifi_scan(self, interface, synchronous_rescan)?;
-        Ok((KnownIdentifiers::default(), scan_result))
+        Ok((WifiKnownNetworks::default(), scan_result))
     }
 }

@@ -7,8 +7,8 @@ use crate::structs::*;
 
 const NMCLI_SCAN_ERR_MSG: &str = concat!(
     "Failed to load cached list of seen networks with `nmcli`. Is it installed? ",
-    "You can also select a different scanning method with -s (try 'wpa_cli' or 'iw'), ",
-    "or you can manually specify an essid with -e.",
+    "You can also select a different scanning method with wifi -s (try `wpa_cli` or `iw`), ",
+    "or you can manually specify an essid with wifi -e.",
 );
 
 pub(crate) fn run_nmcli_scan<O>(

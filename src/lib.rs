@@ -4,6 +4,8 @@
 #![allow(clippy::similar_names)]
 #![allow(clippy::missing_errors_doc)]
 
+#![forbid(unsafe_code)]
+
 extern crate clap;
 extern crate serde;
 extern crate serde_derive;
@@ -23,15 +25,15 @@ pub(crate) mod macros;
 // TODO: collapse these into subdirs
 pub(crate) mod annotate_networks;
 pub(crate) mod bluetooth;
-pub(crate) mod check_known_identifiers;
 pub(crate) mod cmdline_parser;
 pub(crate) mod configure_network;
 pub(crate) mod connect;
 pub(crate) mod encryption_key;
 pub(crate) mod enums;
 pub mod errors;
-pub(crate) mod find_known_network_names;
+// TODO: instead of making this public, have a "public constants" module
 pub mod interface_management;
+pub(crate) mod known_networks;
 pub(crate) mod netctl_config_writer;
 pub(crate) mod options;
 pub(crate) mod parse;
@@ -54,6 +56,7 @@ use errors::RuwiError;
 // Arch dependencies: wireless_tools, netctl, iw, bluetooth things?, fzf
 // Arch optional dependencies: dmenu, iwconfig, NetworkManager,
 
+// TODO(high): make 'ruwi' with no arguments still go through system checks
 // TODO(high): make external command-running sudo-safe? maybe it's not an issue, but it seems like someone can add an e.g. "fzf" binary in ~/bin while someone doesn't have fzf installed, and run arbitrary code as root
 // TODO(high): include netctl profile name with annotated wired/wireless networks, for connecting to known networks with non-ruwified names - have known netctl networks return essid + config name, for matching/annotation with config name
 // TODO(high): implement Selectable for netctl profiles, for wired connections (and wifi as well, since that seems like a reasonable use case)
@@ -71,6 +74,7 @@ use errors::RuwiError;
 // TODO(mid): have `ruwi -a` detect wired (can you detect a plugged-in ethernet?), try to connect to it, then try wifi -a if not
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
 // TODO(low): flag to disable looking for known networks
+// TODO(low): standardize quotes in help text (search codebase for "manually")
 // TODO(wishlist): `ruwi wifi get_default_interface` and/or `ruwi wifi select_interface`?
 // TODO(wishlist): JSON output for `select`
 // TODO(wishlist): implement json scan output/input mode

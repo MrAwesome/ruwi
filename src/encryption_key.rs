@@ -33,7 +33,7 @@ where
         None => match options.get_connect_via() {
             WifiConnectionType::Netctl | WifiConnectionType::Nmcli => {
                 if options.get_force_ask_password()
-                    || (!selected_network.known && selected_network.is_encrypted)
+                    || (!selected_network.is_known() && selected_network.is_encrypted)
                 {
                     Some(prompt_func(options, &selected_network.essid)?)
                 } else {
@@ -77,7 +77,7 @@ mod tests {
         let options = WifiConnectOptions::default();
         let nw = AnnotatedWirelessNetwork {
             is_encrypted: true,
-            known: true,
+            service_identifier: Some("I_AM_KNOWN".to_string()),
             ..AnnotatedWirelessNetwork::default()
         };
         let output = possibly_get_encryption_key_impl(&options, &nw, should_not_run)?;

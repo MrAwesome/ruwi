@@ -5,6 +5,9 @@ use crate::interface_management::ip_interfaces::*;
 use crate::options::interfaces::*;
 use crate::run_commands::SystemCommandRunner;
 
+// TODO: connect with netctl
+// TODO: connect with netctl (support encrypted connections?)
+
 pub(crate) struct RawInterfaceConnector<'a, O: Global, T: LinuxIPInterface> {
     options: &'a O,
     interface: &'a T,
@@ -29,7 +32,7 @@ impl<'a, O: Global, T: LinuxIPInterface> RawInterfaceConnector<'a, O, T> {
             RawInterfaceConnectionType::Dhcpcd => self.dhcpcd_connect(),
             RawInterfaceConnectionType::Dhclient => self.dhclient_connect(),
             RawInterfaceConnectionType::Nmcli => self.nmcli_connect(),
-            RawInterfaceConnectionType::Netctl => todo!("Netctl raw connection is not yet implemented!"),
+            RawInterfaceConnectionType::Netctl => self.netctl_connect(),
         }
     }
 
@@ -64,7 +67,7 @@ impl<'a, O: Global, T: LinuxIPInterface> RawInterfaceConnector<'a, O, T> {
     }
 
     fn nmcli_connect(&self) -> Result<(), RuwiError> {
-        NetworkingService::Netctl.start(self.options)?;
+        NetworkingService::NetworkManager.start(self.options)?;
         SystemCommandRunner::new( 
             self.options,
             "nmcli",
@@ -76,5 +79,12 @@ impl<'a, O: Global, T: LinuxIPInterface> RawInterfaceConnector<'a, O, T> {
                 self.interface.get_ifname()
             ),
         )
+    }
+
+    fn netctl_connect(&self) -> Result<(), RuwiError> {
+        NetworkingService::Netctl.start(self.options)?;
+
+        let todo = "implement this using code currently in wifi_connect";
+        Ok(())
     }
 }

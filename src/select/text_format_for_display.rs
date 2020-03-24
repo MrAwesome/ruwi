@@ -2,7 +2,7 @@ use crate::structs::*;
 pub static KNOWN_TOKEN: &str = "K";
 pub static OPEN_TOKEN: &str = "O";
 
-use crate::options::interfaces::Selectable;
+use crate::options::interfaces::*;
 
 impl Selectable for AnnotatedWirelessNetwork {
     fn get_display_string(&self) -> String {
@@ -15,7 +15,7 @@ impl Selectable for AnnotatedWirelessNetwork {
 impl AnnotatedWirelessNetwork {
     pub(crate) fn get_tags_string(&self) -> String {
         let open = !self.is_encrypted;
-        let known = self.known;
+        let known = self.is_known();
         let open_tag = if open { OPEN_TOKEN } else { "" };
         let known_tag = if known { KNOWN_TOKEN } else { "" };
 
@@ -44,9 +44,14 @@ mod tests {
         signal_strength: Option<i32>,
     ) {
         let essid = "YEEEEEEE".to_string();
+        let service_identifier = if is_known {
+            Some("is_known_nw".to_string())
+        } else {
+            None
+        };
         let nw = AnnotatedWirelessNetwork {
             essid: essid.clone(),
-            known: is_known,
+            service_identifier,
             is_encrypted: !is_open,
             signal_strength,
             ..AnnotatedWirelessNetwork::default()

@@ -57,37 +57,38 @@ impl RuwiNetwork for WirelessNetwork {}
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AnnotatedWirelessNetwork {
     pub essid: String,
+    pub service_identifier: Option<String>,
     pub is_encrypted: bool,
     pub bssid: Option<String>,
     pub signal_strength: Option<i32>,
     pub channel_utilisation: Option<String>,
-    pub known: bool,
 }
 
 impl Annotated<WirelessNetwork> for AnnotatedWirelessNetwork {
-    fn from_nw(nw: WirelessNetwork, is_known: bool) -> Self {
+    fn from_nw(nw: WirelessNetwork, service_identifier: Option<&str>) -> Self {
         let essid = nw.essid;
         let is_encrypted = nw.is_encrypted;
         let bssid = nw.bssid;
         let signal_strength = nw.signal_strength;
         let channel_utilisation = nw.channel_utilisation;
+        let service_identifier = service_identifier.map(String::from);
         Self {
             essid,
+            service_identifier,
             is_encrypted,
             bssid,
             signal_strength,
             channel_utilisation,
-            known: is_known,
         }
     }
 }
 
 impl AnnotatedWirelessNetwork {
-    pub fn from_essid(essid: String, is_known: bool, is_encrypted: bool) -> Self {
+    pub fn from_essid(essid: String, service_identifier: Option<&str>, is_encrypted: bool) -> Self {
         Self {
             essid,
+            service_identifier: service_identifier.map(String::from),
             is_encrypted,
-            known: is_known,
             ..Self::default()
         }
     }
@@ -96,25 +97,25 @@ impl AnnotatedWirelessNetwork {
 impl Default for AnnotatedWirelessNetwork {
     fn default() -> Self {
         let nw = WirelessNetwork::default();
-        Self::from_nw(nw, false)
+        Self::from_nw(nw, None)
     }
 }
 
 impl Identifiable for WirelessNetwork {
-    fn get_identifier(&self) -> &str {
+    fn get_public_name(&self) -> &str {
         self.essid.as_ref()
     }
 }
 
 impl Identifiable for AnnotatedWirelessNetwork {
-    fn get_identifier(&self) -> &str {
+    fn get_public_name(&self) -> &str {
         self.essid.as_ref()
     }
 }
 
 impl Known for AnnotatedWirelessNetwork {
     fn is_known(&self) -> bool {
-        self.known
+        self.service_identifier.is_some()
     }
 }
 
@@ -123,7 +124,7 @@ impl AnnotatedRuwiNetwork for AnnotatedWirelessNetwork {}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConfigResult {
-    pub connection_type: WifiConnectionType,
+    //pub connection_type: WifiConnectionType,
     pub config_data: ConfigData,
 }
 

@@ -1,7 +1,6 @@
 use crate::interface_management::ip_interfaces::*;
 use crate::enums::*;
 use crate::errors::*;
-use crate::netctl_config_writer::get_netctl_file_name;
 use crate::options::interfaces::*;
 use crate::run_commands::SystemCommandRunner;
 use crate::structs::*;
@@ -111,8 +110,11 @@ where
     }
     interface.bring_down(options)?;
 
-    // TODO: don't lock so hard into filename?
-    let netctl_file_name = get_netctl_file_name(&selected_network.essid);
+    // TODO: remove clone
+    let netctl_file_name = match &selected_network.service_identifier {
+        Some(file_name) => file_name.clone(),
+        None => selected_network.essid.replace(" ", "_"),
+    };
 
     SystemCommandRunner::new( 
         options,
