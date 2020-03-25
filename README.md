@@ -1,8 +1,19 @@
 # ruwi
 
-Ruwi simplifies connecting to the Internet on Linux, by providing a flexible selection and interaction layer over many different Linux networking utilities. Bluetooth support is planned. 
+Ruwi simplifies connecting to the Internet on Linux.
+
+It does this by providing a flexible+extensible selection+interaction layer over many different Linux networking utilities. Bluetooth support is planned. 
 
 Ruwi is still heavily under construction, but feel free to tinker away. Wired and wireless connections are heavily tested and working well. It's very unlikely that the commands below will change, and for these use cases ruwi makes an excellent daily driver.
+
+# Philosophy
+
+### Ruwi is:
+* Designed to be safe to run as root. External programs will fail to run if they are not binaries with full paths owned and writable only by the root user.
+
+### Ruwi is not:
+* A connection manager. There is no daemon process, there are no networking configs. Ruwi works entirely by orchestrating external programs, including connection managers. For example, you can scan with `iw` or `nmcli`, select with `fzf` or `dmenu`, and connect with `netctl` or `nmcli`<sup id="a1">[1](#f1)</sup>.
+
 
 # Manual Installation
 While still under construction, ruwi will not live in any distro repositories, and you'll need to build it for yourself using `cargo`. See https://www.rust-lang.org/tools/install if you aren't sure what `cargo` is.
@@ -41,15 +52,6 @@ Connect on the named wired interface, using `dhclient`:
 Stop all known networking daemons, bring down all IP networking interfaces, and just generally get a clean slate for attempting to connect:
 
     ruwi clear
-
-# Philosophy
-
-### Ruwi is:
-* Designed to be safe to run as root. External programs will fail to run if they are not binaries with full paths owned and writable only by the root user.
-
-### Ruwi is not:
-* A connection manager. There is no daemon process, there are no networking configs. Ruwi works entirely by orchestrating external programs, including connection managers. For example, you can scan with `iw` or `nmcli`, select with `fzf` or `dmenu`, and connect with `netctl` or `nmcli`<sup id="a1">[1](#f1)</sup>.
-
 
 ---
 
