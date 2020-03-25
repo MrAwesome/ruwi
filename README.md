@@ -5,7 +5,7 @@ Ruwi simplifies connecting to the Internet on Linux, by providing a flexible sel
 Ruwi is still heavily under construction, but feel free to tinker away. Wired and wireless connections are heavily tested and working well. It's very unlikely that the commands below will change, and for these use cases ruwi makes an excellent daily driver.
 
 # Manual Installation
-while still under construction, ruwi will not live in any distro repositories, and you'll need to build it for yourself using `cargo`. See https://www.rust-lang.org/tools/install if you aren't sure what `cargo` is.
+While still under construction, ruwi will not live in any distro repositories, and you'll need to build it for yourself using `cargo`. See https://www.rust-lang.org/tools/install if you aren't sure what `cargo` is.
 
     cd ~/
     git clone https://github.com/MrAwesome/ruwi.git
@@ -44,10 +44,10 @@ Stop all known networking daemons, bring down all IP networking interfaces, and 
 
 # Philosophy
 
-## Ruwi is:
+### Ruwi is:
 * Designed to be safe to run as root. External programs will fail to run if they are not binaries with full paths owned and writable only by the root user.
 
-## Ruwi is not:
+### Ruwi is not:
 * A connection manager. There is no daemon process, there are no networking configs. Ruwi works entirely by orchestrating external programs, including connection managers. For example, you can scan with `iw` or `nmcli`, select with `fzf` or `dmenu`, and connect with `netctl` or `nmcli`<sup id="a1">[1](#f1)</sup>.
 
 
