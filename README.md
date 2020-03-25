@@ -1,4 +1,4 @@
-# `ruwi` - Connection Selection for Desktop Linux
+# ruwi
 
 Ruwi simplifies connecting to the Internet on Linux.
 
