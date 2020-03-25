@@ -66,6 +66,6 @@ Stop all known networking daemons, bring down all IP networking interfaces, and 
 
 ---
 
-<b id="f1">1</b> In truth, it's hard to imagine any "find, select, and connect to an unknown wireless network" workflow being faster than what Ruwi does. If you know of something, contact your dear author immediately..[↩](#a1)
+<b id="f1">1</b> In truth, it's hard to imagine any "find, select, and connect to an unknown wireless network" workflow being faster than what Ruwi does. If you know of something, contact your dear author immediately. [↩](#a1)
 
 <b id="f2">2</b> With the caveat that `nmcli` doesn't play nicely with other scan types. This is handled in code, and a descriptive error message will guide you if you forget. [↩](#a2)
