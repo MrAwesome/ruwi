@@ -6,7 +6,7 @@ It does this by providing a flexible+extensible selection+interaction layer over
 
 Bluetooth support is planned, but currently not in progress.
 
-Ruwi in general is still heavily under construction, but feel free to tinker away. Wired and wireless connections are heavily tested and working well. It's very unlikely that the commands below will change, and for these use cases Ruwi makes an excellent daily driver.
+Ruwi is still heavily under construction, but feel free to tinker away. Wired and wireless connections are heavily tested and working well. It's very unlikely that the commands below will change, and for these use cases Ruwi makes an excellent daily driver.
 
 # Philosophy
 
