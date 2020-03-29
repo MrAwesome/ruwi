@@ -25,6 +25,7 @@ pub(crate) mod macros;
 // TODO: collapse these into subdirs
 pub(crate) mod annotate_networks;
 pub(crate) mod bluetooth;
+pub(crate) mod common;
 pub(crate) mod cmdline_parser;
 pub(crate) mod configure_network;
 pub(crate) mod connect;
@@ -34,6 +35,7 @@ pub mod errors;
 // TODO: instead of making this public, have a "public constants" module
 pub(crate) mod interface_management;
 pub(crate) mod known_networks;
+pub(crate) mod netctl;
 pub(crate) mod netctl_config_writer;
 pub(crate) mod options;
 pub(crate) mod parse;

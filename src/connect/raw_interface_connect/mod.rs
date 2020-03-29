@@ -84,6 +84,10 @@ impl<'a, O: Global, T: LinuxIPInterface> RawInterfaceConnector<'a, O, T> {
     // TODO: unit test? integration test?
     fn netctl_connect(&self) -> Result<(), RuwiError> {
         NetworkingService::Netctl.start(self.options)?;
+        // TODO: look for netctl profiles using given interface
+        // TODO: give a selector for them? or just use the first?
+        // TODO: cmdline option for specifying netctl profile to connect to? at that point should
+        // people just use netctl?
 
         let todo = "implement this using code currently in wifi_connect";
         Ok(())

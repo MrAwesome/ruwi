@@ -1,9 +1,8 @@
-use crate::enums::*;
-use crate::errors::*;
+use crate::common::*;
+
 use crate::interface_management::ip_interfaces::*;
-use crate::options::interfaces::*;
 use crate::run_commands::SystemCommandRunner;
-use crate::structs::*;
+use crate::netctl::utils::*;
 
 pub(crate) fn connect_to_network<O>(
     options: &O,
@@ -113,24 +112,11 @@ where
     }
     interface.bring_down(options)?;
 
-    let todo = "move into helper function";
-    let netctl_file_name = match selected_network.get_service_identifier() {
-        Some(service_id) => match service_id {
-            NetworkServiceIdentifier::Netctl(file_name) => Ok(file_name.to_string()),
-            _ => Err(rerr!(RuwiErrorKind::InvalidServiceIdentifierType, "Invalid service identifier type for ID {}! This usually indicates a breaking code change, and should be reported to the authors."))
-        }?,
-        None => selected_network.get_public_name().replace(" ", "_")
-    };
+    let netctl_identifier = get_netctl_identifier(selected_network)?;
 
-    SystemCommandRunner::new(options, "netctl", &["switch-to", &netctl_file_name])
-        .run_command_pass(
-            RuwiErrorKind::FailedToConnectViaNetctl,
-            &format!(
-                "Failed to connect to \"{}\" via netctl!",
-                selected_network.get_public_name()
-            ),
-        )
-        .map(|_| ConnectionResult {
+    let netctl_switch_to_res = netctl_switch_to(options, netctl_identifier);
+
+    netctl_switch_to_res.map(|_| ConnectionResult {
             connection_type: WifiConnectionType::Netctl,
         })
 }
