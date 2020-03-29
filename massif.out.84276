@@ -1,0 +1,1236 @@
+desc: (none)
+cmd: /home/glenn/ruwi/target/debug/ruwi -D wifi -s iw -F src/parse/samples/iw_many_networks.txt connect -c print -A first
+time_unit: i
+#-----------
+snapshot=0
+#-----------
+time=0
+mem_heap_B=0
+mem_heap_extra_B=0
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=1
+#-----------
+time=643292
+mem_heap_B=472
+mem_heap_extra_B=16
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=2
+#-----------
+time=940782
+mem_heap_B=2091
+mem_heap_extra_B=197
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=3
+#-----------
+time=1260081
+mem_heap_B=13842
+mem_heap_extra_B=670
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=4
+#-----------
+time=1687517
+mem_heap_B=17392
+mem_heap_extra_B=928
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=5
+#-----------
+time=2028009
+mem_heap_B=263755
+mem_heap_extra_B=365
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=6
+#-----------
+time=2968158
+mem_heap_B=397806
+mem_heap_extra_B=386
+mem_stacks_B=0
+heap_tree=detailed
+n3: 397806 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 262144 0x212C9C: alloc::alloc::realloc (alloc.rs:125)
+  n1: 262144 0x212A65: <alloc::alloc::Global as core::alloc::Alloc>::realloc (alloc.rs:184)
+   n1: 262144 0x215272: alloc::raw_vec::RawVec<T,A>::reserve_internal (raw_vec.rs:659)
+    n1: 262144 0x2155E9: alloc::raw_vec::RawVec<T,A>::reserve (raw_vec.rs:485)
+     n1: 262144 0x215A99: alloc::vec::Vec<T>::reserve (vec.rs:493)
+      n1: 262144 0x1606BF: std::io::read_to_end_with_reservation (mod.rs:387)
+       n1: 262144 0x160275: std::io::read_to_end (mod.rs:361)
+        n1: 262144 0x16A514: std::io::Read::read_to_end (mod.rs:660)
+         n1: 262144 0x1D9A43: ruwi::wifi_scan::get_scan_contents_from_file (mod.rs:94)
+          n1: 262144 0x1D84F6: ruwi::wifi_scan::wifi_scan (mod.rs:52)
+           n1: 262144 0x1FEE1C: ruwi::runner::wifi::utils::gather_wifi_network_data::{{closure}} (utils.rs:64)
+            n1: 262144 0x203439: std::sys_common::backtrace::__rust_begin_short_backtrace (backtrace.rs:129)
+             n1: 262144 0x1EB7DA: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}} (mod.rs:475)
+              n1: 262144 0x204618: <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once (panic.rs:318)
+               n1: 262144 0x2080FA: std::panicking::try::do_call (panicking.rs:305)
+                n1: 262144 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                 n1: 262144 0x207EC7: std::panicking::try (panicking.rs:281)
+                  n1: 262144 0x20469A: std::panic::catch_unwind (panic.rs:394)
+                   n1: 262144 0x1EAF16: std::thread::Builder::spawn_unchecked::{{closure}} (mod.rs:474)
+                    n1: 262144 0x1513E3: core::ops::function::FnOnce::call_once{{vtable-shim}} (function.rs:232)
+                     n1: 262144 0x3AC14E: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once (boxed.rs:1015)
+                      n1: 262144 0x3BE26F: call_once<(),alloc::boxed::Box<FnOnce<()>>> (boxed.rs:1015)
+                       n1: 262144 0x3BE26F: start_thread (thread.rs:13)
+                        n1: 262144 0x3BE26F: std::sys::unix::thread::Thread::new::thread_start (thread.rs:80)
+                         n1: 262144 0x489046E: start_thread (in /usr/lib/libpthread-2.31.so)
+                          n0: 262144 0x49C23D2: clone (in /usr/lib/libc-2.31.so)
+ n1: 134051 0x3D1564: alloc (alloc.rs:81)
+  n1: 134051 0x3D1564: alloc (alloc.rs:169)
+   n1: 134051 0x3D1564: allocate_in<u8,alloc::alloc::Global> (raw_vec.rs:88)
+    n1: 134051 0x3D1564: with_capacity<u8> (raw_vec.rs:140)
+     n1: 134051 0x3D1564: with_capacity<u8> (vec.rs:355)
+      n1: 134051 0x3D1564: to_vec<u8> (slice.rs:158)
+       n1: 134051 0x3D1564: to_vec<u8> (slice.rs:394)
+        n1: 134051 0x3D1564: to_owned<u8> (slice.rs:727)
+         n1: 134051 0x3D1564: to_owned (str.rs:205)
+          n1: 134051 0x3D1564: into_owned<str> (borrow.rs:314)
+           n1: 134051 0x3D1564: <alloc::string::String as core::convert::From<alloc::borrow::Cow<str>>>::from (string.rs:2281)
+            n1: 134051 0x1F1728: <T as core::convert::Into<U>>::into (mod.rs:558)
+             n1: 134051 0x1D9BFB: ruwi::wifi_scan::get_scan_contents_from_file (mod.rs:99)
+              n1: 134051 0x1D84F6: ruwi::wifi_scan::wifi_scan (mod.rs:52)
+               n1: 134051 0x1FEE1C: ruwi::runner::wifi::utils::gather_wifi_network_data::{{closure}} (utils.rs:64)
+                n1: 134051 0x203439: std::sys_common::backtrace::__rust_begin_short_backtrace (backtrace.rs:129)
+                 n1: 134051 0x1EB7DA: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}} (mod.rs:475)
+                  n1: 134051 0x204618: <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once (panic.rs:318)
+                   n1: 134051 0x2080FA: std::panicking::try::do_call (panicking.rs:305)
+                    n1: 134051 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                     n1: 134051 0x207EC7: std::panicking::try (panicking.rs:281)
+                      n1: 134051 0x20469A: std::panic::catch_unwind (panic.rs:394)
+                       n1: 134051 0x1EAF16: std::thread::Builder::spawn_unchecked::{{closure}} (mod.rs:474)
+                        n1: 134051 0x1513E3: core::ops::function::FnOnce::call_once{{vtable-shim}} (function.rs:232)
+                         n1: 134051 0x3AC14E: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once (boxed.rs:1015)
+                          n1: 134051 0x3BE26F: call_once<(),alloc::boxed::Box<FnOnce<()>>> (boxed.rs:1015)
+                           n1: 134051 0x3BE26F: start_thread (thread.rs:13)
+                            n1: 134051 0x3BE26F: std::sys::unix::thread::Thread::new::thread_start (thread.rs:80)
+                             n1: 134051 0x489046E: start_thread (in /usr/lib/libpthread-2.31.so)
+                              n0: 134051 0x49C23D2: clone (in /usr/lib/libc-2.31.so)
+ n0: 1611 in 33 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=7
+#-----------
+time=2995822
+mem_heap_B=397806
+mem_heap_extra_B=386
+mem_stacks_B=0
+heap_tree=peak
+n3: 397806 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 262144 0x212C9C: alloc::alloc::realloc (alloc.rs:125)
+  n1: 262144 0x212A65: <alloc::alloc::Global as core::alloc::Alloc>::realloc (alloc.rs:184)
+   n1: 262144 0x215272: alloc::raw_vec::RawVec<T,A>::reserve_internal (raw_vec.rs:659)
+    n1: 262144 0x2155E9: alloc::raw_vec::RawVec<T,A>::reserve (raw_vec.rs:485)
+     n1: 262144 0x215A99: alloc::vec::Vec<T>::reserve (vec.rs:493)
+      n1: 262144 0x1606BF: std::io::read_to_end_with_reservation (mod.rs:387)
+       n1: 262144 0x160275: std::io::read_to_end (mod.rs:361)
+        n1: 262144 0x16A514: std::io::Read::read_to_end (mod.rs:660)
+         n1: 262144 0x1D9A43: ruwi::wifi_scan::get_scan_contents_from_file (mod.rs:94)
+          n1: 262144 0x1D84F6: ruwi::wifi_scan::wifi_scan (mod.rs:52)
+           n1: 262144 0x1FEE1C: ruwi::runner::wifi::utils::gather_wifi_network_data::{{closure}} (utils.rs:64)
+            n1: 262144 0x203439: std::sys_common::backtrace::__rust_begin_short_backtrace (backtrace.rs:129)
+             n1: 262144 0x1EB7DA: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}} (mod.rs:475)
+              n1: 262144 0x204618: <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once (panic.rs:318)
+               n1: 262144 0x2080FA: std::panicking::try::do_call (panicking.rs:305)
+                n1: 262144 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                 n1: 262144 0x207EC7: std::panicking::try (panicking.rs:281)
+                  n1: 262144 0x20469A: std::panic::catch_unwind (panic.rs:394)
+                   n1: 262144 0x1EAF16: std::thread::Builder::spawn_unchecked::{{closure}} (mod.rs:474)
+                    n1: 262144 0x1513E3: core::ops::function::FnOnce::call_once{{vtable-shim}} (function.rs:232)
+                     n1: 262144 0x3AC14E: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once (boxed.rs:1015)
+                      n1: 262144 0x3BE26F: call_once<(),alloc::boxed::Box<FnOnce<()>>> (boxed.rs:1015)
+                       n1: 262144 0x3BE26F: start_thread (thread.rs:13)
+                        n1: 262144 0x3BE26F: std::sys::unix::thread::Thread::new::thread_start (thread.rs:80)
+                         n1: 262144 0x489046E: start_thread (in /usr/lib/libpthread-2.31.so)
+                          n0: 262144 0x49C23D2: clone (in /usr/lib/libc-2.31.so)
+ n1: 134051 0x3D1564: alloc (alloc.rs:81)
+  n1: 134051 0x3D1564: alloc (alloc.rs:169)
+   n1: 134051 0x3D1564: allocate_in<u8,alloc::alloc::Global> (raw_vec.rs:88)
+    n1: 134051 0x3D1564: with_capacity<u8> (raw_vec.rs:140)
+     n1: 134051 0x3D1564: with_capacity<u8> (vec.rs:355)
+      n1: 134051 0x3D1564: to_vec<u8> (slice.rs:158)
+       n1: 134051 0x3D1564: to_vec<u8> (slice.rs:394)
+        n1: 134051 0x3D1564: to_owned<u8> (slice.rs:727)
+         n1: 134051 0x3D1564: to_owned (str.rs:205)
+          n1: 134051 0x3D1564: into_owned<str> (borrow.rs:314)
+           n1: 134051 0x3D1564: <alloc::string::String as core::convert::From<alloc::borrow::Cow<str>>>::from (string.rs:2281)
+            n1: 134051 0x1F1728: <T as core::convert::Into<U>>::into (mod.rs:558)
+             n1: 134051 0x1D9BFB: ruwi::wifi_scan::get_scan_contents_from_file (mod.rs:99)
+              n1: 134051 0x1D84F6: ruwi::wifi_scan::wifi_scan (mod.rs:52)
+               n1: 134051 0x1FEE1C: ruwi::runner::wifi::utils::gather_wifi_network_data::{{closure}} (utils.rs:64)
+                n1: 134051 0x203439: std::sys_common::backtrace::__rust_begin_short_backtrace (backtrace.rs:129)
+                 n1: 134051 0x1EB7DA: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}} (mod.rs:475)
+                  n1: 134051 0x204618: <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once (panic.rs:318)
+                   n1: 134051 0x2080FA: std::panicking::try::do_call (panicking.rs:305)
+                    n1: 134051 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                     n1: 134051 0x207EC7: std::panicking::try (panicking.rs:281)
+                      n1: 134051 0x20469A: std::panic::catch_unwind (panic.rs:394)
+                       n1: 134051 0x1EAF16: std::thread::Builder::spawn_unchecked::{{closure}} (mod.rs:474)
+                        n1: 134051 0x1513E3: core::ops::function::FnOnce::call_once{{vtable-shim}} (function.rs:232)
+                         n1: 134051 0x3AC14E: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once (boxed.rs:1015)
+                          n1: 134051 0x3BE26F: call_once<(),alloc::boxed::Box<FnOnce<()>>> (boxed.rs:1015)
+                           n1: 134051 0x3BE26F: start_thread (thread.rs:13)
+                            n1: 134051 0x3BE26F: std::sys::unix::thread::Thread::new::thread_start (thread.rs:80)
+                             n1: 134051 0x489046E: start_thread (in /usr/lib/libpthread-2.31.so)
+                              n0: 134051 0x49C23D2: clone (in /usr/lib/libc-2.31.so)
+ n0: 1611 in 33 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=8
+#-----------
+time=3393763
+mem_heap_B=140394
+mem_heap_extra_B=302
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=9
+#-----------
+time=3629052
+mem_heap_B=142514
+mem_heap_extra_B=302
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=10
+#-----------
+time=4000243
+mem_heap_B=146706
+mem_heap_extra_B=326
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=11
+#-----------
+time=4167121
+mem_heap_B=148754
+mem_heap_extra_B=334
+mem_stacks_B=0
+heap_tree=detailed
+n3: 148754 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 134051 0x3D1564: alloc (alloc.rs:81)
+  n1: 134051 0x3D1564: alloc (alloc.rs:169)
+   n1: 134051 0x3D1564: allocate_in<u8,alloc::alloc::Global> (raw_vec.rs:88)
+    n1: 134051 0x3D1564: with_capacity<u8> (raw_vec.rs:140)
+     n1: 134051 0x3D1564: with_capacity<u8> (vec.rs:355)
+      n1: 134051 0x3D1564: to_vec<u8> (slice.rs:158)
+       n1: 134051 0x3D1564: to_vec<u8> (slice.rs:394)
+        n1: 134051 0x3D1564: to_owned<u8> (slice.rs:727)
+         n1: 134051 0x3D1564: to_owned (str.rs:205)
+          n1: 134051 0x3D1564: into_owned<str> (borrow.rs:314)
+           n1: 134051 0x3D1564: <alloc::string::String as core::convert::From<alloc::borrow::Cow<str>>>::from (string.rs:2281)
+            n1: 134051 0x1F1728: <T as core::convert::Into<U>>::into (mod.rs:558)
+             n1: 134051 0x1D9BFB: ruwi::wifi_scan::get_scan_contents_from_file (mod.rs:99)
+              n1: 134051 0x1D84F6: ruwi::wifi_scan::wifi_scan (mod.rs:52)
+               n1: 134051 0x1FEE1C: ruwi::runner::wifi::utils::gather_wifi_network_data::{{closure}} (utils.rs:64)
+                n1: 134051 0x203439: std::sys_common::backtrace::__rust_begin_short_backtrace (backtrace.rs:129)
+                 n1: 134051 0x1EB7DA: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}} (mod.rs:475)
+                  n1: 134051 0x204618: <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once (panic.rs:318)
+                   n1: 134051 0x2080FA: std::panicking::try::do_call (panicking.rs:305)
+                    n1: 134051 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                     n1: 134051 0x207EC7: std::panicking::try (panicking.rs:281)
+                      n1: 134051 0x20469A: std::panic::catch_unwind (panic.rs:394)
+                       n1: 134051 0x1EAF16: std::thread::Builder::spawn_unchecked::{{closure}} (mod.rs:474)
+                        n1: 134051 0x1513E3: core::ops::function::FnOnce::call_once{{vtable-shim}} (function.rs:232)
+                         n1: 134051 0x3AC14E: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once (boxed.rs:1015)
+                          n1: 134051 0x3BE26F: call_once<(),alloc::boxed::Box<FnOnce<()>>> (boxed.rs:1015)
+                           n1: 134051 0x3BE26F: start_thread (thread.rs:13)
+                            n1: 134051 0x3BE26F: std::sys::unix::thread::Thread::new::thread_start (thread.rs:80)
+                             n1: 134051 0x489046E: start_thread (in /usr/lib/libpthread-2.31.so)
+                              n0: 134051 0x49C23D2: clone (in /usr/lib/libc-2.31.so)
+ n1: 13312 0x27BC0C: alloc::alloc::realloc (alloc.rs:125)
+  n2: 13312 0x27B9D5: <alloc::alloc::Global as core::alloc::Alloc>::realloc (alloc.rs:184)
+   n1: 13312 0x2CA222: alloc::raw_vec::RawVec<T,A>::reserve_internal (raw_vec.rs:659)
+    n1: 13312 0x2CEE09: alloc::raw_vec::RawVec<T,A>::reserve (raw_vec.rs:485)
+     n2: 13312 0x25DCD9: alloc::vec::Vec<T>::reserve (vec.rs:493)
+      n2: 13312 0x25C598: alloc::vec::Vec<T>::push (vec.rs:1166)
+       n1: 13312 0x17E9E9: ruwi::parse::break_iw_output_into_chunks_per_network (mod.rs:98)
+        n1: 13312 0x15DD35: ruwi::parse::parse_iw_scan (mod.rs:54)
+         n1: 13312 0x15CB2B: ruwi::parse::parse_result (mod.rs:30)
+          n1: 13312 0x1FCE55: ruwi::runner::wifi::utils::scan_and_select_network (utils.rs:30)
+           n1: 13312 0x1B31E9: ruwi::runner::wifi::connect::<impl ruwi::runner::Runner for ruwi::options::wifi::connect::WifiConnectOptions>::run (connect.rs:22)
+            n1: 13312 0x1A641F: ruwi::options::command::RuwiCommand::run (command.rs:33)
+             n1: 13312 0x143C6C: ruwi::run_ruwi_cli (lib.rs:86)
+              n1: 13312 0x1434CC: ruwi::main (main.rs:8)
+               n1: 13312 0x14348F: std::rt::lang_start::{{closure}} (rt.rs:67)
+                n1: 13312 0x3B7402: {{closure}} (rt.rs:52)
+                 n1: 13312 0x3B7402: std::panicking::try::do_call (panicking.rs:305)
+                  n1: 13312 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                   n1: 13312 0x3B7DDF: try<i32,closure-0> (panicking.rs:281)
+                    n1: 13312 0x3B7DDF: catch_unwind<closure-0,i32> (panic.rs:394)
+                     n1: 13312 0x3B7DDF: std::rt::lang_start_internal (rt.rs:51)
+                      n1: 13312 0x143468: std::rt::lang_start (rt.rs:67)
+                       n0: 13312 0x143A09: main (in /home/glenn/ruwi/target/debug/ruwi)
+       n0: 0 in 1 place, below massif's threshold (1.00%)
+      n0: 0 in 1 place, below massif's threshold (1.00%)
+   n0: 0 in 4 places, all below massif's threshold (1.00%)
+ n0: 1391 in 34 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=12
+#-----------
+time=4539694
+mem_heap_B=153874
+mem_heap_extra_B=342
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=13
+#-----------
+time=4988347
+mem_heap_B=157138
+mem_heap_extra_B=358
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=14
+#-----------
+time=5507402
+mem_heap_B=163282
+mem_heap_extra_B=374
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=15
+#-----------
+time=5802012
+mem_heap_B=166354
+mem_heap_extra_B=382
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=16
+#-----------
+time=6205714
+mem_heap_B=169442
+mem_heap_extra_B=406
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=17
+#-----------
+time=6564854
+mem_heap_B=173906
+mem_heap_extra_B=414
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=18
+#-----------
+time=6986838
+mem_heap_B=178002
+mem_heap_extra_B=430
+mem_stacks_B=0
+heap_tree=detailed
+n3: 178002 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 134051 0x3D1564: alloc (alloc.rs:81)
+  n1: 134051 0x3D1564: alloc (alloc.rs:169)
+   n1: 134051 0x3D1564: allocate_in<u8,alloc::alloc::Global> (raw_vec.rs:88)
+    n1: 134051 0x3D1564: with_capacity<u8> (raw_vec.rs:140)
+     n1: 134051 0x3D1564: with_capacity<u8> (vec.rs:355)
+      n1: 134051 0x3D1564: to_vec<u8> (slice.rs:158)
+       n1: 134051 0x3D1564: to_vec<u8> (slice.rs:394)
+        n1: 134051 0x3D1564: to_owned<u8> (slice.rs:727)
+         n1: 134051 0x3D1564: to_owned (str.rs:205)
+          n1: 134051 0x3D1564: into_owned<str> (borrow.rs:314)
+           n1: 134051 0x3D1564: <alloc::string::String as core::convert::From<alloc::borrow::Cow<str>>>::from (string.rs:2281)
+            n1: 134051 0x1F1728: <T as core::convert::Into<U>>::into (mod.rs:558)
+             n1: 134051 0x1D9BFB: ruwi::wifi_scan::get_scan_contents_from_file (mod.rs:99)
+              n1: 134051 0x1D84F6: ruwi::wifi_scan::wifi_scan (mod.rs:52)
+               n1: 134051 0x1FEE1C: ruwi::runner::wifi::utils::gather_wifi_network_data::{{closure}} (utils.rs:64)
+                n1: 134051 0x203439: std::sys_common::backtrace::__rust_begin_short_backtrace (backtrace.rs:129)
+                 n1: 134051 0x1EB7DA: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}} (mod.rs:475)
+                  n1: 134051 0x204618: <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once (panic.rs:318)
+                   n1: 134051 0x2080FA: std::panicking::try::do_call (panicking.rs:305)
+                    n1: 134051 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                     n1: 134051 0x207EC7: std::panicking::try (panicking.rs:281)
+                      n1: 134051 0x20469A: std::panic::catch_unwind (panic.rs:394)
+                       n1: 134051 0x1EAF16: std::thread::Builder::spawn_unchecked::{{closure}} (mod.rs:474)
+                        n1: 134051 0x1513E3: core::ops::function::FnOnce::call_once{{vtable-shim}} (function.rs:232)
+                         n1: 134051 0x3AC14E: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once (boxed.rs:1015)
+                          n1: 134051 0x3BE26F: call_once<(),alloc::boxed::Box<FnOnce<()>>> (boxed.rs:1015)
+                           n1: 134051 0x3BE26F: start_thread (thread.rs:13)
+                            n1: 134051 0x3BE26F: std::sys::unix::thread::Thread::new::thread_start (thread.rs:80)
+                             n1: 134051 0x489046E: start_thread (in /usr/lib/libpthread-2.31.so)
+                              n0: 134051 0x49C23D2: clone (in /usr/lib/libc-2.31.so)
+ n1: 41984 0x27BC0C: alloc::alloc::realloc (alloc.rs:125)
+  n2: 41984 0x27B9D5: <alloc::alloc::Global as core::alloc::Alloc>::realloc (alloc.rs:184)
+   n1: 41984 0x2CA222: alloc::raw_vec::RawVec<T,A>::reserve_internal (raw_vec.rs:659)
+    n1: 41984 0x2CEE09: alloc::raw_vec::RawVec<T,A>::reserve (raw_vec.rs:485)
+     n2: 41984 0x25DCD9: alloc::vec::Vec<T>::reserve (vec.rs:493)
+      n2: 41984 0x25C598: alloc::vec::Vec<T>::push (vec.rs:1166)
+       n1: 41984 0x17E9E9: ruwi::parse::break_iw_output_into_chunks_per_network (mod.rs:98)
+        n1: 41984 0x15DD35: ruwi::parse::parse_iw_scan (mod.rs:54)
+         n1: 41984 0x15CB2B: ruwi::parse::parse_result (mod.rs:30)
+          n1: 41984 0x1FCE55: ruwi::runner::wifi::utils::scan_and_select_network (utils.rs:30)
+           n1: 41984 0x1B31E9: ruwi::runner::wifi::connect::<impl ruwi::runner::Runner for ruwi::options::wifi::connect::WifiConnectOptions>::run (connect.rs:22)
+            n1: 41984 0x1A641F: ruwi::options::command::RuwiCommand::run (command.rs:33)
+             n1: 41984 0x143C6C: ruwi::run_ruwi_cli (lib.rs:86)
+              n1: 41984 0x1434CC: ruwi::main (main.rs:8)
+               n1: 41984 0x14348F: std::rt::lang_start::{{closure}} (rt.rs:67)
+                n1: 41984 0x3B7402: {{closure}} (rt.rs:52)
+                 n1: 41984 0x3B7402: std::panicking::try::do_call (panicking.rs:305)
+                  n1: 41984 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                   n1: 41984 0x3B7DDF: try<i32,closure-0> (panicking.rs:281)
+                    n1: 41984 0x3B7DDF: catch_unwind<closure-0,i32> (panic.rs:394)
+                     n1: 41984 0x3B7DDF: std::rt::lang_start_internal (rt.rs:51)
+                      n1: 41984 0x143468: std::rt::lang_start (rt.rs:67)
+                       n0: 41984 0x143A09: main (in /home/glenn/ruwi/target/debug/ruwi)
+       n0: 0 in 1 place, below massif's threshold (1.00%)
+      n0: 0 in 1 place, below massif's threshold (1.00%)
+   n0: 0 in 4 places, all below massif's threshold (1.00%)
+ n0: 1967 in 34 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=19
+#-----------
+time=7476955
+mem_heap_B=183122
+mem_heap_extra_B=446
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=20
+#-----------
+time=7853528
+mem_heap_B=187218
+mem_heap_extra_B=462
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=21
+#-----------
+time=8118488
+mem_heap_B=189266
+mem_heap_extra_B=470
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=22
+#-----------
+time=8521811
+mem_heap_B=192354
+mem_heap_extra_B=494
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=23
+#-----------
+time=8982641
+mem_heap_B=195938
+mem_heap_extra_B=526
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=24
+#-----------
+time=9389822
+mem_heap_B=199010
+mem_heap_extra_B=542
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=25
+#-----------
+time=9758173
+mem_heap_B=203858
+mem_heap_extra_B=550
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=26
+#-----------
+time=10148774
+mem_heap_B=207954
+mem_heap_extra_B=558
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=27
+#-----------
+time=10440721
+mem_heap_B=210018
+mem_heap_extra_B=574
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=28
+#-----------
+time=10897368
+mem_heap_B=213586
+mem_heap_extra_B=590
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=29
+#-----------
+time=11365643
+mem_heap_B=219218
+mem_heap_extra_B=614
+mem_stacks_B=0
+heap_tree=detailed
+n3: 219218 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 134051 0x3D1564: alloc (alloc.rs:81)
+  n1: 134051 0x3D1564: alloc (alloc.rs:169)
+   n1: 134051 0x3D1564: allocate_in<u8,alloc::alloc::Global> (raw_vec.rs:88)
+    n1: 134051 0x3D1564: with_capacity<u8> (raw_vec.rs:140)
+     n1: 134051 0x3D1564: with_capacity<u8> (vec.rs:355)
+      n1: 134051 0x3D1564: to_vec<u8> (slice.rs:158)
+       n1: 134051 0x3D1564: to_vec<u8> (slice.rs:394)
+        n1: 134051 0x3D1564: to_owned<u8> (slice.rs:727)
+         n1: 134051 0x3D1564: to_owned (str.rs:205)
+          n1: 134051 0x3D1564: into_owned<str> (borrow.rs:314)
+           n1: 134051 0x3D1564: <alloc::string::String as core::convert::From<alloc::borrow::Cow<str>>>::from (string.rs:2281)
+            n1: 134051 0x1F1728: <T as core::convert::Into<U>>::into (mod.rs:558)
+             n1: 134051 0x1D9BFB: ruwi::wifi_scan::get_scan_contents_from_file (mod.rs:99)
+              n1: 134051 0x1D84F6: ruwi::wifi_scan::wifi_scan (mod.rs:52)
+               n1: 134051 0x1FEE1C: ruwi::runner::wifi::utils::gather_wifi_network_data::{{closure}} (utils.rs:64)
+                n1: 134051 0x203439: std::sys_common::backtrace::__rust_begin_short_backtrace (backtrace.rs:129)
+                 n1: 134051 0x1EB7DA: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}} (mod.rs:475)
+                  n1: 134051 0x204618: <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once (panic.rs:318)
+                   n1: 134051 0x2080FA: std::panicking::try::do_call (panicking.rs:305)
+                    n1: 134051 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                     n1: 134051 0x207EC7: std::panicking::try (panicking.rs:281)
+                      n1: 134051 0x20469A: std::panic::catch_unwind (panic.rs:394)
+                       n1: 134051 0x1EAF16: std::thread::Builder::spawn_unchecked::{{closure}} (mod.rs:474)
+                        n1: 134051 0x1513E3: core::ops::function::FnOnce::call_once{{vtable-shim}} (function.rs:232)
+                         n1: 134051 0x3AC14E: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once (boxed.rs:1015)
+                          n1: 134051 0x3BE26F: call_once<(),alloc::boxed::Box<FnOnce<()>>> (boxed.rs:1015)
+                           n1: 134051 0x3BE26F: start_thread (thread.rs:13)
+                            n1: 134051 0x3BE26F: std::sys::unix::thread::Thread::new::thread_start (thread.rs:80)
+                             n1: 134051 0x489046E: start_thread (in /usr/lib/libpthread-2.31.so)
+                              n0: 134051 0x49C23D2: clone (in /usr/lib/libc-2.31.so)
+ n1: 82432 0x27BC0C: alloc::alloc::realloc (alloc.rs:125)
+  n2: 82432 0x27B9D5: <alloc::alloc::Global as core::alloc::Alloc>::realloc (alloc.rs:184)
+   n1: 82432 0x2CA222: alloc::raw_vec::RawVec<T,A>::reserve_internal (raw_vec.rs:659)
+    n1: 82432 0x2CEE09: alloc::raw_vec::RawVec<T,A>::reserve (raw_vec.rs:485)
+     n2: 82432 0x25DCD9: alloc::vec::Vec<T>::reserve (vec.rs:493)
+      n2: 82432 0x25C598: alloc::vec::Vec<T>::push (vec.rs:1166)
+       n1: 82432 0x17E9E9: ruwi::parse::break_iw_output_into_chunks_per_network (mod.rs:98)
+        n1: 82432 0x15DD35: ruwi::parse::parse_iw_scan (mod.rs:54)
+         n1: 82432 0x15CB2B: ruwi::parse::parse_result (mod.rs:30)
+          n1: 82432 0x1FCE55: ruwi::runner::wifi::utils::scan_and_select_network (utils.rs:30)
+           n1: 82432 0x1B31E9: ruwi::runner::wifi::connect::<impl ruwi::runner::Runner for ruwi::options::wifi::connect::WifiConnectOptions>::run (connect.rs:22)
+            n1: 82432 0x1A641F: ruwi::options::command::RuwiCommand::run (command.rs:33)
+             n1: 82432 0x143C6C: ruwi::run_ruwi_cli (lib.rs:86)
+              n1: 82432 0x1434CC: ruwi::main (main.rs:8)
+               n1: 82432 0x14348F: std::rt::lang_start::{{closure}} (rt.rs:67)
+                n1: 82432 0x3B7402: {{closure}} (rt.rs:52)
+                 n1: 82432 0x3B7402: std::panicking::try::do_call (panicking.rs:305)
+                  n1: 82432 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                   n1: 82432 0x3B7DDF: try<i32,closure-0> (panicking.rs:281)
+                    n1: 82432 0x3B7DDF: catch_unwind<closure-0,i32> (panic.rs:394)
+                     n1: 82432 0x3B7DDF: std::rt::lang_start_internal (rt.rs:51)
+                      n1: 82432 0x143468: std::rt::lang_start (rt.rs:67)
+                       n0: 82432 0x143A09: main (in /home/glenn/ruwi/target/debug/ruwi)
+       n0: 0 in 1 place, below massif's threshold (1.00%)
+      n0: 0 in 1 place, below massif's threshold (1.00%)
+   n0: 0 in 4 places, all below massif's threshold (1.00%)
+ n0: 2735 in 34 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=30
+#-----------
+time=11707925
+mem_heap_B=221282
+mem_heap_extra_B=638
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=31
+#-----------
+time=12224188
+mem_heap_B=226386
+mem_heap_extra_B=662
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=32
+#-----------
+time=12758241
+mem_heap_B=231506
+mem_heap_extra_B=678
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=33
+#-----------
+time=13177233
+mem_heap_B=234578
+mem_heap_extra_B=710
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=34
+#-----------
+time=13430794
+mem_heap_B=237138
+mem_heap_extra_B=718
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=35
+#-----------
+time=13961435
+mem_heap_B=235244
+mem_heap_extra_B=796
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=36
+#-----------
+time=14354331
+mem_heap_B=229311
+mem_heap_extra_B=929
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=37
+#-----------
+time=14760962
+mem_heap_B=213801
+mem_heap_extra_B=1159
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=38
+#-----------
+time=15295611
+mem_heap_B=207857
+mem_heap_extra_B=1263
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=39
+#-----------
+time=15636061
+mem_heap_B=198158
+mem_heap_extra_B=1418
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=40
+#-----------
+time=16043835
+mem_heap_B=193176
+mem_heap_extra_B=1528
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=41
+#-----------
+time=16355894
+mem_heap_B=189716
+mem_heap_extra_B=1644
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=42
+#-----------
+time=16824270
+mem_heap_B=182815
+mem_heap_extra_B=1737
+mem_stacks_B=0
+heap_tree=detailed
+n5: 182815 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 134051 0x3D1564: alloc (alloc.rs:81)
+  n1: 134051 0x3D1564: alloc (alloc.rs:169)
+   n1: 134051 0x3D1564: allocate_in<u8,alloc::alloc::Global> (raw_vec.rs:88)
+    n1: 134051 0x3D1564: with_capacity<u8> (raw_vec.rs:140)
+     n1: 134051 0x3D1564: with_capacity<u8> (vec.rs:355)
+      n1: 134051 0x3D1564: to_vec<u8> (slice.rs:158)
+       n1: 134051 0x3D1564: to_vec<u8> (slice.rs:394)
+        n1: 134051 0x3D1564: to_owned<u8> (slice.rs:727)
+         n1: 134051 0x3D1564: to_owned (str.rs:205)
+          n1: 134051 0x3D1564: into_owned<str> (borrow.rs:314)
+           n1: 134051 0x3D1564: <alloc::string::String as core::convert::From<alloc::borrow::Cow<str>>>::from (string.rs:2281)
+            n1: 134051 0x1F1728: <T as core::convert::Into<U>>::into (mod.rs:558)
+             n1: 134051 0x1D9BFB: ruwi::wifi_scan::get_scan_contents_from_file (mod.rs:99)
+              n1: 134051 0x1D84F6: ruwi::wifi_scan::wifi_scan (mod.rs:52)
+               n1: 134051 0x1FEE1C: ruwi::runner::wifi::utils::gather_wifi_network_data::{{closure}} (utils.rs:64)
+                n1: 134051 0x203439: std::sys_common::backtrace::__rust_begin_short_backtrace (backtrace.rs:129)
+                 n1: 134051 0x1EB7DA: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}} (mod.rs:475)
+                  n1: 134051 0x204618: <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once (panic.rs:318)
+                   n1: 134051 0x2080FA: std::panicking::try::do_call (panicking.rs:305)
+                    n1: 134051 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                     n1: 134051 0x207EC7: std::panicking::try (panicking.rs:281)
+                      n1: 134051 0x20469A: std::panic::catch_unwind (panic.rs:394)
+                       n1: 134051 0x1EAF16: std::thread::Builder::spawn_unchecked::{{closure}} (mod.rs:474)
+                        n1: 134051 0x1513E3: core::ops::function::FnOnce::call_once{{vtable-shim}} (function.rs:232)
+                         n1: 134051 0x3AC14E: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once (boxed.rs:1015)
+                          n1: 134051 0x3BE26F: call_once<(),alloc::boxed::Box<FnOnce<()>>> (boxed.rs:1015)
+                           n1: 134051 0x3BE26F: start_thread (thread.rs:13)
+                            n1: 134051 0x3BE26F: std::sys::unix::thread::Thread::new::thread_start (thread.rs:80)
+                             n1: 134051 0x489046E: start_thread (in /usr/lib/libpthread-2.31.so)
+                              n0: 134051 0x49C23D2: clone (in /usr/lib/libc-2.31.so)
+ n1: 31232 0x27BC0C: alloc::alloc::realloc (alloc.rs:125)
+  n2: 31232 0x27B9D5: <alloc::alloc::Global as core::alloc::Alloc>::realloc (alloc.rs:184)
+   n1: 31232 0x2CA222: alloc::raw_vec::RawVec<T,A>::reserve_internal (raw_vec.rs:659)
+    n1: 31232 0x2CEE09: alloc::raw_vec::RawVec<T,A>::reserve (raw_vec.rs:485)
+     n2: 31232 0x25DCD9: alloc::vec::Vec<T>::reserve (vec.rs:493)
+      n2: 31232 0x25C598: alloc::vec::Vec<T>::push (vec.rs:1166)
+       n1: 31232 0x17E9E9: ruwi::parse::break_iw_output_into_chunks_per_network (mod.rs:98)
+        n1: 31232 0x15DD35: ruwi::parse::parse_iw_scan (mod.rs:54)
+         n1: 31232 0x15CB2B: ruwi::parse::parse_result (mod.rs:30)
+          n1: 31232 0x1FCE55: ruwi::runner::wifi::utils::scan_and_select_network (utils.rs:30)
+           n1: 31232 0x1B31E9: ruwi::runner::wifi::connect::<impl ruwi::runner::Runner for ruwi::options::wifi::connect::WifiConnectOptions>::run (connect.rs:22)
+            n1: 31232 0x1A641F: ruwi::options::command::RuwiCommand::run (command.rs:33)
+             n1: 31232 0x143C6C: ruwi::run_ruwi_cli (lib.rs:86)
+              n1: 31232 0x1434CC: ruwi::main (main.rs:8)
+               n1: 31232 0x14348F: std::rt::lang_start::{{closure}} (rt.rs:67)
+                n1: 31232 0x3B7402: {{closure}} (rt.rs:52)
+                 n1: 31232 0x3B7402: std::panicking::try::do_call (panicking.rs:305)
+                  n1: 31232 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                   n1: 31232 0x3B7DDF: try<i32,closure-0> (panicking.rs:281)
+                    n1: 31232 0x3B7DDF: catch_unwind<closure-0,i32> (panic.rs:394)
+                     n1: 31232 0x3B7DDF: std::rt::lang_start_internal (rt.rs:51)
+                      n1: 31232 0x143468: std::rt::lang_start (rt.rs:67)
+                       n0: 31232 0x143A09: main (in /home/glenn/ruwi/target/debug/ruwi)
+       n0: 0 in 1 place, below massif's threshold (1.00%)
+      n0: 0 in 1 place, below massif's threshold (1.00%)
+   n0: 0 in 4 places, all below massif's threshold (1.00%)
+ n1: 11277 0x391B7B: alloc::alloc::alloc (alloc.rs:81)
+  n2: 11277 0x391951: <alloc::alloc::Global as core::alloc::Alloc>::alloc (alloc.rs:169)
+   n1: 11277 0x38B27D: alloc::raw_vec::RawVec<T,A>::allocate_in (raw_vec.rs:88)
+    n1: 11277 0x38B095: alloc::raw_vec::RawVec<T>::with_capacity (raw_vec.rs:140)
+     n2: 11277 0x394A03: alloc::vec::Vec<T>::with_capacity (vec.rs:355)
+      n1: 10750 0x2FF312: alloc::str::join_generic_copy (str.rs:164)
+       n1: 10750 0x30111A: alloc::str::<impl alloc::slice::Join<&str> for [S]>::join (str.rs:89)
+        n1: 10750 0x316BB8: alloc::slice::<impl [T]>::join (slice.rs:528)
+         n1: 10750 0x15E298: ruwi::parse::parse_iw_scan (mod.rs:61)
+          n1: 10750 0x15CB2B: ruwi::parse::parse_result (mod.rs:30)
+           n1: 10750 0x1FCE55: ruwi::runner::wifi::utils::scan_and_select_network (utils.rs:30)
+            n1: 10750 0x1B31E9: ruwi::runner::wifi::connect::<impl ruwi::runner::Runner for ruwi::options::wifi::connect::WifiConnectOptions>::run (connect.rs:22)
+             n1: 10750 0x1A641F: ruwi::options::command::RuwiCommand::run (command.rs:33)
+              n1: 10750 0x143C6C: ruwi::run_ruwi_cli (lib.rs:86)
+               n1: 10750 0x1434CC: ruwi::main (main.rs:8)
+                n1: 10750 0x14348F: std::rt::lang_start::{{closure}} (rt.rs:67)
+                 n1: 10750 0x3B7402: {{closure}} (rt.rs:52)
+                  n1: 10750 0x3B7402: std::panicking::try::do_call (panicking.rs:305)
+                   n1: 10750 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                    n1: 10750 0x3B7DDF: try<i32,closure-0> (panicking.rs:281)
+                     n1: 10750 0x3B7DDF: catch_unwind<closure-0,i32> (panic.rs:394)
+                      n1: 10750 0x3B7DDF: std::rt::lang_start_internal (rt.rs:51)
+                       n1: 10750 0x143468: std::rt::lang_start (rt.rs:67)
+                        n0: 10750 0x143A09: main (in /home/glenn/ruwi/target/debug/ruwi)
+      n0: 527 in 2 places, all below massif's threshold (1.00%)
+   n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 4608 0x157F0C: alloc::alloc::realloc (alloc.rs:125)
+  n2: 4608 0x157CD5: <alloc::alloc::Global as core::alloc::Alloc>::realloc (alloc.rs:184)
+   n1: 2816 0x1E6062: alloc::raw_vec::RawVec<T,A>::reserve_internal (raw_vec.rs:659)
+    n1: 2816 0x1E90C9: alloc::raw_vec::RawVec<T,A>::reserve (raw_vec.rs:485)
+     n1: 2816 0x174BA9: alloc::vec::Vec<T>::reserve (vec.rs:493)
+      n1: 2816 0x174854: alloc::vec::Vec<T>::push (vec.rs:1166)
+       n1: 2816 0x15E23E: ruwi::parse::parse_iw_scan (mod.rs:60)
+        n1: 2816 0x15CB2B: ruwi::parse::parse_result (mod.rs:30)
+         n1: 2816 0x1FCE55: ruwi::runner::wifi::utils::scan_and_select_network (utils.rs:30)
+          n1: 2816 0x1B31E9: ruwi::runner::wifi::connect::<impl ruwi::runner::Runner for ruwi::options::wifi::connect::WifiConnectOptions>::run (connect.rs:22)
+           n1: 2816 0x1A641F: ruwi::options::command::RuwiCommand::run (command.rs:33)
+            n1: 2816 0x143C6C: ruwi::run_ruwi_cli (lib.rs:86)
+             n1: 2816 0x1434CC: ruwi::main (main.rs:8)
+              n1: 2816 0x14348F: std::rt::lang_start::{{closure}} (rt.rs:67)
+               n1: 2816 0x3B7402: {{closure}} (rt.rs:52)
+                n1: 2816 0x3B7402: std::panicking::try::do_call (panicking.rs:305)
+                 n1: 2816 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                  n1: 2816 0x3B7DDF: try<i32,closure-0> (panicking.rs:281)
+                   n1: 2816 0x3B7DDF: catch_unwind<closure-0,i32> (panic.rs:394)
+                    n1: 2816 0x3B7DDF: std::rt::lang_start_internal (rt.rs:51)
+                     n1: 2816 0x143468: std::rt::lang_start (rt.rs:67)
+                      n0: 2816 0x143A09: main (in /home/glenn/ruwi/target/debug/ruwi)
+   n0: 1792 in 2 places, all below massif's threshold (1.00%)
+ n0: 1647 in 34 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=43
+#-----------
+time=17059913
+mem_heap_B=181816
+mem_heap_extra_B=1736
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=44
+#-----------
+time=17396532
+mem_heap_B=184632
+mem_heap_extra_B=1760
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=45
+#-----------
+time=17651128
+mem_heap_B=181512
+mem_heap_extra_B=1840
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=46
+#-----------
+time=18050725
+mem_heap_B=179909
+mem_heap_extra_B=1955
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=47
+#-----------
+time=18368387
+mem_heap_B=176889
+mem_heap_extra_B=1983
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=48
+#-----------
+time=18688921
+mem_heap_B=174986
+mem_heap_extra_B=2054
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=49
+#-----------
+time=18909355
+mem_heap_B=174790
+mem_heap_extra_B=2882
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=50
+#-----------
+time=18937197
+mem_heap_B=174956
+mem_heap_extra_B=3100
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=51
+#-----------
+time=18964910
+mem_heap_B=175117
+mem_heap_extra_B=3323
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=52
+#-----------
+time=18993186
+mem_heap_B=175294
+mem_heap_extra_B=3546
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=53
+#-----------
+time=19039588
+mem_heap_B=177780
+mem_heap_extra_B=3740
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=54
+#-----------
+time=19113459
+mem_heap_B=177828
+mem_heap_extra_B=3740
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=55
+#-----------
+time=19155739
+mem_heap_B=177764
+mem_heap_extra_B=3732
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=56
+#-----------
+time=19184629
+mem_heap_B=175613
+mem_heap_extra_B=3779
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=57
+#-----------
+time=19216875
+mem_heap_B=175765
+mem_heap_extra_B=3771
+mem_stacks_B=0
+heap_tree=detailed
+n5: 175765 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 134051 0x3D1564: alloc (alloc.rs:81)
+  n1: 134051 0x3D1564: alloc (alloc.rs:169)
+   n1: 134051 0x3D1564: allocate_in<u8,alloc::alloc::Global> (raw_vec.rs:88)
+    n1: 134051 0x3D1564: with_capacity<u8> (raw_vec.rs:140)
+     n1: 134051 0x3D1564: with_capacity<u8> (vec.rs:355)
+      n1: 134051 0x3D1564: to_vec<u8> (slice.rs:158)
+       n1: 134051 0x3D1564: to_vec<u8> (slice.rs:394)
+        n1: 134051 0x3D1564: to_owned<u8> (slice.rs:727)
+         n1: 134051 0x3D1564: to_owned (str.rs:205)
+          n1: 134051 0x3D1564: into_owned<str> (borrow.rs:314)
+           n1: 134051 0x3D1564: <alloc::string::String as core::convert::From<alloc::borrow::Cow<str>>>::from (string.rs:2281)
+            n1: 134051 0x1F1728: <T as core::convert::Into<U>>::into (mod.rs:558)
+             n1: 134051 0x1D9BFB: ruwi::wifi_scan::get_scan_contents_from_file (mod.rs:99)
+              n1: 134051 0x1D84F6: ruwi::wifi_scan::wifi_scan (mod.rs:52)
+               n1: 134051 0x1FEE1C: ruwi::runner::wifi::utils::gather_wifi_network_data::{{closure}} (utils.rs:64)
+                n1: 134051 0x203439: std::sys_common::backtrace::__rust_begin_short_backtrace (backtrace.rs:129)
+                 n1: 134051 0x1EB7DA: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}} (mod.rs:475)
+                  n1: 134051 0x204618: <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once (panic.rs:318)
+                   n1: 134051 0x2080FA: std::panicking::try::do_call (panicking.rs:305)
+                    n1: 134051 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                     n1: 134051 0x207EC7: std::panicking::try (panicking.rs:281)
+                      n1: 134051 0x20469A: std::panic::catch_unwind (panic.rs:394)
+                       n1: 134051 0x1EAF16: std::thread::Builder::spawn_unchecked::{{closure}} (mod.rs:474)
+                        n1: 134051 0x1513E3: core::ops::function::FnOnce::call_once{{vtable-shim}} (function.rs:232)
+                         n1: 134051 0x3AC14E: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once (boxed.rs:1015)
+                          n1: 134051 0x3BE26F: call_once<(),alloc::boxed::Box<FnOnce<()>>> (boxed.rs:1015)
+                           n1: 134051 0x3BE26F: start_thread (thread.rs:13)
+                            n1: 134051 0x3BE26F: std::sys::unix::thread::Thread::new::thread_start (thread.rs:80)
+                             n1: 134051 0x489046E: start_thread (in /usr/lib/libpthread-2.31.so)
+                              n0: 134051 0x49C23D2: clone (in /usr/lib/libc-2.31.so)
+ n1: 27386 0x391B7B: alloc::alloc::alloc (alloc.rs:81)
+  n2: 27386 0x391951: <alloc::alloc::Global as core::alloc::Alloc>::alloc (alloc.rs:169)
+   n1: 27386 0x38B27D: alloc::raw_vec::RawVec<T,A>::allocate_in (raw_vec.rs:88)
+    n1: 27386 0x38B095: alloc::raw_vec::RawVec<T>::with_capacity (raw_vec.rs:140)
+     n2: 27386 0x394A03: alloc::vec::Vec<T>::with_capacity (vec.rs:355)
+      n1: 26655 0x2FF312: alloc::str::join_generic_copy (str.rs:164)
+       n1: 26655 0x30111A: alloc::str::<impl alloc::slice::Join<&str> for [S]>::join (str.rs:89)
+        n1: 26655 0x316BB8: alloc::slice::<impl [T]>::join (slice.rs:528)
+         n1: 26655 0x15E298: ruwi::parse::parse_iw_scan (mod.rs:61)
+          n1: 26655 0x15CB2B: ruwi::parse::parse_result (mod.rs:30)
+           n1: 26655 0x1FCE55: ruwi::runner::wifi::utils::scan_and_select_network (utils.rs:30)
+            n1: 26655 0x1B31E9: ruwi::runner::wifi::connect::<impl ruwi::runner::Runner for ruwi::options::wifi::connect::WifiConnectOptions>::run (connect.rs:22)
+             n1: 26655 0x1A641F: ruwi::options::command::RuwiCommand::run (command.rs:33)
+              n1: 26655 0x143C6C: ruwi::run_ruwi_cli (lib.rs:86)
+               n1: 26655 0x1434CC: ruwi::main (main.rs:8)
+                n1: 26655 0x14348F: std::rt::lang_start::{{closure}} (rt.rs:67)
+                 n1: 26655 0x3B7402: {{closure}} (rt.rs:52)
+                  n1: 26655 0x3B7402: std::panicking::try::do_call (panicking.rs:305)
+                   n1: 26655 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                    n1: 26655 0x3B7DDF: try<i32,closure-0> (panicking.rs:281)
+                     n1: 26655 0x3B7DDF: catch_unwind<closure-0,i32> (panic.rs:394)
+                      n1: 26655 0x3B7DDF: std::rt::lang_start_internal (rt.rs:51)
+                       n1: 26655 0x143468: std::rt::lang_start (rt.rs:67)
+                        n0: 26655 0x143A09: main (in /home/glenn/ruwi/target/debug/ruwi)
+      n0: 731 in 2 places, all below massif's threshold (1.00%)
+   n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 6368 0x157F0C: alloc::alloc::realloc (alloc.rs:125)
+  n2: 6368 0x157CD5: <alloc::alloc::Global as core::alloc::Alloc>::realloc (alloc.rs:184)
+   n1: 5632 0x1E6062: alloc::raw_vec::RawVec<T,A>::reserve_internal (raw_vec.rs:659)
+    n1: 5632 0x1E90C9: alloc::raw_vec::RawVec<T,A>::reserve (raw_vec.rs:485)
+     n1: 5632 0x174BA9: alloc::vec::Vec<T>::reserve (vec.rs:493)
+      n1: 5632 0x174854: alloc::vec::Vec<T>::push (vec.rs:1166)
+       n1: 5632 0x15E23E: ruwi::parse::parse_iw_scan (mod.rs:60)
+        n1: 5632 0x15CB2B: ruwi::parse::parse_result (mod.rs:30)
+         n1: 5632 0x1FCE55: ruwi::runner::wifi::utils::scan_and_select_network (utils.rs:30)
+          n1: 5632 0x1B31E9: ruwi::runner::wifi::connect::<impl ruwi::runner::Runner for ruwi::options::wifi::connect::WifiConnectOptions>::run (connect.rs:22)
+           n1: 5632 0x1A641F: ruwi::options::command::RuwiCommand::run (command.rs:33)
+            n1: 5632 0x143C6C: ruwi::run_ruwi_cli (lib.rs:86)
+             n1: 5632 0x1434CC: ruwi::main (main.rs:8)
+              n1: 5632 0x14348F: std::rt::lang_start::{{closure}} (rt.rs:67)
+               n1: 5632 0x3B7402: {{closure}} (rt.rs:52)
+                n1: 5632 0x3B7402: std::panicking::try::do_call (panicking.rs:305)
+                 n1: 5632 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                  n1: 5632 0x3B7DDF: try<i32,closure-0> (panicking.rs:281)
+                   n1: 5632 0x3B7DDF: catch_unwind<closure-0,i32> (panic.rs:394)
+                    n1: 5632 0x3B7DDF: std::rt::lang_start_internal (rt.rs:51)
+                     n1: 5632 0x143468: std::rt::lang_start (rt.rs:67)
+                      n0: 5632 0x143A09: main (in /home/glenn/ruwi/target/debug/ruwi)
+   n0: 736 in 3 places, all below massif's threshold (1.00%)
+ n2: 5056 0x157E3B: alloc::alloc::alloc (alloc.rs:81)
+  n2: 4816 0x157C11: <alloc::alloc::Global as core::alloc::Alloc>::alloc (alloc.rs:169)
+   n1: 4816 0x1E7486: alloc::raw_vec::RawVec<T,A>::reserve_internal (raw_vec.rs:661)
+    n1: 4816 0x1E8F69: alloc::raw_vec::RawVec<T,A>::reserve (raw_vec.rs:485)
+     n2: 4816 0x174C69: alloc::vec::Vec<T>::reserve (vec.rs:493)
+      n1: 4816 0x177429: <alloc::vec::Vec<T> as alloc::vec::SpecExtend<T,I>>::spec_extend (vec.rs:2050)
+       n1: 4816 0x177BAB: <alloc::vec::Vec<T> as alloc::vec::SpecExtend<T,I>>::from_iter (vec.rs:2034)
+        n1: 4816 0x17C4BD: <alloc::vec::Vec<T> as core::iter::traits::collect::FromIterator<T>>::from_iter (vec.rs:1919)
+         n1: 4816 0x1AE090: core::iter::traits::iterator::Iterator::collect (iterator.rs:1558)
+          n1: 4816 0x202A3F: ruwi::annotate_networks::annotate_networks (annotate_networks.rs:15)
+           n1: 4816 0x1FD04B: ruwi::runner::wifi::utils::scan_and_select_network (utils.rs:33)
+            n1: 4816 0x1B31E9: ruwi::runner::wifi::connect::<impl ruwi::runner::Runner for ruwi::options::wifi::connect::WifiConnectOptions>::run (connect.rs:22)
+             n1: 4816 0x1A641F: ruwi::options::command::RuwiCommand::run (command.rs:33)
+              n1: 4816 0x143C6C: ruwi::run_ruwi_cli (lib.rs:86)
+               n1: 4816 0x1434CC: ruwi::main (main.rs:8)
+                n1: 4816 0x14348F: std::rt::lang_start::{{closure}} (rt.rs:67)
+                 n1: 4816 0x3B7402: {{closure}} (rt.rs:52)
+                  n1: 4816 0x3B7402: std::panicking::try::do_call (panicking.rs:305)
+                   n1: 4816 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                    n1: 4816 0x3B7DDF: try<i32,closure-0> (panicking.rs:281)
+                     n1: 4816 0x3B7DDF: catch_unwind<closure-0,i32> (panic.rs:394)
+                      n1: 4816 0x3B7DDF: std::rt::lang_start_internal (rt.rs:51)
+                       n1: 4816 0x143468: std::rt::lang_start (rt.rs:67)
+                        n0: 4816 0x143A09: main (in /home/glenn/ruwi/target/debug/ruwi)
+      n0: 0 in 1 place, below massif's threshold (1.00%)
+   n0: 0 in 4 places, all below massif's threshold (1.00%)
+  n0: 240 in 2 places, all below massif's threshold (1.00%)
+ n0: 2904 in 34 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=58
+#-----------
+time=19244782
+mem_heap_B=176089
+mem_heap_extra_B=3767
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=59
+#-----------
+time=19274524
+mem_heap_B=176510
+mem_heap_extra_B=3730
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=60
+#-----------
+time=19303065
+mem_heap_B=176490
+mem_heap_extra_B=3750
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=61
+#-----------
+time=19336028
+mem_heap_B=176690
+mem_heap_extra_B=3742
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=62
+#-----------
+time=19367484
+mem_heap_B=177580
+mem_heap_extra_B=3700
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=63
+#-----------
+time=19395864
+mem_heap_B=177572
+mem_heap_extra_B=3724
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=64
+#-----------
+time=19423976
+mem_heap_B=177566
+mem_heap_extra_B=3730
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=65
+#-----------
+time=19498817
+mem_heap_B=177962
+mem_heap_extra_B=3710
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=66
+#-----------
+time=19529699
+mem_heap_B=179781
+mem_heap_extra_B=3771
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=67
+#-----------
+time=19559443
+mem_heap_B=179813
+mem_heap_extra_B=3843
+mem_stacks_B=0
+heap_tree=detailed
+n5: 179813 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 134051 0x3D1564: alloc (alloc.rs:81)
+  n1: 134051 0x3D1564: alloc (alloc.rs:169)
+   n1: 134051 0x3D1564: allocate_in<u8,alloc::alloc::Global> (raw_vec.rs:88)
+    n1: 134051 0x3D1564: with_capacity<u8> (raw_vec.rs:140)
+     n1: 134051 0x3D1564: with_capacity<u8> (vec.rs:355)
+      n1: 134051 0x3D1564: to_vec<u8> (slice.rs:158)
+       n1: 134051 0x3D1564: to_vec<u8> (slice.rs:394)
+        n1: 134051 0x3D1564: to_owned<u8> (slice.rs:727)
+         n1: 134051 0x3D1564: to_owned (str.rs:205)
+          n1: 134051 0x3D1564: into_owned<str> (borrow.rs:314)
+           n1: 134051 0x3D1564: <alloc::string::String as core::convert::From<alloc::borrow::Cow<str>>>::from (string.rs:2281)
+            n1: 134051 0x1F1728: <T as core::convert::Into<U>>::into (mod.rs:558)
+             n1: 134051 0x1D9BFB: ruwi::wifi_scan::get_scan_contents_from_file (mod.rs:99)
+              n1: 134051 0x1D84F6: ruwi::wifi_scan::wifi_scan (mod.rs:52)
+               n1: 134051 0x1FEE1C: ruwi::runner::wifi::utils::gather_wifi_network_data::{{closure}} (utils.rs:64)
+                n1: 134051 0x203439: std::sys_common::backtrace::__rust_begin_short_backtrace (backtrace.rs:129)
+                 n1: 134051 0x1EB7DA: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}} (mod.rs:475)
+                  n1: 134051 0x204618: <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once (panic.rs:318)
+                   n1: 134051 0x2080FA: std::panicking::try::do_call (panicking.rs:305)
+                    n1: 134051 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                     n1: 134051 0x207EC7: std::panicking::try (panicking.rs:281)
+                      n1: 134051 0x20469A: std::panic::catch_unwind (panic.rs:394)
+                       n1: 134051 0x1EAF16: std::thread::Builder::spawn_unchecked::{{closure}} (mod.rs:474)
+                        n1: 134051 0x1513E3: core::ops::function::FnOnce::call_once{{vtable-shim}} (function.rs:232)
+                         n1: 134051 0x3AC14E: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once (boxed.rs:1015)
+                          n1: 134051 0x3BE26F: call_once<(),alloc::boxed::Box<FnOnce<()>>> (boxed.rs:1015)
+                           n1: 134051 0x3BE26F: start_thread (thread.rs:13)
+                            n1: 134051 0x3BE26F: std::sys::unix::thread::Thread::new::thread_start (thread.rs:80)
+                             n1: 134051 0x489046E: start_thread (in /usr/lib/libpthread-2.31.so)
+                              n0: 134051 0x49C23D2: clone (in /usr/lib/libc-2.31.so)
+ n1: 27386 0x391B7B: alloc::alloc::alloc (alloc.rs:81)
+  n2: 27386 0x391951: <alloc::alloc::Global as core::alloc::Alloc>::alloc (alloc.rs:169)
+   n1: 27386 0x38B27D: alloc::raw_vec::RawVec<T,A>::allocate_in (raw_vec.rs:88)
+    n1: 27386 0x38B095: alloc::raw_vec::RawVec<T>::with_capacity (raw_vec.rs:140)
+     n2: 27386 0x394A03: alloc::vec::Vec<T>::with_capacity (vec.rs:355)
+      n1: 26655 0x2FF312: alloc::str::join_generic_copy (str.rs:164)
+       n1: 26655 0x30111A: alloc::str::<impl alloc::slice::Join<&str> for [S]>::join (str.rs:89)
+        n1: 26655 0x316BB8: alloc::slice::<impl [T]>::join (slice.rs:528)
+         n1: 26655 0x15E298: ruwi::parse::parse_iw_scan (mod.rs:61)
+          n1: 26655 0x15CB2B: ruwi::parse::parse_result (mod.rs:30)
+           n1: 26655 0x1FCE55: ruwi::runner::wifi::utils::scan_and_select_network (utils.rs:30)
+            n1: 26655 0x1B31E9: ruwi::runner::wifi::connect::<impl ruwi::runner::Runner for ruwi::options::wifi::connect::WifiConnectOptions>::run (connect.rs:22)
+             n1: 26655 0x1A641F: ruwi::options::command::RuwiCommand::run (command.rs:33)
+              n1: 26655 0x143C6C: ruwi::run_ruwi_cli (lib.rs:86)
+               n1: 26655 0x1434CC: ruwi::main (main.rs:8)
+                n1: 26655 0x14348F: std::rt::lang_start::{{closure}} (rt.rs:67)
+                 n1: 26655 0x3B7402: {{closure}} (rt.rs:52)
+                  n1: 26655 0x3B7402: std::panicking::try::do_call (panicking.rs:305)
+                   n1: 26655 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                    n1: 26655 0x3B7DDF: try<i32,closure-0> (panicking.rs:281)
+                     n1: 26655 0x3B7DDF: catch_unwind<closure-0,i32> (panic.rs:394)
+                      n1: 26655 0x3B7DDF: std::rt::lang_start_internal (rt.rs:51)
+                       n1: 26655 0x143468: std::rt::lang_start (rt.rs:67)
+                        n0: 26655 0x143A09: main (in /home/glenn/ruwi/target/debug/ruwi)
+      n0: 731 in 2 places, all below massif's threshold (1.00%)
+   n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 9728 0x157F0C: alloc::alloc::realloc (alloc.rs:125)
+  n3: 9728 0x157CD5: <alloc::alloc::Global as core::alloc::Alloc>::realloc (alloc.rs:184)
+   n1: 5632 0x1E6062: alloc::raw_vec::RawVec<T,A>::reserve_internal (raw_vec.rs:659)
+    n1: 5632 0x1E90C9: alloc::raw_vec::RawVec<T,A>::reserve (raw_vec.rs:485)
+     n1: 5632 0x174BA9: alloc::vec::Vec<T>::reserve (vec.rs:493)
+      n1: 5632 0x174854: alloc::vec::Vec<T>::push (vec.rs:1166)
+       n1: 5632 0x15E23E: ruwi::parse::parse_iw_scan (mod.rs:60)
+        n1: 5632 0x15CB2B: ruwi::parse::parse_result (mod.rs:30)
+         n1: 5632 0x1FCE55: ruwi::runner::wifi::utils::scan_and_select_network (utils.rs:30)
+          n1: 5632 0x1B31E9: ruwi::runner::wifi::connect::<impl ruwi::runner::Runner for ruwi::options::wifi::connect::WifiConnectOptions>::run (connect.rs:22)
+           n1: 5632 0x1A641F: ruwi::options::command::RuwiCommand::run (command.rs:33)
+            n1: 5632 0x143C6C: ruwi::run_ruwi_cli (lib.rs:86)
+             n1: 5632 0x1434CC: ruwi::main (main.rs:8)
+              n1: 5632 0x14348F: std::rt::lang_start::{{closure}} (rt.rs:67)
+               n1: 5632 0x3B7402: {{closure}} (rt.rs:52)
+                n1: 5632 0x3B7402: std::panicking::try::do_call (panicking.rs:305)
+                 n1: 5632 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                  n1: 5632 0x3B7DDF: try<i32,closure-0> (panicking.rs:281)
+                   n1: 5632 0x3B7DDF: catch_unwind<closure-0,i32> (panic.rs:394)
+                    n1: 5632 0x3B7DDF: std::rt::lang_start_internal (rt.rs:51)
+                     n1: 5632 0x143468: std::rt::lang_start (rt.rs:67)
+                      n0: 5632 0x143A09: main (in /home/glenn/ruwi/target/debug/ruwi)
+   n1: 3584 0x1E7532: alloc::raw_vec::RawVec<T,A>::reserve_internal (raw_vec.rs:659)
+    n1: 3584 0x1E8F69: alloc::raw_vec::RawVec<T,A>::reserve (raw_vec.rs:485)
+     n1: 3584 0x174C69: alloc::vec::Vec<T>::reserve (vec.rs:493)
+      n1: 3584 0x174534: alloc::vec::Vec<T>::push (vec.rs:1166)
+       n1: 3584 0x15A3CE: ruwi::sort_networks::SortedFilteredNetworks<N>::dedup_networks (sort_networks.rs:48)
+        n1: 3584 0x159FC4: ruwi::sort_networks::SortedFilteredNetworks<N>::new (sort_networks.rs:27)
+         n1: 3584 0x1FD0E8: ruwi::runner::wifi::utils::scan_and_select_network (utils.rs:40)
+          n1: 3584 0x1B31E9: ruwi::runner::wifi::connect::<impl ruwi::runner::Runner for ruwi::options::wifi::connect::WifiConnectOptions>::run (connect.rs:22)
+           n1: 3584 0x1A641F: ruwi::options::command::RuwiCommand::run (command.rs:33)
+            n1: 3584 0x143C6C: ruwi::run_ruwi_cli (lib.rs:86)
+             n1: 3584 0x1434CC: ruwi::main (main.rs:8)
+              n1: 3584 0x14348F: std::rt::lang_start::{{closure}} (rt.rs:67)
+               n1: 3584 0x3B7402: {{closure}} (rt.rs:52)
+                n1: 3584 0x3B7402: std::panicking::try::do_call (panicking.rs:305)
+                 n1: 3584 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                  n1: 3584 0x3B7DDF: try<i32,closure-0> (panicking.rs:281)
+                   n1: 3584 0x3B7DDF: catch_unwind<closure-0,i32> (panic.rs:394)
+                    n1: 3584 0x3B7DDF: std::rt::lang_start_internal (rt.rs:51)
+                     n1: 3584 0x143468: std::rt::lang_start (rt.rs:67)
+                      n0: 3584 0x143A09: main (in /home/glenn/ruwi/target/debug/ruwi)
+   n0: 512 in 2 places, all below massif's threshold (1.00%)
+ n2: 5752 0x157E3B: alloc::alloc::alloc (alloc.rs:81)
+  n2: 4816 0x157C11: <alloc::alloc::Global as core::alloc::Alloc>::alloc (alloc.rs:169)
+   n1: 4816 0x1E7486: alloc::raw_vec::RawVec<T,A>::reserve_internal (raw_vec.rs:661)
+    n1: 4816 0x1E8F69: alloc::raw_vec::RawVec<T,A>::reserve (raw_vec.rs:485)
+     n2: 4816 0x174C69: alloc::vec::Vec<T>::reserve (vec.rs:493)
+      n1: 4816 0x177429: <alloc::vec::Vec<T> as alloc::vec::SpecExtend<T,I>>::spec_extend (vec.rs:2050)
+       n1: 4816 0x177BAB: <alloc::vec::Vec<T> as alloc::vec::SpecExtend<T,I>>::from_iter (vec.rs:2034)
+        n1: 4816 0x17C4BD: <alloc::vec::Vec<T> as core::iter::traits::collect::FromIterator<T>>::from_iter (vec.rs:1919)
+         n1: 4816 0x1AE090: core::iter::traits::iterator::Iterator::collect (iterator.rs:1558)
+          n1: 4816 0x202A3F: ruwi::annotate_networks::annotate_networks (annotate_networks.rs:15)
+           n1: 4816 0x1FD04B: ruwi::runner::wifi::utils::scan_and_select_network (utils.rs:33)
+            n1: 4816 0x1B31E9: ruwi::runner::wifi::connect::<impl ruwi::runner::Runner for ruwi::options::wifi::connect::WifiConnectOptions>::run (connect.rs:22)
+             n1: 4816 0x1A641F: ruwi::options::command::RuwiCommand::run (command.rs:33)
+              n1: 4816 0x143C6C: ruwi::run_ruwi_cli (lib.rs:86)
+               n1: 4816 0x1434CC: ruwi::main (main.rs:8)
+                n1: 4816 0x14348F: std::rt::lang_start::{{closure}} (rt.rs:67)
+                 n1: 4816 0x3B7402: {{closure}} (rt.rs:52)
+                  n1: 4816 0x3B7402: std::panicking::try::do_call (panicking.rs:305)
+                   n1: 4816 0x3BEC36: __rust_maybe_catch_panic (lib.rs:86)
+                    n1: 4816 0x3B7DDF: try<i32,closure-0> (panicking.rs:281)
+                     n1: 4816 0x3B7DDF: catch_unwind<closure-0,i32> (panic.rs:394)
+                      n1: 4816 0x3B7DDF: std::rt::lang_start_internal (rt.rs:51)
+                       n1: 4816 0x143468: std::rt::lang_start (rt.rs:67)
+                        n0: 4816 0x143A09: main (in /home/glenn/ruwi/target/debug/ruwi)
+      n0: 0 in 1 place, below massif's threshold (1.00%)
+   n0: 0 in 4 places, all below massif's threshold (1.00%)
+  n0: 936 in 2 places, all below massif's threshold (1.00%)
+ n0: 2896 in 34 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=68
+#-----------
+time=19587647
+mem_heap_B=179802
+mem_heap_extra_B=3854
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=69
+#-----------
+time=19619411
+mem_heap_B=179698
+mem_heap_extra_B=3742
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=70
+#-----------
+time=19648481
+mem_heap_B=179658
+mem_heap_extra_B=3678
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=71
+#-----------
+time=19677329
+mem_heap_B=179690
+mem_heap_extra_B=3734
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=72
+#-----------
+time=19705094
+mem_heap_B=173581
+mem_heap_extra_B=3019
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=73
+#-----------
+time=19733026
+mem_heap_B=169021
+mem_heap_extra_B=1619
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=74
+#-----------
+time=19760929
+mem_heap_B=145824
+mem_heap_extra_B=400
+mem_stacks_B=0
+heap_tree=empty

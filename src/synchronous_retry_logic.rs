@@ -52,15 +52,15 @@ mod tests {
         vec![
             AnnotatedWirelessNetwork::builder()
                 .essid("first_nw")
-                .service_identifier(Some("first_service_id".to_string()))
+                .service_identifier(NetworkServiceIdentifier::netctl_nw("first_service_id"))
             .build(),
             AnnotatedWirelessNetwork::builder()
                 .essid("second_nw")
-                .service_identifier(Some("second_service_id".to_string()))
+                .service_identifier(NetworkServiceIdentifier::netctl_nw("second_service_id"))
             .build(),
             AnnotatedWirelessNetwork::builder()
                 .essid("third_nw")
-                .service_identifier(Some("third_service_id".to_string()))
+                .service_identifier(NetworkServiceIdentifier::netctl_nw("third_service_id"))
             .build(),
         ]
     }

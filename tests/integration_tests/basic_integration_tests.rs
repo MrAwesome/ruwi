@@ -3,8 +3,6 @@ use rexpect::{spawn, spawn_bash};
 
 use super::utils::*;
 
-use ruwi::interface_management::ip_interfaces::FAKE_INTERFACE_NAME;
-
 #[test]
 fn test_cli_help() -> Result<()> {
     let mut p = spawn(&get_dryrun_cmd_with_args("--help"), Some(20))?;
@@ -45,10 +43,10 @@ fn test_print_given_essid() -> Result<()> {
 
 #[test]
 fn test_wired_connect() -> Result<()> {
-    let mut p = spawn_dryrun("wired connect -c dhcpcd")?;
+    let mut p = spawn_dryrun("wired -i DONALD connect -c dhcpcd")?;
     p.exp_string(&format!(
         "Successfully connected on \"{}\" using {}",
-        FAKE_INTERFACE_NAME, "dhcpcd"
+        "DONALD", "dhcpcd"
     ))?;
     Ok(())
 }

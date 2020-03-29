@@ -78,7 +78,7 @@ mod tests {
         let nw = AnnotatedWirelessNetwork::builder()
             .essid("MADE_UP")
             .is_encrypted(true)
-            .service_identifier(Some("I_AM_KNOWN".to_string()))
+            .service_identifier(NetworkServiceIdentifier::netctl_nw("I_AM_KNOWN"))
             .build();
         let output = possibly_get_encryption_key_impl(&options, &nw, should_not_run)?;
         if let Some(_pw) = output {

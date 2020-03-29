@@ -90,7 +90,7 @@ where
     let is_encrypted = options.get_given_encryption_key().is_some();
     Ok(AnnotatedWirelessNetwork::from_essid(
         essid.into(),
-        existing_network_identifier,
+        existing_network_identifier.map(Clone::clone),
         is_encrypted,
     ))
 }

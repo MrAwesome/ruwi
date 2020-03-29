@@ -67,7 +67,7 @@ pub trait Identifiable {
 
 pub trait Known {
     fn is_known(&self) -> bool;
-    fn get_service_identifier(&self) -> Option<&String>;
+    fn get_service_identifier(&self) -> Option<&NetworkServiceIdentifier>;
 }
 
 pub trait Selectable {
@@ -78,7 +78,7 @@ pub trait Selectable {
 // associated type defined everywhere it is used, since associated trait
 // bounds are unstable right now (Q1 2020).
 pub trait Annotated<T>: Known + Debug {
-    fn from_nw(nw: T, service_identifier: Option<&str>) -> Self;
+    fn from_nw(nw: T, service_identifier: Option<&NetworkServiceIdentifier>) -> Self;
 }
 
 pub trait RuwiNetwork: Identifiable + Debug + Clone {}

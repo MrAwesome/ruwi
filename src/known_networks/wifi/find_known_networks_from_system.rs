@@ -74,7 +74,7 @@ where
     ).run_command_pass_stdout(
         RuwiErrorKind::FailedToListKnownNetworksWithNetworkManager,
         "Failed to list known networks with NetworkManager. Try running `nmcli -g NAME connection show`.",
-    ).map(|x| x.lines().map(|x| (x.to_string(), x.to_string())).collect());
+    ).map(|x| x.lines().map(|x| (x.to_string(), NetworkServiceIdentifier::NetworkManager)).collect());
     NetworkingService::NetworkManager.stop(options)?;
     output
 }
@@ -94,7 +94,7 @@ fn find_known_netctl_networks() -> io::Result<UnparsedKnownNetworkNamesAndIdenti
             .filter_map(|essid_entry| {
                 if let Some((essid, identifier)) = essid_entry {
                     let escaped_essid = unescape(&essid).unwrap_or(essid);
-                    Some((escaped_essid, identifier))
+                    Some((escaped_essid, NetworkServiceIdentifier::Netctl(identifier)))
                 } else {
                     None
                 }

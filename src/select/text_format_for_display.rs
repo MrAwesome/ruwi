@@ -37,6 +37,7 @@ impl AnnotatedWirelessNetwork {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::enums::*;
 
     fn verify_display_strength_and_tags(
         is_known: bool,
@@ -45,7 +46,7 @@ mod tests {
     ) {
         let essid = "YEEEEEEE".to_string();
         let service_identifier = if is_known {
-            Some("is_known_nw".to_string())
+            NetworkServiceIdentifier::netctl_nw("is_known_nw")
         } else {
             None
         };

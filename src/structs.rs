@@ -52,7 +52,7 @@ pub struct AnnotatedWirelessNetwork {
     #[builder(default = false)]
     is_encrypted: bool,
     #[builder(default = None)]
-    service_identifier: Option<String>,
+    service_identifier: Option<NetworkServiceIdentifier>,
     #[builder(default = None)]
     bssid: Option<String>,
     #[builder(default = None)]
@@ -62,13 +62,13 @@ pub struct AnnotatedWirelessNetwork {
 }
 
 impl Annotated<WirelessNetwork> for AnnotatedWirelessNetwork {
-    fn from_nw(nw: WirelessNetwork, service_identifier: Option<&str>) -> Self {
+    fn from_nw(nw: WirelessNetwork, service_identifier: Option<&NetworkServiceIdentifier>) -> Self {
         let essid = nw.essid;
         let is_encrypted = nw.is_encrypted;
         let bssid = nw.bssid;
         let signal_strength = nw.signal_strength;
         let channel_utilisation = nw.channel_utilisation;
-        let service_identifier = service_identifier.map(String::from);
+        let service_identifier = service_identifier.map(Clone::clone);
         Self {
             essid,
             service_identifier,
@@ -94,18 +94,18 @@ impl AnnotatedWirelessNetwork {
         self.channel_utilisation.as_ref()
     }
 
-    pub fn from_essid(essid: String, service_identifier: Option<&str>, is_encrypted: bool) -> Self {
+    pub fn from_essid(essid: String, service_identifier: Option<NetworkServiceIdentifier>, is_encrypted: bool) -> Self {
         Self::builder()
             .essid(essid)
-            .service_identifier(service_identifier.map(String::from))
+            .service_identifier(service_identifier)
             .is_encrypted(is_encrypted)
             .build()
     }
 }
 
-#[cfg(test)]
 impl AnnotatedWirelessNetwork {
-    pub(crate) fn set_service_identifier_for_tests(&mut self, service_identifier: Option<String>) {
+    #[cfg(test)]
+    pub(crate) fn set_service_identifier_for_tests(&mut self, service_identifier: Option<NetworkServiceIdentifier>) {
         self.service_identifier = service_identifier
     }
 }
@@ -126,7 +126,7 @@ impl Known for AnnotatedWirelessNetwork {
     fn is_known(&self) -> bool {
         self.service_identifier.is_some()
     }
-    fn get_service_identifier(&self) -> Option<&String> {
+    fn get_service_identifier(&self) -> Option<&NetworkServiceIdentifier> {
         self.service_identifier.as_ref()
     }
 }

@@ -1,6 +1,6 @@
-use crate::interface_management::ip_interfaces::*;
 use crate::enums::*;
 use crate::errors::*;
+use crate::interface_management::ip_interfaces::*;
 use crate::options::interfaces::*;
 use crate::run_commands::SystemCommandRunner;
 use crate::structs::*;
@@ -22,13 +22,15 @@ where
         conn_type @ WifiConnectionType::None => {
             eprintln!(
                 "[NOTE]: Running in `{}` connection mode, so will not connect to: \"{}\"",
-                conn_type, &selected_network.get_public_name()
+                conn_type,
+                &selected_network.get_public_name()
             );
         }
         conn_type @ WifiConnectionType::Netctl | conn_type @ WifiConnectionType::Nmcli => {
             eprintln!(
                 "[NOTE]: Attempting to use {} to connect to: \"{}\"",
-                conn_type, &selected_network.get_public_name()
+                conn_type,
+                &selected_network.get_public_name()
             );
         }
     }
@@ -62,7 +64,8 @@ where
             conn_type @ WifiConnectionType::None => {
                 eprintln!(
                     "[NOTE]: Running in `{}` connection mode, so did not connect to: \"{}\"",
-                    conn_type, &selected_network.get_public_name()
+                    conn_type,
+                    &selected_network.get_public_name()
                 );
             }
             WifiConnectionType::Print => {}
@@ -112,24 +115,24 @@ where
 
     let todo = "move into helper function";
     let netctl_file_name = match selected_network.get_service_identifier() {
-        Some(file_name) => file_name.to_string(),
+        Some(service_id) => match service_id {
+            NetworkServiceIdentifier::Netctl(file_name) => Ok(file_name.to_string()),
+            _ => Err(rerr!(RuwiErrorKind::InvalidServiceIdentifierType, "Invalid service identifier type for ID {}! This usually indicates a breaking code change, and should be reported to the authors."))
+        }?,
         None => selected_network.get_public_name().replace(" ", "_")
     };
 
-    SystemCommandRunner::new( 
-        options,
-        "netctl",
-        &["switch-to", &netctl_file_name],
-    ).run_command_pass(
-        RuwiErrorKind::FailedToConnectViaNetctl,
-        &format!(
-            "Failed to connect to \"{}\" via netctl!",
-            selected_network.get_public_name()
-        ),
-    )
-    .map(|_| ConnectionResult {
-        connection_type: WifiConnectionType::Netctl,
-    })
+    SystemCommandRunner::new(options, "netctl", &["switch-to", &netctl_file_name])
+        .run_command_pass(
+            RuwiErrorKind::FailedToConnectViaNetctl,
+            &format!(
+                "Failed to connect to \"{}\" via netctl!",
+                selected_network.get_public_name()
+            ),
+        )
+        .map(|_| ConnectionResult {
+            connection_type: WifiConnectionType::Netctl,
+        })
 }
 
 fn connect_via_networkmanager<O>(
@@ -151,9 +154,15 @@ where
 
     // Refresh NetworkManager's list of known networks, otherwise the connect will
     // fail if we've scanned using another method.
-    SystemCommandRunner::new(options, "nmcli", &["device", "wifi", "list"]).run_command_status_dumb();
+    SystemCommandRunner::new(options, "nmcli", &["device", "wifi", "list"])
+        .run_command_status_dumb();
 
-    let args = vec!["device", "wifi", "connect", &selected_network.get_public_name()];
+    let args = vec![
+        "device",
+        "wifi",
+        "connect",
+        &selected_network.get_public_name(),
+    ];
     let args = if let Some(pw) = encryption_key {
         let pw_args = vec!["password", pw];
         args.into_iter().chain(pw_args).collect()
@@ -161,17 +170,14 @@ where
         args
     };
 
-    SystemCommandRunner::new( 
-        options,
-        "nmcli",
-        &args,
-    ).run_command_pass(
-        RuwiErrorKind::FailedToConnectViaNetworkManager,
-        "Failed to connect to \"{}\" using nmcli!",
-    )
-    .map(|_| ConnectionResult {
-        connection_type: WifiConnectionType::Nmcli,
-    })
+    SystemCommandRunner::new(options, "nmcli", &args)
+        .run_command_pass(
+            RuwiErrorKind::FailedToConnectViaNetworkManager,
+            "Failed to connect to \"{}\" using nmcli!",
+        )
+        .map(|_| ConnectionResult {
+            connection_type: WifiConnectionType::Nmcli,
+        })
 }
 
 #[cfg(test)]

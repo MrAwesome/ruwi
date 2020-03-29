@@ -188,7 +188,7 @@ fn parse_wpa_cli_scan<O>(
 where
     O: Global,
 {
-    let mut lines = output.trim().lines().map(ToString::to_string);
+    let mut lines = output.trim().lines();
     let mut networks = vec![];
     let mut line_parse_errors = vec![];
 
@@ -199,7 +199,7 @@ where
         let res = parse_wpa_line_into_network(&line);
         match res {
             Ok(nw) => networks.push(nw),
-            Err(err) => line_parse_errors.push((line, err)),
+            Err(err) => line_parse_errors.push((line.to_string(), err)),
         };
     }
 
@@ -240,8 +240,7 @@ fn parse_wpa_line_into_network(line: &str) -> Result<WirelessNetwork, Individual
 
     // NOTE: Broken for SSIDs with multiple sequential spaces, or trailing whitespace
     let essid = fields
-        .map(ToString::to_string)
-        .collect::<Vec<String>>()
+        .collect::<Vec<&str>>()
         .join(" ");
 
     let is_encrypted = flags.contains("WPA");

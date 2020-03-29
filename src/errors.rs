@@ -42,6 +42,7 @@ pub enum RuwiErrorKind {
     IWSynchronousScanRanOutOfRetries,
     InvalidScanTypeAndConnectType,
     InvalidScanTypeAndMethod,
+    InvalidServiceIdentifierType,
     InvalidSubcommand,
     KnownNetworksFetchError,
     LoopProtectionMaxExceeded,

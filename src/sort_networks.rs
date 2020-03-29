@@ -72,6 +72,7 @@ impl PartialOrd for AnnotatedWirelessNetwork {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::enums::*;
 
     fn compare_order(
         should_be_first: AnnotatedWirelessNetwork,
@@ -104,7 +105,7 @@ mod tests {
     fn test_known_higher_than_unknown() {
         let known = AnnotatedWirelessNetwork::builder()
             .essid("Valparaiso_Guest_House 1".to_string())
-            .service_identifier(Some("some_id".to_string()))
+            .service_identifier(NetworkServiceIdentifier::netctl_nw("some_id"))
         .build();
 
         let not_known = AnnotatedWirelessNetwork::builder()
@@ -119,7 +120,7 @@ mod tests {
     fn test_known_higher_than_unknown_with_higher_signal() {
         let known = AnnotatedWirelessNetwork::builder()
             .essid("Valparaiso_Guest_House 1".to_string())
-            .service_identifier(Some("some_id".to_string()))
+            .service_identifier(NetworkServiceIdentifier::netctl_nw("some_id"))
             .signal_strength(Some(-80))
         .build();
 

@@ -1,1 +1,1 @@
-pub mod ip_interfaces;
+pub(crate) mod ip_interfaces;

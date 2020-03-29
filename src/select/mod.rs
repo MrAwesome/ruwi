@@ -226,13 +226,13 @@ mod tests {
 
     fn get_3_networks_first_known() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
         let mut networks = get_3_networks();
-        networks.get_networks_mut()[0].set_service_identifier_for_tests(Some("some_id".to_string()));
+        networks.get_networks_mut()[0].set_service_identifier_for_tests(NetworkServiceIdentifier::netctl_nw("some_id"));
         networks
     }
 
     fn get_3_networks_last_known() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
         let mut networks = get_3_networks();
-        networks.get_networks_mut()[2].set_service_identifier_for_tests(Some("some_id".to_string()));
+        networks.get_networks_mut()[2].set_service_identifier_for_tests(NetworkServiceIdentifier::netctl_nw("some_id"));
         networks
     }
 
@@ -362,9 +362,9 @@ mod tests {
     #[test]
     fn test_get_tokens_for_selection() {
         let networks = SortedFilteredNetworks::new(vec![
-            AnnotatedWirelessNetwork::from_essid("FAKE NEWS LOL OK".to_string(), Some("some_id"), true),
+            AnnotatedWirelessNetwork::from_essid("FAKE NEWS LOL OK".to_string(), NetworkServiceIdentifier::netctl_nw("some_id"), true),
             AnnotatedWirelessNetwork::from_essid("WOWWW OK FACEBO".to_string(), None, true),
-            AnnotatedWirelessNetwork::from_essid("LOOK, DISCOURSE".to_string(), Some("some_id"), false),
+            AnnotatedWirelessNetwork::from_essid("LOOK, DISCOURSE".to_string(), NetworkServiceIdentifier::netctl_nw("some_id"), false),
             AnnotatedWirelessNetwork::from_essid("UWU MAMMMAAAAA".to_string(), None, false),
         ]);
         let tokens = networks.get_tokens_for_selection();

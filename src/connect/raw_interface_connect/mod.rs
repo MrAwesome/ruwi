@@ -81,6 +81,7 @@ impl<'a, O: Global, T: LinuxIPInterface> RawInterfaceConnector<'a, O, T> {
         )
     }
 
+    // TODO: unit test? integration test?
     fn netctl_connect(&self) -> Result<(), RuwiError> {
         NetworkingService::Netctl.start(self.options)?;
 

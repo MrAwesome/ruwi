@@ -32,7 +32,7 @@ pub(crate) mod encryption_key;
 pub(crate) mod enums;
 pub mod errors;
 // TODO: instead of making this public, have a "public constants" module
-pub mod interface_management;
+pub(crate) mod interface_management;
 pub(crate) mod known_networks;
 pub(crate) mod netctl_config_writer;
 pub(crate) mod options;
@@ -57,7 +57,6 @@ use errors::RuwiError;
 // Arch optional dependencies: dmenu, NetworkManager, fzf
 
 // TODO(high): make 'ruwi' with no arguments still go through system checks
-// TODO(high): make external command-running sudo-safe? maybe it's not an issue, but it seems like someone can add an e.g. "fzf" binary in ~/bin while someone doesn't have fzf installed, and run arbitrary code as root
 // TODO(high): include netctl profile name with annotated wired/wireless networks, for connecting to known networks with non-ruwified names - have known netctl networks return essid + config name, for matching/annotation with config name
 // TODO(high): implement Selectable for netctl profiles, for wired connections (and wifi as well, since that seems like a reasonable use case)
 // TODO(high): `clear` should be `wifi clear`? or at least call into it? i guess wired and wireless may use the same services. bluetooth also will have services i suppose. should ip/bt be different service types?

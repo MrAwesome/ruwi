@@ -33,6 +33,7 @@ where
 mod tests {
     use super::*;
     use crate::options::wifi::connect::WifiConnectOptions;
+    use crate::enums::*;
     use crate::structs::*;
 
     #[test]
@@ -49,7 +50,7 @@ mod tests {
         let nw = WirelessNetwork::builder()
             .essid(essid.clone())
             .build();
-        let known_networks = WifiKnownNetworks::new(vec![(essid.clone(), essid)]);
+        let known_networks = WifiKnownNetworks::new(vec![(essid.clone(), NetworkServiceIdentifier::NetworkManager)]);
         let annotated_networks: Vec<AnnotatedWirelessNetwork> =
             annotate_networks(&WifiConnectOptions::default(), &[nw], &known_networks);
 

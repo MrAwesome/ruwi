@@ -117,3 +117,18 @@ pub(crate) enum NetworkingService {
     None,
 }
 
+// For networks where a service identifier is needed, it can be
+// stored here. Otherwise, we just store the type of connection, and use
+// the network's public identifier, usually ESSID.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum NetworkServiceIdentifier {
+    Netctl(String),
+    NetworkManager
+}
+
+impl NetworkServiceIdentifier {
+    #[cfg(test)]
+    pub(crate) fn netctl_nw(essid: &str) -> Option<NetworkServiceIdentifier> {
+        Some(Self::Netctl(essid.to_string()))
+    }
+}
