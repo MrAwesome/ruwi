@@ -1,7 +1,7 @@
 use crate::enums::NetworkingService;
 use crate::enums::RawInterfaceConnectionType;
-use crate::errors::*;
 use crate::interface_management::ip_interfaces::*;
+use crate::errors::*;
 use crate::options::interfaces::*;
 use crate::run_commands::SystemCommandRunner;
 
@@ -84,7 +84,8 @@ impl<'a, O: Global, T: LinuxIPInterface> RawInterfaceConnector<'a, O, T> {
     // TODO: unit test? integration test?
     fn netctl_connect(&self) -> Result<(), RuwiError> {
         NetworkingService::Netctl.start(self.options)?;
-        // TODO: look for netctl profiles using given interface
+        // TODO: when given interface, look for netctl profiles using given interface, or create one
+        // TODO: look for "Connection=ethernet" instead of ESSID
         // TODO: give a selector for them? or just use the first?
         // TODO: cmdline option for specifying netctl profile to connect to? at that point should
         // people just use netctl?
