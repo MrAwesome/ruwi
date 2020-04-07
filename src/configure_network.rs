@@ -1,6 +1,6 @@
 use crate::enums::*;
 use crate::errors::*;
-use crate::netctl_config_writer::*;
+use crate::netctl::*;
 use crate::options::interfaces::*;
 use crate::structs::*;
 use crate::interface_management::ip_interfaces::WifiIPInterface;
@@ -39,7 +39,7 @@ where
 {
     let cv = options.get_connect_via();
     match cv {
-        WifiConnectionType::Netctl => WifiNetctlConfigHandler::new(options, interface, network, encryption_key).write(),
+        WifiConnectionType::Netctl => NetctlConfigHandler::new(options).write_wifi_config(interface, network, encryption_key),
         WifiConnectionType::Nmcli | WifiConnectionType::None | WifiConnectionType::Print => {
             Ok(ConfigResult {
                 // connection_type: cv.clone(),

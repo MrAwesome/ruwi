@@ -32,25 +32,23 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::options::wifi::connect::WifiConnectOptions;
     use crate::enums::*;
+    use crate::options::wifi::connect::WifiConnectOptions;
     use crate::structs::*;
 
     #[test]
     fn test_default_network_not_known() {
-        assert![!AnnotatedWirelessNetwork::builder()
-            .essid("Faaake")
-            .build()
-            .is_known()];
+        assert![!AnnotatedWirelessNetwork::from_essid_only("FAKELOL").is_known()];
     }
 
     #[test]
     fn test_annotate_known() {
         let essid = "hahahahahahahahaha".to_string();
-        let nw = WirelessNetwork::builder()
-            .essid(essid.clone())
-            .build();
-        let known_networks = WifiKnownNetworks::new(vec![(essid.clone(), NetworkServiceIdentifier::NetworkManager)]);
+        let nw = WirelessNetwork::builder().essid(essid.clone()).build();
+        let known_networks = WifiKnownNetworks::new(vec![(
+            essid.clone(),
+            NetworkServiceIdentifier::NetworkManager,
+        )]);
         let annotated_networks: Vec<AnnotatedWirelessNetwork> =
             annotate_networks(&WifiConnectOptions::default(), &[nw], &known_networks);
 
@@ -61,9 +59,7 @@ mod tests {
     #[test]
     fn test_do_not_annotate_unknown() {
         let essid = "wheeeeeeeeeeeeeeee".to_string();
-        let nw = WirelessNetwork::builder()
-            .essid(essid)
-        .build();
+        let nw = WirelessNetwork::builder().essid(essid).build();
         let known_networks = WifiKnownNetworks::new(vec![]);
         let annotated_networks: Vec<AnnotatedWirelessNetwork> =
             annotate_networks(&WifiConnectOptions::default(), &[nw], &known_networks);
@@ -75,9 +71,7 @@ mod tests {
     #[test]
     fn test_do_not_mangle_existing_fields() {
         let essid = "aaaaaaaaaaaaaaaaaah".to_string();
-        let nw = WirelessNetwork::builder()
-            .essid(essid.clone())
-        .build();
+        let nw = WirelessNetwork::builder().essid(essid.clone()).build();
         let known_networks = WifiKnownNetworks::new(vec![]);
         let annotated_networks: Vec<AnnotatedWirelessNetwork> =
             annotate_networks(&WifiConnectOptions::default(), &[nw], &known_networks);
@@ -89,9 +83,7 @@ mod tests {
     #[test]
     fn test_do_not_mangle_essid2() {
         let essid = "guuuuuuuuuuuuuuuuuuh".to_string();
-        let nw = WirelessNetwork::builder()
-            .essid(essid.clone())
-        .build();
+        let nw = WirelessNetwork::builder().essid(essid.clone()).build();
         let known_networks = WifiKnownNetworks::new(vec![]);
         let annotated_networks: Vec<AnnotatedWirelessNetwork> =
             annotate_networks(&WifiConnectOptions::default(), &[nw], &known_networks);

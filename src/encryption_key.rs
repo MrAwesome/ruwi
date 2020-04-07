@@ -64,7 +64,7 @@ mod tests {
     #[test]
     fn test_no_ask_on_open_network() -> Result<(), RuwiError> {
         let options = WifiConnectOptions::default();
-        let nw = AnnotatedWirelessNetwork::builder().essid("made_up").build();
+        let nw = AnnotatedWirelessNetwork::from_essid_only("made_up");
         let output = possibly_get_encryption_key_impl(&options, &nw, should_not_run)?;
         if let Some(_pw) = output {
             panic!("Got password when none was expected!");
@@ -77,8 +77,8 @@ mod tests {
         let options = WifiConnectOptions::default();
         let nw = AnnotatedWirelessNetwork::builder()
             .essid("MADE_UP")
-            .is_encrypted(true)
             .service_identifier(NetworkServiceIdentifier::netctl_nw("I_AM_KNOWN"))
+            .is_encrypted(true)
             .build();
         let output = possibly_get_encryption_key_impl(&options, &nw, should_not_run)?;
         if let Some(_pw) = output {
@@ -90,13 +90,14 @@ mod tests {
     #[test]
     fn test_ask_on_unknown_closed_network() -> Result<(), RuwiError> {
         let options = WifiConnectOptions::default();
-        let fake_essid = "FAKE_CLOSURE_VALUE".to_string();
+        let fake_essid = "FAKE_CLOSURE_VALUE";
         let nw = AnnotatedWirelessNetwork::builder()
-            .essid(&fake_essid)
+            .essid(fake_essid)
+            .service_identifier(None)
             .is_encrypted(true)
             .build();
         let output =
-            possibly_get_encryption_key_impl(&options, &nw, |_, _| Ok(fake_essid.clone()))?;
+            possibly_get_encryption_key_impl(&options, &nw, |_, _| Ok(fake_essid.to_string()))?;
         assert_eq![output.unwrap(), fake_essid];
         Ok(())
     }
@@ -108,7 +109,7 @@ mod tests {
             .wifi(WifiOptions::default())
             .given_encryption_key(Some("YEETU".into()))
             .build();
-        let nw = AnnotatedWirelessNetwork::builder().essid("FAKE").build();
+        let nw = AnnotatedWirelessNetwork::from_essid_only("FAKE");
         let output = possibly_get_encryption_key_impl(&options, &nw, should_not_run)?;
         assert_eq![output.unwrap(), given_essid];
         Ok(())
@@ -121,7 +122,7 @@ mod tests {
             .force_ask_password(true)
             .build();
 
-        let nw = AnnotatedWirelessNetwork::builder().essid("FAKE").build();
+        let nw = AnnotatedWirelessNetwork::from_essid_only("FAKE");
         let fake_essid = "FAKE_CLOSURE_VALUE".to_string();
         let output =
             possibly_get_encryption_key_impl(&options, &nw, |_, _| Ok(fake_essid.clone()))?;
@@ -136,7 +137,7 @@ mod tests {
             .connect_via(WifiConnectionType::Print)
             .build();
 
-        let nw = AnnotatedWirelessNetwork::builder().essid("FAKE").build();
+        let nw = AnnotatedWirelessNetwork::from_essid_only("FAKE");
         let output = possibly_get_encryption_key_impl(&options, &nw, should_not_run)?;
         if let Some(_pw) = output {
             panic!("Got password when none was expected!");

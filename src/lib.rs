@@ -36,7 +36,6 @@ pub mod errors;
 pub(crate) mod interface_management;
 pub(crate) mod known_networks;
 pub(crate) mod netctl;
-pub(crate) mod netctl_config_writer;
 pub(crate) mod options;
 pub(crate) mod parse;
 pub(crate) mod run_commands;
@@ -58,6 +57,8 @@ use errors::RuwiError;
 // Arch dependencies: wireless_tools, netctl, iw, bluetooth things?, iptools
 // Arch optional dependencies: dmenu, NetworkManager, fzf
 
+// TODO(urgent): fix netctl wired connections, create selector/reader/writer
+// TODO(urgent): fix wpa_cli service start interface (associate interface with service enum?)
 // TODO(high): use crate::common::*; instead of misc imports
 // TODO(high): add `clear` success messages
 // TODO(high): make `ruwi` with no arguments still go through system checks
@@ -70,12 +71,15 @@ use errors::RuwiError;
 // TODO(mid): add colors to output / use a real logging library / set debugging levels
 // TODO(mid): ability to do -o "wired.connect_via=netctl", overriding config file entries
 // TODO(mid): add a "list seen networks" mode?
+// TODO(mid): use string_container where you would normally pass around String or an existing less-nice string container
 // TODO(mid): kill, or suggest killing, wpa_supplicant if netctl fails to connect (clear does this, can you just suggest clear in error messages?)
 // TODO(mid): have `ruwi -a` detect wired, try to connect to it, then try wifi -a if not. check "/sys/class/net/{IFNAME}/operstate" after bringing up the interface
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
 // TODO(low): flag to disable looking for known networks
 // TODO(low): standardize quotes in help text (search codebase for "manually")
 // TODO(low): remove Default trait for structs which use TypedBuilder
+// TODO(low): use TryFrom instead of custom conversion methods
+// TODO(low): use a custom Result type to reduce Result<_, RuwiError> boilerplate
 // TODO(wishlist): `ruwi wifi get_default_interface` and/or `ruwi wifi select_interface`?
 // TODO(wishlist): JSON output for `select`
 // TODO(wishlist): implement json scan output/input mode

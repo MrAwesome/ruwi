@@ -3,6 +3,7 @@ use crate::common::*;
 use crate::interface_management::ip_interfaces::*;
 use crate::run_commands::SystemCommandRunner;
 use crate::netctl::utils::*;
+use crate::netctl::NetctlIdentifier;
 
 pub(crate) fn connect_to_network<O>(
     options: &O,
@@ -112,8 +113,7 @@ where
     }
     interface.bring_down(options)?;
 
-    let netctl_identifier = get_netctl_identifier(selected_network)?;
-
+    let netctl_identifier = NetctlIdentifier::from(selected_network);
     let netctl_switch_to_res = netctl_switch_to(options, netctl_identifier);
 
     netctl_switch_to_res.map(|_| ConnectionResult {

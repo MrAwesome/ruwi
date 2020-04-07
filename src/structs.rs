@@ -48,17 +48,20 @@ impl RuwiNetwork for WirelessNetwork {}
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
 pub struct AnnotatedWirelessNetwork {
+    // Scanned fields
     essid: String,
     #[builder(default = false)]
     is_encrypted: bool,
-    #[builder(default = None)]
-    service_identifier: Option<NetworkServiceIdentifier>,
     #[builder(default = None)]
     bssid: Option<String>,
     #[builder(default = None)]
     signal_strength: Option<i32>,
     #[builder(default = None)]
     channel_utilisation: Option<String>,
+
+    // Non-scan annotated fields
+    #[builder(default = None)]
+    service_identifier: Option<NetworkServiceIdentifier>,
 }
 
 impl Annotated<WirelessNetwork> for AnnotatedWirelessNetwork {
@@ -71,11 +74,11 @@ impl Annotated<WirelessNetwork> for AnnotatedWirelessNetwork {
         let service_identifier = service_identifier.map(Clone::clone);
         Self {
             essid,
-            service_identifier,
             is_encrypted,
             bssid,
             signal_strength,
             channel_utilisation,
+            service_identifier,
         }
     }
 }
@@ -94,11 +97,10 @@ impl AnnotatedWirelessNetwork {
         self.channel_utilisation.as_ref()
     }
 
-    pub fn from_essid(essid: String, service_identifier: Option<NetworkServiceIdentifier>, is_encrypted: bool) -> Self {
+    #[cfg(test)]
+    pub fn from_essid_only(essid: &str) -> Self {
         Self::builder()
             .essid(essid)
-            .service_identifier(service_identifier)
-            .is_encrypted(is_encrypted)
             .build()
     }
 }

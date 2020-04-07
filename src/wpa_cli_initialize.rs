@@ -29,13 +29,14 @@ where
         eprintln!(
             "[NOTE]: wpa_cli was not functioning correctly. Attempting to start it manually."
         );
+        let todo = "CHANGE FROM wlp3s0";
         let supplicant_status = SystemCommandRunner::new(
             options,
             "wpa_supplicant",
             &[
                 "-B",
                 "-i",
-                "wlp3s0",
+                "wlp3s0", // TODO Fix!!!
                 "-c",
                 "/etc/wpa_supplicant/wpa_supplicant.conf",
             ],

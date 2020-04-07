@@ -47,6 +47,7 @@ pub enum RuwiErrorKind {
     KnownNetworksFetchError,
     LoopProtectionMaxExceeded,
     MalformedIWOutput,
+    MissingFieldInNetctlConfig,
     NoInterfaceFoundWithGivenName,
     NoKnownNetworksFound,
     NoNetworksFoundMatchingSelectionResult,

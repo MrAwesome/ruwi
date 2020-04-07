@@ -90,7 +90,6 @@ impl<'a, O: Global, T: LinuxIPInterface> RawInterfaceConnector<'a, O, T> {
         // TODO: cmdline option for specifying netctl profile to connect to? at that point should
         // people just use netctl?
 
-        let todo = "implement this using code currently in wifi_connect";
-        Ok(())
+        todo!("netctl wired connections aren't implemented yet - specify another type with `-c`, like `-c dhclient`");
     }
 }

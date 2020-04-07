@@ -17,6 +17,49 @@ macro_rules! rerr {
     }};
 }
 
+#[macro_export]
+macro_rules! string_container {
+    ( $($name:ident),* ) => {
+        use std::{
+            error::Error,
+            fmt::{self, Display},
+            string::ToString,
+        };
+
+        $(
+        #[derive(Debug, Clone, Eq, PartialEq)]
+        pub(crate) struct $name(String);
+
+        impl $name {
+            pub fn new(msg: impl ToString) -> Self {
+                $name(msg.to_string())
+            }
+        }
+
+        impl AsRef<str> for $name {
+            fn as_ref(&self) -> &str {
+                self.0.as_ref()
+            }
+        }
+
+        impl Display for $name {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                f.write_str(self.as_ref())
+            }
+        }
+
+        impl Error for $name {}
+
+        impl From<String> for $name {
+            fn from(string: String) -> $name {
+                $name(string)
+            }
+        }
+
+        )*
+    }
+}
+
 //#[macro_export(local_inner_macros)]
 //macro_rules! optdbg {
 //    ($y:expr, $($x:expr$(,)?)*) => {

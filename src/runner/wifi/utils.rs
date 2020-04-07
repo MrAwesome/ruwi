@@ -86,12 +86,12 @@ where
     O: Global + Wifi + WifiConnect,
 {
     let known_networks = WifiKnownNetworks::find_known_networks_from_system(options)?;
-    let existing_network_identifier = known_networks.get_service_identifier_for_essid(essid);
+    let existing_network_identifier = known_networks.get_service_identifier_for_essid(essid).cloned();
     let is_encrypted = options.get_given_encryption_key().is_some();
-    Ok(AnnotatedWirelessNetwork::from_essid(
-        essid.into(),
-        existing_network_identifier.map(Clone::clone),
-        is_encrypted,
-    ))
+    Ok(AnnotatedWirelessNetwork::builder()
+        .essid(essid)
+        .service_identifier(existing_network_identifier)
+        .is_encrypted(is_encrypted)
+        .build())
 }
 

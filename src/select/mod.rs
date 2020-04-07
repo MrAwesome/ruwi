@@ -203,9 +203,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::structs::AnnotatedWirelessNetwork;
     use crate::options::wifi::connect::WifiConnectOptions;
     use crate::options::wifi::WifiOptions;
+    use crate::structs::AnnotatedWirelessNetwork;
     use crate::strum::AsStaticRef;
 
     static FIRST_NW_NAME: &str = "FIRSTNWLOL";
@@ -215,7 +215,7 @@ mod tests {
     fn get_3_networks() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
         let networks = [FIRST_NW_NAME, SECND_NW_NAME, THIRD_NW_NAME]
             .iter()
-            .map(|name| AnnotatedWirelessNetwork::from_essid((*name).to_string(), None, false))
+            .map(|name| AnnotatedWirelessNetwork::from_essid_only(name))
             .collect::<Vec<AnnotatedWirelessNetwork>>();
         SortedFilteredNetworks::new(networks)
     }
@@ -226,13 +226,15 @@ mod tests {
 
     fn get_3_networks_first_known() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
         let mut networks = get_3_networks();
-        networks.get_networks_mut()[0].set_service_identifier_for_tests(NetworkServiceIdentifier::netctl_nw("some_id"));
+        networks.get_networks_mut()[0]
+            .set_service_identifier_for_tests(NetworkServiceIdentifier::netctl_nw("some_id"));
         networks
     }
 
     fn get_3_networks_last_known() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
         let mut networks = get_3_networks();
-        networks.get_networks_mut()[2].set_service_identifier_for_tests(NetworkServiceIdentifier::netctl_nw("some_id"));
+        networks.get_networks_mut()[2]
+            .set_service_identifier_for_tests(NetworkServiceIdentifier::netctl_nw("some_id"));
         networks
     }
 
@@ -341,9 +343,7 @@ mod tests {
         let networks = get_3_unknown_networks();
 
         let run_without_whitespace = networks
-            .run_manual_selector_impl(&opts, |_opts, names| {
-                Ok(names.first().unwrap().to_string())
-            })
+            .run_manual_selector_impl(&opts, |_opts, names| Ok(names.first().unwrap().to_string()))
             .unwrap();
 
         let run_with_whitespace = networks
@@ -362,10 +362,26 @@ mod tests {
     #[test]
     fn test_get_tokens_for_selection() {
         let networks = SortedFilteredNetworks::new(vec![
-            AnnotatedWirelessNetwork::from_essid("FAKE NEWS LOL OK".to_string(), NetworkServiceIdentifier::netctl_nw("some_id"), true),
-            AnnotatedWirelessNetwork::from_essid("WOWWW OK FACEBO".to_string(), None, true),
-            AnnotatedWirelessNetwork::from_essid("LOOK, DISCOURSE".to_string(), NetworkServiceIdentifier::netctl_nw("some_id"), false),
-            AnnotatedWirelessNetwork::from_essid("UWU MAMMMAAAAA".to_string(), None, false),
+            AnnotatedWirelessNetwork::builder()
+                .essid("FAKE NEWS LOL OK")
+                .service_identifier(NetworkServiceIdentifier::netctl_nw("some_id"))
+                .is_encrypted(true)
+                .build(),
+            AnnotatedWirelessNetwork::builder()
+                .essid("WOWWW OK FACEBO")
+                .service_identifier(None)
+                .is_encrypted(true)
+                .build(),
+            AnnotatedWirelessNetwork::builder()
+                .essid("LOOK, DISCOURSE")
+                .service_identifier(NetworkServiceIdentifier::netctl_nw("some_id"))
+                .is_encrypted(false)
+                .build(),
+            AnnotatedWirelessNetwork::builder()
+                .essid("UWU MAMMMAAAAA")
+                .service_identifier(None)
+                .is_encrypted(false)
+                .build(),
         ]);
         let tokens = networks.get_tokens_for_selection();
         for (i, (nw, token)) in networks.get_networks().iter().zip(tokens).enumerate() {

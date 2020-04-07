@@ -6,6 +6,12 @@ use crate::options::interfaces::Global;
 
 pub(crate) const FAKE_INTERFACE_NAME: &str = "FAKE_INTERFACE";
 
+// TODO: better detection of whether an interface is wireless or wired
+//       * find interfaces recognized by `iw`, other interfaces are likely ethernet if not loopback
+//       * nmcli dev
+//       * iw dev
+//       * wpa_cli dev
+
 pub trait LinuxIPInterface {
     fn get_ifname(&self) -> &str;
     fn from_name_or_first<O: Global>(

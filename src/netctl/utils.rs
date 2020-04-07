@@ -1,37 +1,49 @@
+use super::NetctlIdentifier;
 use crate::common::*;
 use crate::run_commands::SystemCommandRunner;
 
-#[derive(Debug)]
-pub(crate) struct NetctlIdentifier(String);
+use std::fs::File;
+use std::io;
+use std::io::Write;
 
-impl NetctlIdentifier {
-    fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-pub(crate) fn get_netctl_identifier(selected_network: &AnnotatedWirelessNetwork) -> Result<NetctlIdentifier, RuwiError> {
-    let maybe_service_id = selected_network.get_service_identifier();
-    if let Some(service_id) = maybe_service_id {
-        match service_id {
-            NetworkServiceIdentifier::Netctl(file_name) => Ok(NetctlIdentifier(file_name.to_string())),
-            _ => Err(rerr!(
-                RuwiErrorKind::InvalidServiceIdentifierType, 
-                "Invalid service identifier type for ID {}! This usually indicates a breaking code change, and should be reported to the authors."
-            ))
-        }
-    } else {
-        Ok(NetctlIdentifier(selected_network.get_public_name().replace(" ", "_")))
-    }
-}
-
-
-pub(crate) fn netctl_switch_to<O>(options: &O, netctl_identifier: NetctlIdentifier) -> Result<(), RuwiError> 
-where O: Global
+pub(crate) fn netctl_switch_to<O>(
+    options: &O,
+    netctl_identifier: NetctlIdentifier,
+) -> Result<(), RuwiError>
+where
+    O: Global,
 {
-    SystemCommandRunner::new(options, "netctl", &["switch-to", netctl_identifier.as_str()])
-        .run_command_pass(
-            RuwiErrorKind::FailedToConnectViaNetctl,
-            &format!("Failed to connect to netctl profile \"{}\"!", netctl_identifier.as_str()),
-        )
+    SystemCommandRunner::new(
+        options,
+        "netctl",
+        &["switch-to", netctl_identifier.as_ref()],
+    )
+    .run_command_pass(
+        RuwiErrorKind::FailedToConnectViaNetctl,
+        &format!(
+            "Failed to connect to netctl profile \"{}\"!",
+            netctl_identifier.as_ref()
+        ),
+    )
+}
+
+pub(super) fn check_for_field<'a>(
+    field: &'a Option<String>,
+    filename: &NetctlIdentifier,
+    field_name: &str,
+) -> Result<&'a str, RuwiError> {
+    match field {
+        Some(val) => Ok(&val),
+        None => Err(rerr!(
+            RuwiErrorKind::MissingFieldInNetctlConfig,
+            format!(
+                "Required field \"{}\" was not found in netctl config \"{}\"!",
+                field_name, filename
+            ),
+        ))
+    }
+}
+
+pub(super) fn write_to_netctl_config(fullpath: &str, contents: &str) -> io::Result<()> {
+    File::create(&fullpath)?.write_all(contents.as_bytes())
 }

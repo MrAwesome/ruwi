@@ -51,10 +51,10 @@ mod tests {
             None
         };
         let nw = AnnotatedWirelessNetwork::builder()
-            .essid(essid.clone())
-            .service_identifier(service_identifier)
+            .essid(&essid)
             .is_encrypted(!is_open)
             .signal_strength(signal_strength)
+            .service_identifier(service_identifier)
             .build();
         let token = nw.get_display_string();
         let tags_string = nw.get_tags_string();
