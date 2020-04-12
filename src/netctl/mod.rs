@@ -3,6 +3,8 @@ pub(crate) mod config_reader;
 pub(crate) mod config_writer;
 pub(crate) mod utils;
 
+use config_reader::read_all_netctl_config_files;
+
 use crate::common::*;
 use crate::interface_management::ip_interfaces::*;
 use crate::string_container;
@@ -20,9 +22,9 @@ impl From<&AnnotatedWirelessNetwork> for NetctlIdentifier {
     fn from(nw: &AnnotatedWirelessNetwork) -> Self {
         let ident = match nw.get_service_identifier() {
             Some(NetworkServiceIdentifier::Netctl(ident)) => ident.clone(),
-            _ => nw.get_public_name().replace(" ", "_")
+            _ => nw.get_public_name().replace(" ", "_"),
         };
-        Self(ident)
+        Self::new(ident)
     }
 }
 
@@ -46,9 +48,28 @@ struct NetctlRawConfig<'a> {
 }
 
 impl<'a> NetctlRawConfig<'a> {
+    fn new(
+        identifier: NetctlIdentifier,
+        contents: NetctlRawConfigContents,
+        location: &'a str,
+    ) -> Self {
+        Self {
+            identifier,
+            contents, 
+            location,
+        }
+    }
+
+    fn get_contents(&self) -> &NetctlRawConfigContents {
+        &self.contents
+    }
+
+    fn get_identifier(&self) -> &NetctlIdentifier {
+        &self.identifier
+    }
+
     fn get_location(&self) -> &str {
-        // TODO: allow for this to be manually specified
-        DEFAULT_NETCTL_CFG_DIR
+        self.location
     }
 }
 
@@ -110,7 +131,7 @@ impl TryFrom<NetctlRawParsedFields> for WiredNetctlConfig {
 struct NetctlConfigFinderCriteria {
     interface: String,
     connection_type: NetctlConnectionType,
-    identifier: Option<String>,
+    filename: Option<String>,
     essid: Option<String>,
 }
 
@@ -130,15 +151,35 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
         &self.netctl_cfg_dir
     }
 
-    fn find_matching_configs(
+    fn get_all_configs_text(&'a self) -> Result<Vec<NetctlRawConfig<'a>>, RuwiError> {
+        read_all_netctl_config_files(self.netctl_cfg_dir.as_ref())
+    }
+
+    fn find_typed_configs<C>(
         &self,
         criteria: &NetctlConfigFinderCriteria,
-    ) -> Result<Vec<NetctlRawConfig>, RuwiError> {
+    ) -> Result<Vec<C>, RuwiError>
+    where
+        C: TryFrom<NetctlRawParsedFields>,
+    {
+        let configs_text = self.get_all_configs_text()?;
+        let raw_parsed_configs = configs_text
+            .iter()
+            .filter_map(|text| NetctlRawParsedFields::try_from(text).ok())
+            .filter_map(|config| C::try_from(config).ok())
+            .collect::<Vec<C>>();
         unimplemented!()
     }
 
-    fn get_all_configs(&self) -> Result<Vec<NetctlRawConfig>, RuwiError> {
-        unimplemented!()
+    fn find_matching_configs<C>(
+        &self,
+        criteria: &NetctlConfigFinderCriteria,
+    ) -> Result<Vec<NetctlRawParsedFields>, RuwiError> {
+        let configs_text = self.get_all_configs_text()?;
+        Ok(configs_text
+            .iter()
+            .filter_map(|text| NetctlRawParsedFields::try_from(text).ok())
+            .collect())
     }
 
     // put this into a trait and implement for both kinds of network/interface

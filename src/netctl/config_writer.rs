@@ -115,7 +115,7 @@ impl WiredNetctlConfig {
     //fn new(interface: &WiredIPInterface, network: &AnnotatedWiredNetwork) -> Self {
     fn new(interface: &WiredIPInterface) -> Self {
         //let identifier = NetctlIdentifier::from(network);
-        let identifier = NetctlIdentifier("FUCK".to_string());
+        let identifier = NetctlIdentifier::new("FUCK");
         let interface_name = interface.get_ifname().to_string();
         Self::builder()
             .identifier(identifier)

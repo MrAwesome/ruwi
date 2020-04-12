@@ -1,6 +1,14 @@
 use crate::errors::*;
 use std::thread;
 
+use std::ffi::OsStr;
+use std::os::unix::ffi::OsStrExt;
+
+#[inline]
+pub(crate) fn convert_osstr_to_string(osstr_name: &OsStr) -> String {
+    String::from_utf8_lossy((*osstr_name).as_bytes()).to_string()
+}
+
 #[inline]
 pub(crate) fn await_thread<T>(handle: thread::JoinHandle<T>) -> Result<T, RuwiError> {
     handle.join().or_else(|_| {
