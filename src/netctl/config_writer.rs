@@ -17,10 +17,12 @@ use crate::interface_management::ip_interfaces::*;
 // TODO: split into reader, writer, and connector
 
 impl<'a, O: Global> NetctlConfigHandler<'a, O> {
-    fn write_config_to_file<C: NetctlConfig>(
+    pub(super) fn write_config_to_file<C>(
         &self,
-        config: C,
-    ) -> Result<ConfigResult, RuwiError> {
+        config: &C,
+    ) -> Result<ConfigResult, RuwiError> 
+        where C: NetctlConfig
+    {
         let config_text = format!("{}", config);
 
         let netctl_file_name = config.get_identifier().as_ref();
@@ -101,6 +103,12 @@ IP=dhcp
         )
         .trim_end_matches(|x| x == '\n')
         .to_string()
+    }
+}
+
+impl NetctlConfig for WifiNetctlConfig {
+    fn get_identifier(&self) -> &NetctlIdentifier {
+        &self.identifier
     }
 }
 

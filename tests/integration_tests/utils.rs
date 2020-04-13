@@ -6,8 +6,8 @@ use rexpect::spawn;
 use rexpect::session::PtySession;
 
 // TODO: Find reasonable values for these.
-const DRYRUN_TIMEOUT_MS: Option<u64> = Some(200);
-const UNGUARDED_TIMEOUT_MS: Option<u64> = Some(200);
+const DRYRUN_TIMEOUT_MS: Option<u64> = Some(400);
+const UNGUARDED_TIMEOUT_MS: Option<u64> = Some(400);
 
 #[must_use]
 #[cfg(test)]

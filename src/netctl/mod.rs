@@ -200,8 +200,8 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
             .interface_name(interface_name)
             .encryption_key(encryption_key)
             .build();
-        //write_netctl_config(config);
-        unimplemented!()
+
+        self.write_config_to_file(&config)
     }
 }
 
