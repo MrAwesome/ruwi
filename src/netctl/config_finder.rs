@@ -11,8 +11,11 @@ pub(super) trait NetctlConfigFinderCriteria {
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
 pub(super) struct WifiNetctlConfigFinderCriteria {
-    interface: Option<String>,
+    #[builder(default = None)]
+    interface_name: Option<String>,
+    #[builder(default = None)]
     identifier_aka_filename: Option<String>,
+    #[builder(default = None)]
     essid: Option<String>,
 }
 
@@ -23,7 +26,7 @@ impl NetctlConfigFinderCriteria for WifiNetctlConfigFinderCriteria {
         configs
             .iter()
             .filter(|config| {
-                (match &self.interface {
+                (match &self.interface_name {
                     Some(ifname) => ifname == &config.interface_name,
                     None => true,
                 }) && (match &self.identifier_aka_filename {
@@ -40,7 +43,9 @@ impl NetctlConfigFinderCriteria for WifiNetctlConfigFinderCriteria {
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
 pub(super) struct WiredNetctlConfigFinderCriteria {
-    interface: Option<String>,
+    #[builder(default = None)]
+    interface_name: Option<String>,
+    #[builder(default = None)]
     identifier_aka_filename: Option<String>,
 }
 
@@ -51,7 +56,7 @@ impl NetctlConfigFinderCriteria for WiredNetctlConfigFinderCriteria {
         configs
             .iter()
             .filter(|config| {
-                (match &self.interface {
+                (match &self.interface_name {
                     Some(ifname) => ifname == &config.interface_name,
                     None => true,
                 }) && (match &self.identifier_aka_filename {
@@ -67,13 +72,69 @@ impl NetctlConfigFinderCriteria for WiredNetctlConfigFinderCriteria {
 mod tests {
     use super::*;
 
+    fn get_sample_wifi_configs() -> Vec<WifiNetctlConfig> {
+        vec![
+            WifiNetctlConfig::builder()
+                .identifier("MUH_ESSID_IDENT")
+                .essid("MUH_ESSID")
+                .interface_name("MUH_INTERFACE")
+                .encryption_key(None)
+                .build(),
+            WifiNetctlConfig::builder()
+                .identifier("I_AM_SECOND")
+                .essid("WHEEEEE")
+                .interface_name("wlp60s420")
+                .encryption_key(None)
+                .build(),
+            WifiNetctlConfig::builder()
+                .identifier("BRUHBRUH")
+                .essid("MUH_ESSID")
+                .interface_name("wlp60s420")
+                .encryption_key(Some("LOCKED_UP".to_string()))
+                .build(),
+        ]
+    }
+
+    fn get_sample_wired_configs() -> Vec<WiredNetctlConfig> {
+        vec![
+            WiredNetctlConfig::builder()
+                .identifier("MUH_ID")
+                .interface_name("BRUH_INTERFACE")
+                .build(),
+            WiredNetctlConfig::builder()
+                .identifier("I_AM_SECOND")
+                .interface_name("BRUH_INTERFACE")
+                .build(),
+            WiredNetctlConfig::builder()
+                .identifier("BRUHBRUH")
+                .interface_name("enp60s420")
+                .build(),
+        ]
+    }
+
     #[test]
     fn test_wifi_select_by_interface() {
-        WifiNetctlConfig::builder()
-            .identifier("MUH_ESSID_IDENT")
-            .essid("MUH_ESSID")
-            .interface_name("MUH_INTERFACE")
-            .encryption_key(None)
+        let ifname = "MUH_INTERFACE".to_string();
+        let configs = get_sample_wifi_configs();
+        let criteria = WifiNetctlConfigFinderCriteria::builder()
+            .interface_name(Some(ifname.clone()))
             .build();
+        let selected_configs = criteria.select(&configs);
+        for config in selected_configs {
+            assert_eq![ifname, config.interface_name];
+        }
+    }
+
+    #[test]
+    fn test_wired_select_by_interface() {
+        let ifname = "BRUH_INTERFACE".to_string();
+        let configs = get_sample_wired_configs();
+        let criteria = WiredNetctlConfigFinderCriteria::builder()
+            .interface_name(Some(ifname.clone()))
+            .build();
+        let selected_configs = criteria.select(&configs);
+        for config in selected_configs {
+            assert_eq![ifname, config.interface_name];
+        }
     }
 }

@@ -12,19 +12,6 @@ use std::path::Path;
 #[cfg(not(test))]
 use crate::utils::convert_osstr_to_string;
 
-const ESSID_TOKEN: &str = "ESSID=";
-
-impl<'a, O: Global> NetctlConfigHandler<'a, O> {}
-
-impl<'a> TryFrom<&NetctlRawConfig<'a>> for NetctlRawParsedFields {
-    type Error = RuwiError;
-
-    fn try_from(f: &NetctlRawConfig) -> Result<Self, RuwiError> {
-        // TODO: here, or in a helper function, grab the fields you need from a netctl config blob
-        unimplemented!()
-    }
-}
-
 #[cfg(test)]
 pub(super) fn read_all_netctl_config_files<'a>(
     netctl_path_name: &'a str,
@@ -108,34 +95,6 @@ fn read_file_contents(
         }
     }
     Ok(None)
-}
-
-// .filter_map(|entry| get_essid_from_netctl_config_file(entry).ok())
-// .filter_map(|essid_entry| {
-//     if let Some((essid, identifier)) = essid_entry {
-//         let escaped_essid = unescape(&essid).unwrap_or(essid);
-//         Some((escaped_essid, NetworkServiceIdentifier::Netctl(identifier)))
-//     } else {
-//         None
-//     }
-// })
-
-// TODO: make this more generic, get_field_from_netctl_config
-fn get_field_from_netctl_config_text(contents: &str, token: &str) -> Option<String> {
-    contents.lines().find_map(|line| {
-        if line.starts_with(token) {
-            let value = line
-                .trim_start_matches(token)
-                .trim_start_matches('\'')
-                .trim_start_matches('"')
-                .trim_end_matches('\'')
-                .trim_end_matches('"')
-                .to_string();
-            Some(value)
-        } else {
-            None
-        }
-    })
 }
 
 #[cfg(test)]

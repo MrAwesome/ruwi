@@ -1,6 +1,7 @@
 pub(crate) mod config_finder;
 use config_finder::*;
 pub(crate) mod config_reader;
+pub(crate) mod config_parser;
 pub(crate) mod config_writer;
 pub(crate) mod utils;
 
