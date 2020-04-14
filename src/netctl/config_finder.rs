@@ -1,4 +1,4 @@
-use super::*;
+use super::structs::*;
 use typed_builder::TypedBuilder;
 
 // TODO: use predicates? Look for PredicatesStrExt.

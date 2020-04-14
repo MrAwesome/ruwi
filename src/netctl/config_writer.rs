@@ -1,7 +1,10 @@
 use super::utils::*;
+use super::structs::*;
 use super::*;
 use crate::common::*;
 use crate::interface_management::ip_interfaces::*;
+
+use std::fmt;
 
 // TODO: Check if existing config with ESSID (for wifi) or interface (for raw interface connect)
 // already exists, and if so just use that and don't write to it (unless a particular flag exists?)
@@ -104,7 +107,7 @@ IP=dhcp
     }
 }
 
-impl Display for WifiNetctlConfig {
+impl fmt::Display for WifiNetctlConfig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(&self.as_config_text())
     }
@@ -142,7 +145,7 @@ IP=dhcp
     }
 }
 
-impl Display for WiredNetctlConfig {
+impl fmt::Display for WiredNetctlConfig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(&self.as_config_text())
     }

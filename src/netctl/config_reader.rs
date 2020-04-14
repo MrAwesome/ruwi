@@ -57,11 +57,11 @@ pub(super) fn read_all_netctl_config_files<'a>(
         Ok(found_files
             .iter()
             .map(|(file_name, file_contents)| {
-                NetctlRawConfig::new(
-                    NetctlIdentifier::new(file_name),
-                    NetctlRawConfigContents::new(file_contents),
-                    netctl_path_name,
-                )
+                NetctlRawConfig::builder()
+                    .identifier(file_name)
+                    .contents(file_contents)
+                    .location(netctl_path_name)
+                    .build()
             })
             .collect())
     } else {

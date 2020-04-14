@@ -1,18 +1,7 @@
 use crate::common::*;
-use super::*;
 
 const ESSID_TOKEN: &str = "ESSID=";
 
-impl<'a> TryFrom<&NetctlRawConfig<'a>> for NetctlRawParsedFields {
-    type Error = RuwiError;
-
-    fn try_from(f: &NetctlRawConfig) -> Result<Self, RuwiError> {
-        // TODO: here, or in a helper function, grab the fields you need from a netctl config blob
-        unimplemented!()
-    }
-}
-
-// TODO: make this more generic, get_field_from_netctl_config
 fn get_field_from_netctl_config_text(contents: &str, token: &str) -> Option<String> {
     contents.lines().find_map(|line| {
         if line.starts_with(token) {
@@ -40,3 +29,15 @@ fn get_field_from_netctl_config_text(contents: &str, token: &str) -> Option<Stri
 //     }
 // })
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    static ETHERNET_SAMPLE: &str = include_str!("samples/ethernet_dhcp");
+
+
+    #[test]
+    fn test_find_strings() {
+
+    }
+}
