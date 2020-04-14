@@ -63,7 +63,7 @@ fn test_iw_first_network_from_file_with_select() -> Result<()> {
 
 #[test]
 fn test_iw_many_networks_from_stdin_with_select() -> Result<()> {
-    let mut p = spawn_bash(Some(200))?;
+    let mut p = spawn_bash(DRYRUN_TIMEOUT_MS)?;
     let select_cmd = format!(
         "cat src/parse/samples/iw_many_networks.txt | {}",
         get_dryrun_cmd_with_args("wifi -s iw -I select -A first")
@@ -79,7 +79,7 @@ fn test_dryrun_flag_is_respected() -> Result<()> {
     let cmdline_bailout_errmsg =
         &format!("{:?}", ruwi::errors::RuwiErrorKind::OnlyParseCmdlineBailout);
 
-    let mut p = spawn_bash(Some(200))?;
+    let mut p = spawn_bash(DRYRUN_TIMEOUT_MS)?;
     p.send_line("export ONLY_PARSE_CMDLINE=1")?;
 
     let dryrun_cmd = get_dryrun_cmd_with_args("wifi connect -e FAKE_ESSID");

@@ -37,6 +37,7 @@ const CMDLINE_BAILOUT_MSG: &str = "Command line parsing was successful, but cmdl
 // TODO: fail if not run as root
 // TODO: use subcommands for conuigurations of options, but still go through all functions always?
 //       or just run certain functions for certain subcommands?
+// TODO: for netctl selection options, alias --identifier and --filename
 #[allow(clippy::too_many_lines)]
 fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
     // TODO: use .aliases for commands

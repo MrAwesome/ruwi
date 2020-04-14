@@ -1,7 +1,7 @@
 use super::*;
 use typed_builder::TypedBuilder;
 
-// TODO: use predicates? PredicatesStrExt is nice.
+// TODO: use predicates? Look for PredicatesStrExt.
 
 pub(super) trait NetctlConfigFinderCriteria {
     type Config: NetctlConfig;
@@ -11,7 +11,7 @@ pub(super) trait NetctlConfigFinderCriteria {
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
 pub(super) struct WifiNetctlConfigFinderCriteria {
-    interface: String, // TODO: also make option?
+    interface: Option<String>,
     identifier_aka_filename: Option<String>,
     essid: Option<String>,
 }
@@ -23,15 +23,16 @@ impl NetctlConfigFinderCriteria for WifiNetctlConfigFinderCriteria {
         configs
             .iter()
             .filter(|config| {
-                self.interface == config.interface_name
-                    && match &self.identifier_aka_filename {
-                        Some(id) => id == config.identifier.as_ref(),
-                        None => true,
-                    }
-                    && match &self.essid {
-                        Some(essid) => essid == &config.essid,
-                        None => true,
-                    }
+                (match &self.interface {
+                    Some(ifname) => ifname == &config.interface_name,
+                    None => true,
+                }) && (match &self.identifier_aka_filename {
+                    Some(id) => id == config.identifier.as_ref(),
+                    None => true,
+                }) && (match &self.essid {
+                    Some(essid) => essid == &config.essid,
+                    None => true,
+                })
             })
             .collect()
     }
@@ -39,7 +40,7 @@ impl NetctlConfigFinderCriteria for WifiNetctlConfigFinderCriteria {
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
 pub(super) struct WiredNetctlConfigFinderCriteria {
-    interface: String,
+    interface: Option<String>,
     identifier_aka_filename: Option<String>,
 }
 
@@ -50,12 +51,29 @@ impl NetctlConfigFinderCriteria for WiredNetctlConfigFinderCriteria {
         configs
             .iter()
             .filter(|config| {
-                self.interface == config.interface_name
-                    && match &self.identifier_aka_filename {
-                        Some(id) => id == config.identifier.as_ref(),
-                        None => true,
-                    }
+                (match &self.interface {
+                    Some(ifname) => ifname == &config.interface_name,
+                    None => true,
+                }) && (match &self.identifier_aka_filename {
+                    Some(id) => id == config.identifier.as_ref(),
+                    None => true,
+                })
             })
             .collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_wifi_select_by_interface() {
+        WifiNetctlConfig::builder()
+            .identifier("MUH_ESSID_IDENT")
+            .essid("MUH_ESSID")
+            .interface_name("MUH_INTERFACE")
+            .encryption_key(None)
+            .build();
     }
 }

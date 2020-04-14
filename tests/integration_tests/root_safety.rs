@@ -27,7 +27,7 @@ fn get_shell_cmd_for_creating_malicious_binary_named(full_filename: &str) -> Str
 }
 
 fn impl_test_malicious_binary(malicious_binary_name: &str, ruwi_args: &str) -> Result<()> {
-    let mut p = spawn_bash(Some(200))?;
+    let mut p = spawn_bash(UNGUARDED_TIMEOUT_MS)?;
 
     p.send_line("mktemp -d && echo MADE_TEMP")?;
     let malicious_dir_untrimmed = p.exp_string("MADE_TEMP")?;
