@@ -17,11 +17,9 @@ use crate::interface_management::ip_interfaces::*;
 // TODO: split into reader, writer, and connector
 
 impl<'a, O: Global> NetctlConfigHandler<'a, O> {
-    pub(super) fn write_config_to_file<C>(
-        &self,
-        config: &C,
-    ) -> Result<ConfigResult, RuwiError> 
-        where C: NetctlConfig
+    pub(super) fn write_config_to_file<C>(&self, config: &C) -> Result<ConfigResult, RuwiError>
+    where
+        C: NetctlConfig,
     {
         let config_text = format!("{}", config);
 
@@ -56,7 +54,7 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
 
 // TODO: unit test
 impl WifiNetctlConfig {
-    fn new(
+    pub(super) fn new(
         interface: &WifiIPInterface,
         network: &AnnotatedWirelessNetwork,
         encryption_key: &Option<String>,
@@ -106,12 +104,6 @@ IP=dhcp
     }
 }
 
-impl NetctlConfig for WifiNetctlConfig {
-    fn get_identifier(&self) -> &NetctlIdentifier {
-        &self.identifier
-    }
-}
-
 impl Display for WifiNetctlConfig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(&self.as_config_text())
@@ -120,10 +112,13 @@ impl Display for WifiNetctlConfig {
 
 impl WiredNetctlConfig {
     fn TODO() {}
-    //fn new(interface: &WiredIPInterface, network: &AnnotatedWiredNetwork) -> Self {
-    fn new(interface: &WiredIPInterface) -> Self {
-        //let identifier = NetctlIdentifier::from(network);
-        let identifier = NetctlIdentifier::new("FUCK");
+    pub(super) fn new(interface: &WiredIPInterface, network: &AnnotatedWiredNetwork) -> Self {
+        //pub(super) fn new(interface: &WiredIPInterface) -> Self {
+        let identifier = match network.get_service_identifier() {
+            Some(NetworkServiceIdentifier::Netctl(ident)) => ident.clone(),
+            _ => format!("ethernet-{}", interface.get_ifname()),
+        };
+        let TODO = "use WiredNetwork here, have finder look for them for selection in netctl mode";
         let interface_name = interface.get_ifname().to_string();
         Self::builder()
             .identifier(identifier)

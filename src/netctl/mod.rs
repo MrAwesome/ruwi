@@ -1,4 +1,5 @@
 pub(crate) mod config_finder;
+use config_finder::*;
 pub(crate) mod config_reader;
 pub(crate) mod config_writer;
 pub(crate) mod utils;
@@ -36,7 +37,9 @@ enum NetctlConnectionType {
     Wired,
 }
 
-trait NetctlConfig: Display {
+trait NetctlConfig: Display + TryFrom<NetctlRawParsedFields> {
+    type Checker: NetctlConfigFinderCriteria;
+
     fn get_identifier(&self) -> &NetctlIdentifier;
 }
 
@@ -55,7 +58,7 @@ impl<'a> NetctlRawConfig<'a> {
     ) -> Self {
         Self {
             identifier,
-            contents, 
+            contents,
             location,
         }
     }
@@ -90,10 +93,18 @@ struct WifiNetctlConfig {
     encryption_key: Option<String>,
 }
 
+impl NetctlConfig for WifiNetctlConfig {
+    type Checker = WifiNetctlConfigFinderCriteria;
+
+    fn get_identifier(&self) -> &NetctlIdentifier {
+        &self.identifier
+    }
+}
+
 impl TryFrom<NetctlRawParsedFields> for WifiNetctlConfig {
     type Error = RuwiError;
 
-    fn try_from(f: NetctlRawParsedFields) -> Result<Self, RuwiError> {
+    fn try_from(f: NetctlRawParsedFields) -> Result<Self, Self::Error> {
         let identifier = f.identifier;
         let interface_name = f.interface_name;
         let essid = check_for_field(&f.essid, &identifier, "ESSID")?;
@@ -113,6 +124,14 @@ struct WiredNetctlConfig {
     interface_name: String,
 }
 
+impl NetctlConfig for WiredNetctlConfig {
+    type Checker = WiredNetctlConfigFinderCriteria;
+
+    fn get_identifier(&self) -> &NetctlIdentifier {
+        &self.identifier
+    }
+}
+
 impl TryFrom<NetctlRawParsedFields> for WiredNetctlConfig {
     type Error = RuwiError;
 
@@ -124,15 +143,6 @@ impl TryFrom<NetctlRawParsedFields> for WiredNetctlConfig {
             .interface_name(interface_name)
             .build())
     }
-}
-
-// TODO: use predicates instead of these
-#[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
-struct NetctlConfigFinderCriteria {
-    interface: String,
-    connection_type: NetctlConnectionType,
-    filename: Option<String>,
-    essid: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
@@ -155,12 +165,9 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
         read_all_netctl_config_files(self.netctl_cfg_dir.as_ref())
     }
 
-    fn find_typed_configs<C>(
-        &self,
-        criteria: &NetctlConfigFinderCriteria,
-    ) -> Result<Vec<C>, RuwiError>
+    fn get_all_typed_configs<C>(&self) -> Result<Vec<C>, RuwiError>
     where
-        C: TryFrom<NetctlRawParsedFields>,
+        C: NetctlConfig,
     {
         let configs_text = self.get_all_configs_text()?;
         let raw_parsed_configs = configs_text
@@ -168,38 +175,42 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
             .filter_map(|text| NetctlRawParsedFields::try_from(text).ok())
             .filter_map(|config| C::try_from(config).ok())
             .collect::<Vec<C>>();
-        unimplemented!()
+
+        Ok(raw_parsed_configs)
     }
 
-    fn find_matching_configs<C>(
-        &self,
-        criteria: &NetctlConfigFinderCriteria,
-    ) -> Result<Vec<NetctlRawParsedFields>, RuwiError> {
-        let configs_text = self.get_all_configs_text()?;
-        Ok(configs_text
-            .iter()
-            .filter_map(|text| NetctlRawParsedFields::try_from(text).ok())
-            .collect())
+    fn find_matching_configs<C, K>(&self, criteria: &C::Checker) -> Result<Vec<C>, RuwiError>
+    where
+        C: NetctlConfig,
+    {
+        let all_typed_configs = self.get_all_typed_configs()?;
+        let selected_typed_configs = criteria.select(&all_typed_configs);
+        todo!("use criteria");
+        //        Ok(configs_text
+        //            .iter()
+        //            .filter_map(|text| NetctlRawParsedFields::try_from(text).ok())
+        //            .collect())
     }
 
     // put this into a trait and implement for both kinds of network/interface
     pub(crate) fn write_wifi_config(
         &self,
-        iface: &WifiIPInterface,
-        nw: &AnnotatedWirelessNetwork,
+        interface: &WifiIPInterface,
+        network: &AnnotatedWirelessNetwork,
         encryption_key: &Option<String>,
     ) -> Result<ConfigResult, RuwiError> {
-        let identifier = NetctlIdentifier::from(nw);
-        let essid = nw.get_public_name().to_string();
-        let interface_name = iface.get_ifname().to_string();
-        let encryption_key = encryption_key.clone();
+        let config = WifiNetctlConfig::new(interface, network, encryption_key);
 
-        let config = WifiNetctlConfig::builder()
-            .identifier(identifier)
-            .essid(essid)
-            .interface_name(interface_name)
-            .encryption_key(encryption_key)
-            .build();
+        self.write_config_to_file(&config)
+    }
+
+    // put this into a trait and implement for both kinds of network/interface
+    pub(crate) fn write_wired_config(
+        &self,
+        interface: &WiredIPInterface,
+        network: &AnnotatedWiredNetwork,
+    ) -> Result<ConfigResult, RuwiError> {
+        let config = WiredNetctlConfig::new(interface, network);
 
         self.write_config_to_file(&config)
     }

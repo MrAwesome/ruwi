@@ -5,10 +5,10 @@
 
 use crate::errors::*;
 // TODO: remove reliance on naked structs here
-use crate::known_networks::WifiKnownNetworks;
 use crate::enums::*;
-use crate::structs::ScanResult;
 use crate::interface_management::ip_interfaces::WifiIPInterface;
+use crate::known_networks::WifiKnownNetworks;
+use crate::structs::ScanResult;
 use std::fmt::Debug;
 
 // TODO: Remove networks from here and put elsewhere

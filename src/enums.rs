@@ -123,7 +123,7 @@ pub(crate) enum NetworkingService {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NetworkServiceIdentifier {
     Netctl(String),
-    NetworkManager
+    NetworkManager,
 }
 
 impl NetworkServiceIdentifier {

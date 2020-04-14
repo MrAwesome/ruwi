@@ -61,5 +61,9 @@ fn impl_test_malicious_binary(malicious_binary_name: &str, ruwi_args: &str) -> R
     p.exp_regex(&format!("external binary .{}.", &full_malicious_binary_name))?;
     p.exp_string("COMMAND_FAILED_YESSS")?;
     p.wait_for_prompt()?;
+
+    p.send_line(&format!("rm -r {} && echo \"DELETED_DIR\"", &malicious_dir))?;
+    p.exp_string("DELETED_DIR")?;
+    p.wait_for_prompt()?;
     Ok(())
 }

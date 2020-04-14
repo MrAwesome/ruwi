@@ -1,7 +1,7 @@
 use crate::enums::NetworkingService;
 use crate::enums::RawInterfaceConnectionType;
-use crate::interface_management::ip_interfaces::*;
 use crate::errors::*;
+use crate::interface_management::ip_interfaces::*;
 use crate::options::interfaces::*;
 use crate::run_commands::SystemCommandRunner;
 
@@ -36,43 +36,40 @@ impl<'a, O: Global, T: LinuxIPInterface> RawInterfaceConnector<'a, O, T> {
         }
     }
 
-    fn todo () { "implement raw interface connect for netctl - create config, just with no encryption info or essid"; }
+    fn todo() {
+        "implement raw interface connect for netctl - create config, just with no encryption info or essid";
+    }
 
     fn dhcpcd_connect(&self) -> Result<(), RuwiError> {
-        SystemCommandRunner::new( 
-            self.options,
-            "dhcpcd",
-            &[self.interface.get_ifname()],
-        ).run_command_pass(
-            RuwiErrorKind::FailedToRawConnectViaDhcpcd,
-            &format!(
-                "Failed to connect on \"{}\" using dhcpcd!",
-                self.interface.get_ifname()
-            ),
-        )
+        SystemCommandRunner::new(self.options, "dhcpcd", &[self.interface.get_ifname()])
+            .run_command_pass(
+                RuwiErrorKind::FailedToRawConnectViaDhcpcd,
+                &format!(
+                    "Failed to connect on \"{}\" using dhcpcd!",
+                    self.interface.get_ifname()
+                ),
+            )
     }
 
     fn dhclient_connect(&self) -> Result<(), RuwiError> {
-        SystemCommandRunner::new( 
-            self.options,
-            "dhclient",
-            &[self.interface.get_ifname()],
-        ).run_command_pass(
-            RuwiErrorKind::FailedToRawConnectViaDhclient,
-            &format!(
-                "Failed to connect on \"{}\" using dhclient!",
-                self.interface.get_ifname()
-            ),
-        )
+        SystemCommandRunner::new(self.options, "dhclient", &[self.interface.get_ifname()])
+            .run_command_pass(
+                RuwiErrorKind::FailedToRawConnectViaDhclient,
+                &format!(
+                    "Failed to connect on \"{}\" using dhclient!",
+                    self.interface.get_ifname()
+                ),
+            )
     }
 
     fn nmcli_connect(&self) -> Result<(), RuwiError> {
         NetworkingService::NetworkManager.start(self.options)?;
-        SystemCommandRunner::new( 
+        SystemCommandRunner::new(
             self.options,
             "nmcli",
             &["device", "connect", self.interface.get_ifname()],
-        ).run_command_pass(
+        )
+        .run_command_pass(
             RuwiErrorKind::FailedToRawConnectViaNmcli,
             &format!(
                 "Failed to connect on \"{}\" using nmcli!",

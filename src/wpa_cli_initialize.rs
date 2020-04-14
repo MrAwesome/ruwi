@@ -40,7 +40,8 @@ where
                 "-c",
                 "/etc/wpa_supplicant/wpa_supplicant.conf",
             ],
-        ).run_command_status_dumb();
+        )
+        .run_command_status_dumb();
 
         if supplicant_status {
             SystemCommandRunner::new(options, "wpa_cli", &["scan"]).run_command_status_dumb();
@@ -71,11 +72,7 @@ pub(crate) fn kill_wpa_supplicant<O>(options: &O) -> Result<(), RuwiError>
 where
     O: Global,
 {
-    SystemCommandRunner::new(
-        options,
-        "pkill",
-        &["wpa_supplicant"],
-    ).run_command_pass(
+    SystemCommandRunner::new(options, "pkill", &["wpa_supplicant"]).run_command_pass(
         RuwiErrorKind::FailedToStopWpaSupplicant,
         "Failed to stop wpa_supplicant! Are you running as root?",
     )

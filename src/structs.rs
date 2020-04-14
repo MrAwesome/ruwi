@@ -87,27 +87,28 @@ impl AnnotatedWirelessNetwork {
     pub fn is_encrypted(&self) -> bool {
         self.is_encrypted
     }
-    pub fn get_bssid(&self) -> Option<&String> {
+    pub fn _get_bssid(&self) -> Option<&String> {
         self.bssid.as_ref()
     }
     pub fn get_signal_strength(&self) -> Option<i32> {
         self.signal_strength
     }
-    pub fn get_channel_utilisation(&self) -> Option<&String> {
+    pub fn _get_channel_utilisation(&self) -> Option<&String> {
         self.channel_utilisation.as_ref()
     }
 
     #[cfg(test)]
     pub fn from_essid_only(essid: &str) -> Self {
-        Self::builder()
-            .essid(essid)
-            .build()
+        Self::builder().essid(essid).build()
     }
 }
 
 impl AnnotatedWirelessNetwork {
     #[cfg(test)]
-    pub(crate) fn set_service_identifier_for_tests(&mut self, service_identifier: Option<NetworkServiceIdentifier>) {
+    pub(crate) fn set_service_identifier_for_tests(
+        &mut self,
+        service_identifier: Option<NetworkServiceIdentifier>,
+    ) {
         self.service_identifier = service_identifier
     }
 }
@@ -135,6 +136,21 @@ impl Known for AnnotatedWirelessNetwork {
 
 impl RuwiNetwork for AnnotatedWirelessNetwork {}
 impl AnnotatedRuwiNetwork for AnnotatedWirelessNetwork {}
+
+#[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
+pub struct AnnotatedWiredNetwork {
+    #[builder(default = None)]
+    service_identifier: Option<NetworkServiceIdentifier>,
+}
+
+impl Known for AnnotatedWiredNetwork {
+    fn is_known(&self) -> bool {
+        self.service_identifier.is_some()
+    }
+    fn get_service_identifier(&self) -> Option<&NetworkServiceIdentifier> {
+        self.service_identifier.as_ref()
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConfigResult {

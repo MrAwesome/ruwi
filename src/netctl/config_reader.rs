@@ -26,36 +26,42 @@ impl<'a> TryFrom<&NetctlRawConfig<'a>> for NetctlRawParsedFields {
 }
 
 #[cfg(test)]
-pub(super) fn read_all_netctl_config_files<'a>(netctl_path_name: &'a str) -> Result<Vec<NetctlRawConfig<'a>>, RuwiError> {
+pub(super) fn read_all_netctl_config_files<'a>(
+    netctl_path_name: &'a str,
+) -> Result<Vec<NetctlRawConfig<'a>>, RuwiError> {
     unimplemented!()
 }
 
 #[cfg(not(test))]
-pub(super) fn read_all_netctl_config_files<'a>(netctl_path_name: &'a str) -> Result<Vec<NetctlRawConfig<'a>>, RuwiError> {
+pub(super) fn read_all_netctl_config_files<'a>(
+    netctl_path_name: &'a str,
+) -> Result<Vec<NetctlRawConfig<'a>>, RuwiError> {
     let netctl_path = Path::new(netctl_path_name);
     if netctl_path.is_dir() {
         // TODO: Use tokio/etc to asynchronously read from these files
-        let dir_entries = read_dir(netctl_path).map_err(
-            |e| rerr!(
+        let dir_entries = read_dir(netctl_path).map_err(|e| {
+            rerr!(
                 RuwiErrorKind::ErrorReadingNetctlDir,
                 format!(
                     "Failed trying to read contents of netctl dir: {}",
                     netctl_path_name
                 ),
                 "OS_ERR" => e
-            ))?;
+            )
+        })?;
 
         let mut found_files = vec![];
         for dir_entry_res in dir_entries {
-            let filename_and_contents = read_file_contents(dir_entry_res).map_err(
-                |e| rerr!(
+            let filename_and_contents = read_file_contents(dir_entry_res).map_err(|e| {
+                rerr!(
                     RuwiErrorKind::ErrorReadingNetctlDir,
                     format!(
                         "Failed trying to read contents of netctl config in: {}",
                         netctl_path_name,
                     ),
                     "OS_ERR" => e
-                ))?;
+                )
+            })?;
             if let Some(entry) = filename_and_contents {
                 found_files.push(entry);
             }
@@ -63,10 +69,13 @@ pub(super) fn read_all_netctl_config_files<'a>(netctl_path_name: &'a str) -> Res
 
         Ok(found_files
             .iter()
-            .map(|(file_name, file_contents)| NetctlRawConfig::new(
-                    NetctlIdentifier::new(file_name), 
+            .map(|(file_name, file_contents)| {
+                NetctlRawConfig::new(
+                    NetctlIdentifier::new(file_name),
                     NetctlRawConfigContents::new(file_contents),
-                    netctl_path_name))
+                    netctl_path_name,
+                )
+            })
             .collect())
     } else {
         Err(rerr!(
@@ -83,7 +92,9 @@ type FileName = String;
 type FileContents = String;
 
 #[cfg(not(test))]
-fn read_file_contents(entry_res: io::Result<DirEntry>) -> io::Result<Option<(FileName, FileContents)>> {
+fn read_file_contents(
+    entry_res: io::Result<DirEntry>,
+) -> io::Result<Option<(FileName, FileContents)>> {
     let entry = entry_res?;
     let path = entry.path();
     if path.is_file() {
@@ -93,10 +104,7 @@ fn read_file_contents(entry_res: io::Result<DirEntry>) -> io::Result<Option<(Fil
 
         let file_name = path.file_name();
         if let Some(osstr_name) = file_name {
-            return Ok(Some((
-                convert_osstr_to_string(osstr_name),
-                contents,
-            )));
+            return Ok(Some((convert_osstr_to_string(osstr_name), contents)));
         }
     }
     Ok(None)
@@ -116,7 +124,8 @@ fn read_file_contents(entry_res: io::Result<DirEntry>) -> io::Result<Option<(Fil
 fn get_field_from_netctl_config_text(contents: &str, token: &str) -> Option<String> {
     contents.lines().find_map(|line| {
         if line.starts_with(token) {
-            let value = line.trim_start_matches(token)
+            let value = line
+                .trim_start_matches(token)
                 .trim_start_matches('\'')
                 .trim_start_matches('"')
                 .trim_end_matches('\'')
