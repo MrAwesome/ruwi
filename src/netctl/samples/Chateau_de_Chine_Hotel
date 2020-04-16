@@ -1,0 +1,6 @@
+Description='Chateau de Chine Hotel wifi - open'
+Interface=wlp3s0
+Connection=wireless
+Security=none
+ESSID='Chateau de Chine Hotel'
+IP=dhcp

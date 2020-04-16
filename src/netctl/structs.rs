@@ -1,11 +1,13 @@
-use crate::common::*;
-use crate::string_container;
 use super::config_finder::*;
 use super::utils::check_for_field;
+use crate::common::*;
+use crate::string_container;
+
+use strum_macros::AsStaticStr;
+use strum_macros::{Display, EnumString};
+use typed_builder::TypedBuilder;
 
 use std::convert::TryFrom;
-use strum_macros::Display;
-use typed_builder::TypedBuilder;
 
 string_container! {NetctlIdentifier, NetctlRawConfigContents}
 
@@ -15,11 +17,11 @@ pub(super) trait NetctlConfig: fmt::Display + TryFrom<NetctlRawParsedFields> {
     fn get_identifier(&self) -> &NetctlIdentifier;
 }
 
-
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
 pub(super) struct NetctlRawConfig<'a> {
     pub(super) identifier: NetctlIdentifier,
     pub(super) contents: NetctlRawConfigContents,
+    // TODO: is location necessary here? can you just pass it around separately if needed?
     pub(super) location: &'a str,
 }
 
@@ -36,13 +38,17 @@ impl<'a> TryFrom<&NetctlRawConfig<'a>> for NetctlRawParsedFields {
     type Error = RuwiError;
 
     fn try_from(f: &NetctlRawConfig) -> Result<Self, RuwiError> {
-        // TODO: here, or in a helper function, grab the fields you need from a netctl config blob
+        // TODO:
+        // [] copy identifier directly
+        // [] parse connection type or throw
+        // [] ensure interface exists or throw
+        // [] set essid
+        // [] set encryption key
         unimplemented!()
     }
 }
 
-
-#[derive(Debug, Clone, PartialEq, Eq, Display)]
+#[derive(Debug, Clone, PartialEq, Eq, Display, EnumString, AsStaticStr)]
 pub(super) enum NetctlConnectionType {
     #[strum(serialize = "wireless")]
     Wifi,
@@ -109,4 +115,3 @@ impl TryFrom<NetctlRawParsedFields> for WiredNetctlConfig {
             .build())
     }
 }
-
