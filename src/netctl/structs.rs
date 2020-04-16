@@ -8,6 +8,7 @@ use strum_macros::{Display, EnumString};
 use typed_builder::TypedBuilder;
 
 use std::convert::TryFrom;
+use std::str::FromStr;
 
 string_container! {NetctlIdentifier, NetctlRawConfigContents}
 
@@ -19,6 +20,7 @@ pub(super) trait NetctlConfig: fmt::Display + TryFrom<NetctlRawParsedFields> {
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
 pub(super) struct NetctlRawConfig<'a> {
+    // TODO: get rid of pub(super) here
     pub(super) identifier: NetctlIdentifier,
     pub(super) contents: NetctlRawConfigContents,
     // TODO: is location necessary here? can you just pass it around separately if needed?
@@ -34,17 +36,56 @@ pub(super) struct NetctlRawParsedFields {
     pub(super) encryption_key: Option<String>,
 }
 
+// TODO: unit test in own file
 impl<'a> TryFrom<&NetctlRawConfig<'a>> for NetctlRawParsedFields {
     type Error = RuwiError;
 
-    fn try_from(f: &NetctlRawConfig) -> Result<Self, RuwiError> {
+    fn try_from(raw: &NetctlRawConfig) -> Result<Self, RuwiError> {
         // TODO:
         // [] copy identifier directly
         // [] parse connection type or throw
         // [] ensure interface exists or throw
         // [] set essid
         // [] set encryption key
-        unimplemented!()
+        // [] handle errors gracefully, don't just kill ruwi because a single config doesn't parse
+        let identifier = raw.identifier.clone();
+        let connection_type_text = raw.get_connection_type().ok_or(rerr!(
+            RuwiErrorKind::MissingFieldInNetctlConfig,
+            format!(
+                "No connection type found for config {}!",
+                raw.identifier.as_ref()
+            ),
+        ))?;
+        let connection_type =
+            NetctlConnectionType::from_str(&connection_type_text).map_err(|_e| {
+                rerr!(
+                    RuwiErrorKind::MissingFieldInNetctlConfig,
+                    format!(
+                        "Failed to parse connection type \"{}\" found in config {}!",
+                        &connection_type_text,
+                        raw.identifier.as_ref()
+                    ),
+                )
+            })?;
+        let interface_name = raw.get_interface().ok_or(rerr!(
+            RuwiErrorKind::MissingFieldInNetctlConfig,
+            format!(
+                "No interface found for config {}!",
+                raw.identifier.as_ref()
+            ),
+        ))?;
+
+        let essid = raw.get_essid();
+        let encryption_key = raw.get_encryption_key();
+
+        Ok(Self::builder()
+            .identifier(identifier)
+            .connection_type(connection_type)
+            .interface_name(interface_name)
+            .essid(essid)
+            .encryption_key(encryption_key)
+            .build())
+            
     }
 }
 
