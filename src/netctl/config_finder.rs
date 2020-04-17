@@ -2,67 +2,66 @@ use super::structs::*;
 use typed_builder::TypedBuilder;
 
 // TODO: use predicates? Look for PredicatesStrExt.
+// NOTE: when option_result_contains is in stable, the filters below become much simpler: self.interface_name.contains(ifname)
 
-pub(super) trait NetctlConfigFinderCriteria {
-    type Config: NetctlConfig;
+pub(super) trait NetctlConfigFinderCriteria<'a> {
+    type Config: NetctlConfig<'a>;
 
-    fn select<'a>(&self, configs: &'a [Self::Config]) -> Vec<&'a Self::Config>;
+    fn select(&self, configs: Vec<Self::Config>) -> Vec<Self::Config>;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
-pub(super) struct WifiNetctlConfigFinderCriteria {
+pub(super) struct WifiNetctlConfigFinderCriteria<'a> {
     #[builder(default = None)]
-    interface_name: Option<String>,
+    interface_name: Option<&'a str>,
     #[builder(default = None)]
-    identifier_aka_filename: Option<String>,
+    identifier_aka_filename: Option<&'a str>,
     #[builder(default = None)]
-    essid: Option<String>,
+    essid: Option<&'a str>,
 }
 
-impl NetctlConfigFinderCriteria for WifiNetctlConfigFinderCriteria {
+pub fn contains<U>(option: &Option<U>, x: &U) -> bool
+where
+    U: PartialEq,
+{
+    match option {
+        Some(y) => x == y,
+        None => false,
+    }
+}
+
+impl<'a> NetctlConfigFinderCriteria<'a> for WifiNetctlConfigFinderCriteria<'a> {
     type Config = WifiNetctlConfig;
 
-    fn select<'a>(&self, configs: &'a [Self::Config]) -> Vec<&'a Self::Config> {
+    fn select(&self, configs: Vec<Self::Config>) -> Vec<Self::Config> {
         configs
-            .iter()
+            .into_iter()
             .filter(|config| {
-                (match &self.interface_name {
-                    Some(ifname) => ifname == &config.interface_name,
-                    None => true,
-                }) && (match &self.identifier_aka_filename {
-                    Some(id) => id == config.identifier.as_ref(),
-                    None => true,
-                }) && (match &self.essid {
-                    Some(essid) => essid == &config.essid,
-                    None => true,
-                })
+                contains(&self.interface_name, &config.interface_name.as_ref())
+                    && contains(&self.identifier_aka_filename, &config.identifier.as_ref())
+                    && contains(&self.essid, &config.essid.as_ref())
             })
             .collect()
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
-pub(super) struct WiredNetctlConfigFinderCriteria {
+pub(super) struct WiredNetctlConfigFinderCriteria<'a> {
     #[builder(default = None)]
-    interface_name: Option<String>,
+    interface_name: Option<&'a str>,
     #[builder(default = None)]
-    identifier_aka_filename: Option<String>,
+    identifier_aka_filename: Option<&'a str>,
 }
 
-impl NetctlConfigFinderCriteria for WiredNetctlConfigFinderCriteria {
+impl<'a> NetctlConfigFinderCriteria<'a> for WiredNetctlConfigFinderCriteria<'a> {
     type Config = WiredNetctlConfig;
 
-    fn select<'a>(&self, configs: &'a [Self::Config]) -> Vec<&'a Self::Config> {
+    fn select(&self, configs: Vec<Self::Config>) -> Vec<Self::Config> {
         configs
-            .iter()
+            .into_iter()
             .filter(|config| {
-                (match &self.interface_name {
-                    Some(ifname) => ifname == &config.interface_name,
-                    None => true,
-                }) && (match &self.identifier_aka_filename {
-                    Some(id) => id == config.identifier.as_ref(),
-                    None => true,
-                })
+                contains(&self.interface_name, &config.interface_name.as_ref())
+                    && contains(&self.identifier_aka_filename, &config.identifier.as_ref())
             })
             .collect()
     }
@@ -114,12 +113,12 @@ mod tests {
 
     #[test]
     fn test_wifi_select_by_interface() {
-        let ifname = "MUH_INTERFACE".to_string();
+        let ifname = "MUH_INTERFACE";
         let configs = get_sample_wifi_configs();
         let criteria = WifiNetctlConfigFinderCriteria::builder()
-            .interface_name(Some(ifname.clone()))
+            .interface_name(Some(ifname))
             .build();
-        let selected_configs = criteria.select(&configs);
+        let selected_configs = criteria.select(configs);
         for config in selected_configs {
             assert_eq![ifname, config.interface_name];
         }
@@ -127,12 +126,12 @@ mod tests {
 
     #[test]
     fn test_wired_select_by_interface() {
-        let ifname = "BRUH_INTERFACE".to_string();
+        let ifname = "BRUH_INTERFACE";
         let configs = get_sample_wired_configs();
         let criteria = WiredNetctlConfigFinderCriteria::builder()
-            .interface_name(Some(ifname.clone()))
+            .interface_name(Some(ifname))
             .build();
-        let selected_configs = criteria.select(&configs);
+        let selected_configs = criteria.select(configs);
         for config in selected_configs {
             assert_eq![ifname, config.interface_name];
         }

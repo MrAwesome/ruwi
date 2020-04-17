@@ -48,7 +48,7 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
 
     fn get_all_typed_configs<C>(&self) -> Result<Vec<C>, RuwiError>
     where
-        C: NetctlConfig,
+        C: NetctlConfig<'a>,
     {
         let configs_text = self.get_all_configs_text()?;
         let raw_parsed_configs = configs_text
@@ -60,17 +60,15 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
         Ok(raw_parsed_configs)
     }
 
-    fn find_matching_configs<C, K>(&self, criteria: &C::Checker) -> Result<Vec<C>, RuwiError>
+    fn find_matching_configs<C>(&self, criteria: &C::Checker) -> Result<
+        Vec<<<C as NetctlConfig<'a>>::Checker as NetctlConfigFinderCriteria<'a>>::Config>
+        , RuwiError>
     where
-        C: NetctlConfig,
+        C: NetctlConfig<'a>,
     {
         let all_typed_configs = self.get_all_typed_configs()?;
-        let selected_typed_configs = criteria.select(&all_typed_configs);
-        todo!("use criteria");
-        //        Ok(configs_text
-        //            .iter()
-        //            .filter_map(|text| NetctlRawParsedFields::try_from(text).ok())
-        //            .collect())
+        let matching_configs = criteria.select(all_typed_configs);
+        Ok(matching_configs)
     }
 
     // put this into a trait and implement for both kinds of network/interface

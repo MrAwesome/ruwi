@@ -22,7 +22,7 @@ use std::fmt;
 impl<'a, O: Global> NetctlConfigHandler<'a, O> {
     pub(super) fn write_config_to_file<C>(&self, config: &C) -> Result<ConfigResult, RuwiError>
     where
-        C: NetctlConfig,
+        C: NetctlConfig<'a>,
     {
         let config_text = format!("{}", config);
 

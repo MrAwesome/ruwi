@@ -12,8 +12,8 @@ use std::str::FromStr;
 
 string_container! {NetctlIdentifier, NetctlRawConfigContents}
 
-pub(super) trait NetctlConfig: fmt::Display + TryFrom<NetctlRawParsedFields> {
-    type Checker: NetctlConfigFinderCriteria;
+pub(super) trait NetctlConfig<'a>: fmt::Display + TryFrom<NetctlRawParsedFields> {
+    type Checker: NetctlConfigFinderCriteria<'a>;
 
     fn get_identifier(&self) -> &NetctlIdentifier;
 }
@@ -42,11 +42,6 @@ impl<'a> TryFrom<&NetctlRawConfig<'a>> for NetctlRawParsedFields {
 
     fn try_from(raw: &NetctlRawConfig) -> Result<Self, RuwiError> {
         // TODO:
-        // [] copy identifier directly
-        // [] parse connection type or throw
-        // [] ensure interface exists or throw
-        // [] set essid
-        // [] set encryption key
         // [] handle errors gracefully, don't just kill ruwi because a single config doesn't parse
         let identifier = raw.identifier.clone();
         let connection_type_text = raw.get_connection_type().ok_or(rerr!(
@@ -105,8 +100,8 @@ pub(super) struct WifiNetctlConfig {
     pub(super) encryption_key: Option<String>,
 }
 
-impl NetctlConfig for WifiNetctlConfig {
-    type Checker = WifiNetctlConfigFinderCriteria;
+impl<'a> NetctlConfig<'a> for WifiNetctlConfig {
+    type Checker = WifiNetctlConfigFinderCriteria<'a>;
 
     fn get_identifier(&self) -> &NetctlIdentifier {
         &self.identifier
@@ -136,8 +131,8 @@ pub(super) struct WiredNetctlConfig {
     pub(super) interface_name: String,
 }
 
-impl NetctlConfig for WiredNetctlConfig {
-    type Checker = WiredNetctlConfigFinderCriteria;
+impl<'a> NetctlConfig<'a> for WiredNetctlConfig {
+    type Checker = WiredNetctlConfigFinderCriteria<'a>;
 
     fn get_identifier(&self) -> &NetctlIdentifier {
         &self.identifier
