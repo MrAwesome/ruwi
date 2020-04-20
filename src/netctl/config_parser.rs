@@ -1,5 +1,4 @@
 use super::structs::*;
-use crate::common::*;
 
 use strum::AsStaticRef;
 use strum_macros::AsStaticStr;
@@ -61,10 +60,6 @@ mod tests {
     use super::*;
     use strum::AsStaticRef;
 
-    static ETHERNET_SAMPLE: &str = include_str!("samples/ethernet_dhcp");
-    static WIRELESS_OPEN_SAMPLE: &str = include_str!("samples/Chateau_de_Chine_Hotel");
-    static WIRELESS_ENCRYPTED_SAMPLE: &str = include_str!("samples/kingship_lobby");
-
     fn get_config<'a>(contents: &str) -> NetctlRawConfig<'a> {
         NetctlRawConfig::builder()
             .contents(contents)
@@ -74,15 +69,15 @@ mod tests {
     }
 
     fn get_ethernet_config<'a>() -> NetctlRawConfig<'a> {
-        get_config(ETHERNET_SAMPLE)
+        get_config(super::super::tests::ETHERNET_SAMPLE)
     }
 
     fn get_wireless_open_config<'a>() -> NetctlRawConfig<'a> {
-        get_config(WIRELESS_OPEN_SAMPLE)
+        get_config(super::super::tests::WIRELESS_OPEN_SAMPLE)
     }
 
     fn get_wireless_encrypted_config<'a>() -> NetctlRawConfig<'a> {
-        get_config(WIRELESS_ENCRYPTED_SAMPLE)
+        get_config(super::super::tests::WIRELESS_ENCRYPTED_SAMPLE)
     }
 
     #[test]

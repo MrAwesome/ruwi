@@ -1,5 +1,6 @@
 use super::config_finder::*;
-use super::utils::check_for_field;
+use super::utils::*;
+
 use crate::common::*;
 use crate::string_container;
 
@@ -12,6 +13,16 @@ use std::str::FromStr;
 
 string_container! {NetctlIdentifier, NetctlRawConfigContents}
 
+impl From<&AnnotatedWirelessNetwork> for NetctlIdentifier {
+    fn from(nw: &AnnotatedWirelessNetwork) -> Self {
+        let ident = match nw.get_service_identifier() {
+            Some(NetworkServiceIdentifier::Netctl(ident)) => ident.clone(),
+            _ => nw.get_public_name().replace(" ", "_"),
+        };
+        Self::new(ident)
+    }
+}
+
 pub(super) trait NetctlConfig<'a>: fmt::Display + TryFrom<NetctlRawParsedFields> {
     type Checker: NetctlConfigFinderCriteria<'a>;
 
@@ -19,7 +30,7 @@ pub(super) trait NetctlConfig<'a>: fmt::Display + TryFrom<NetctlRawParsedFields>
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
-pub(super) struct NetctlRawConfig<'a> {
+pub(crate) struct NetctlRawConfig<'a> {
     // TODO: get rid of pub(super) here
     pub(super) identifier: NetctlIdentifier,
     pub(super) contents: NetctlRawConfigContents,
@@ -38,37 +49,34 @@ pub(super) struct NetctlRawParsedFields {
 
 // TODO: unit test in own file
 impl<'a> TryFrom<&NetctlRawConfig<'a>> for NetctlRawParsedFields {
-    type Error = RuwiError;
+    type Error = NetctlParseError;
 
-    fn try_from(raw: &NetctlRawConfig) -> Result<Self, RuwiError> {
+    fn try_from(raw: &NetctlRawConfig) -> Result<Self, Self::Error> {
         // TODO:
         // [] handle errors gracefully, don't just kill ruwi because a single config doesn't parse
         let identifier = raw.identifier.clone();
-        let connection_type_text = raw.get_connection_type().ok_or(rerr!(
-            RuwiErrorKind::MissingFieldInNetctlConfig,
-            format!(
-                "No connection type found for config {}!",
-                raw.identifier.as_ref()
-            ),
-        ))?;
+        // TODO TODO: decide if netctl parse errors should own some error text to present to the
+        // user later
+        let connection_type_text =
+            raw.get_connection_type()
+                .ok_or(NetctlParseError::MissingFieldInNetctlConfig(format!(
+                    "No connection type found for config {}!",
+                    raw.identifier.as_ref()
+                )))?;
         let connection_type =
             NetctlConnectionType::from_str(&connection_type_text).map_err(|_e| {
-                rerr!(
-                    RuwiErrorKind::MissingFieldInNetctlConfig,
-                    format!(
-                        "Failed to parse connection type \"{}\" found in config {}!",
-                        &connection_type_text,
-                        raw.identifier.as_ref()
-                    ),
-                )
+                NetctlParseError::MissingFieldInNetctlConfig(format!(
+                    "Failed to parse connection type \"{}\" found in config {}!",
+                    &connection_type_text,
+                    raw.identifier.as_ref()
+                ))
             })?;
-        let interface_name = raw.get_interface().ok_or(rerr!(
-            RuwiErrorKind::MissingFieldInNetctlConfig,
-            format!(
-                "No interface found for config {}!",
-                raw.identifier.as_ref()
-            ),
-        ))?;
+        let interface_name =
+            raw.get_interface()
+                .ok_or(NetctlParseError::MissingFieldInNetctlConfig(format!(
+                    "No interface found for config {}!",
+                    raw.identifier.as_ref()
+                )))?;
 
         let essid = raw.get_essid();
         let encryption_key = raw.get_encryption_key();
@@ -80,7 +88,6 @@ impl<'a> TryFrom<&NetctlRawConfig<'a>> for NetctlRawParsedFields {
             .essid(essid)
             .encryption_key(encryption_key)
             .build())
-            
     }
 }
 
@@ -109,9 +116,10 @@ impl<'a> NetctlConfig<'a> for WifiNetctlConfig {
 }
 
 impl TryFrom<NetctlRawParsedFields> for WifiNetctlConfig {
-    type Error = RuwiError;
+    type Error = NetctlParseError;
 
     fn try_from(f: NetctlRawParsedFields) -> Result<Self, Self::Error> {
+        check_connection_type(NetctlConnectionType::Wifi, f.connection_type)?;
         let identifier = f.identifier;
         let interface_name = f.interface_name;
         let essid = check_for_field(&f.essid, &identifier, "ESSID")?;
@@ -140,14 +148,21 @@ impl<'a> NetctlConfig<'a> for WiredNetctlConfig {
 }
 
 impl TryFrom<NetctlRawParsedFields> for WiredNetctlConfig {
-    type Error = RuwiError;
+    type Error = NetctlParseError;
 
-    fn try_from(f: NetctlRawParsedFields) -> Result<Self, RuwiError> {
+    fn try_from(f: NetctlRawParsedFields) -> Result<Self, Self::Error> {
+        check_connection_type(NetctlConnectionType::Wired, f.connection_type)?;
         let identifier = f.identifier;
         let interface_name = f.interface_name;
+
         Ok(Self::builder()
             .identifier(identifier)
             .interface_name(interface_name)
             .build())
     }
+}
+
+pub(super) enum NetctlParseError {
+    IncorrectConnectionType,
+    MissingFieldInNetctlConfig(String),
 }

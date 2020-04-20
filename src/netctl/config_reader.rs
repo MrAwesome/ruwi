@@ -12,17 +12,33 @@ use std::path::Path;
 #[cfg(not(test))]
 use crate::utils::convert_osstr_to_string;
 
-#[cfg(test)]
 pub(super) fn read_all_netctl_config_files<'a>(
     netctl_path_name: &'a str,
 ) -> Result<Vec<NetctlRawConfig<'a>>, RuwiError> {
-    unimplemented!()
+    let files = read_all_netctl_config_files_impl(netctl_path_name)?;
+    Ok(
+        files.iter()
+        .map(|(file_name, file_contents)| {
+            NetctlRawConfig::builder()
+                .identifier(file_name)
+                .contents(file_contents)
+                .location(netctl_path_name)
+                .build()
+        })
+        .collect())
+}
+
+#[cfg(test)]
+pub(super) fn read_all_netctl_config_files_impl<'a>(
+    _netctl_path_name: &'a str,
+) -> Result<Vec<(FileName, FileContents)>, RuwiError> {
+    panic!("Tried to read netctl config directory in test!")
 }
 
 #[cfg(not(test))]
-pub(super) fn read_all_netctl_config_files<'a>(
+pub(super) fn read_all_netctl_config_files_impl<'a>(
     netctl_path_name: &'a str,
-) -> Result<Vec<NetctlRawConfig<'a>>, RuwiError> {
+) -> Result<Vec<(FileName, FileContents)>, RuwiError> {
     let netctl_path = Path::new(netctl_path_name);
     if netctl_path.is_dir() {
         // TODO: Use tokio/etc to asynchronously read from these files
@@ -54,16 +70,7 @@ pub(super) fn read_all_netctl_config_files<'a>(
             }
         }
 
-        Ok(found_files
-            .iter()
-            .map(|(file_name, file_contents)| {
-                NetctlRawConfig::builder()
-                    .identifier(file_name)
-                    .contents(file_contents)
-                    .location(netctl_path_name)
-                    .build()
-            })
-            .collect())
+        Ok(found_files)
     } else {
         Err(rerr!(
             RuwiErrorKind::InvalidNetctlPath,
