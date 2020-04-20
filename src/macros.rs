@@ -73,6 +73,12 @@ macro_rules! string_container {
             }
         }
 
+        impl PartialEq<$name> for str {
+            fn eq(&self, other: &$name) -> bool {
+                self == other.as_ref()
+            }
+        }
+
         )*
     }
 }

@@ -2,7 +2,6 @@ use super::structs::*;
 use typed_builder::TypedBuilder;
 
 // TODO: use predicates? Look for PredicatesStrExt.
-// NOTE: when option_result_contains is in stable, the filters below become much simpler: self.interface_name.contains(ifname)
 
 pub(super) trait NetctlConfigFinderCriteria<'a> {
     type Config: NetctlConfig<'a>;
@@ -20,13 +19,13 @@ pub(super) struct WifiNetctlConfigFinderCriteria<'a> {
     essid: Option<&'a str>,
 }
 
-pub fn contains<U>(option: &Option<U>, x: &U) -> bool
+pub fn contains_if_given<U>(option: &Option<U>, x: &U) -> bool
 where
     U: PartialEq,
 {
     match option {
         Some(y) => x == y,
-        None => false,
+        None => true,
     }
 }
 
@@ -37,9 +36,9 @@ impl<'a> NetctlConfigFinderCriteria<'a> for WifiNetctlConfigFinderCriteria<'a> {
         configs
             .into_iter()
             .filter(|config| {
-                contains(&self.interface_name, &config.interface_name.as_ref())
-                    && contains(&self.identifier_aka_filename, &config.identifier.as_ref())
-                    && contains(&self.essid, &config.essid.as_ref())
+                contains_if_given(&self.interface_name, &config.interface_name.as_ref())
+                    && contains_if_given(&self.identifier_aka_filename, &config.identifier.as_ref())
+                    && contains_if_given(&self.essid, &config.essid.as_ref())
             })
             .collect()
     }
@@ -60,8 +59,8 @@ impl<'a> NetctlConfigFinderCriteria<'a> for WiredNetctlConfigFinderCriteria<'a> 
         configs
             .into_iter()
             .filter(|config| {
-                contains(&self.interface_name, &config.interface_name.as_ref())
-                    && contains(&self.identifier_aka_filename, &config.identifier.as_ref())
+                contains_if_given(&self.interface_name, &config.interface_name.as_ref())
+                    && contains_if_given(&self.identifier_aka_filename, &config.identifier.as_ref())
             })
             .collect()
     }

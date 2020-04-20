@@ -1,5 +1,5 @@
 Description='A simple WPA encrypted wireless connection'
-Interface=wlp3s0
+Interface=wlp3s1
 Connection=wireless
 
 Security=wpa
@@ -9,7 +9,7 @@ ESSID='Lobby'
 # Prepend hexadecimal keys with \"
 # If your key starts with ", write it as '""<key>"'
 # See also: the section on special quoting rules in netctl.profile(5)
-Key='KS201819'
+Key='KS211819'
 # Uncomment this if your ssid is hidden
 #Hidden=yes
 # Set a priority for automatic profile selection

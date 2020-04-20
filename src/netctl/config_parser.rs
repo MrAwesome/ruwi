@@ -107,12 +107,12 @@ mod tests {
     #[test]
     fn test_parse_wireless_encrypted() {
         let config = get_wireless_encrypted_config();
-        assert_eq!["wlp3s0", config.get_interface().unwrap()];
+        assert_eq!["wlp3s1", config.get_interface().unwrap()];
         assert_eq![
             NetctlConnectionType::Wifi.as_static(),
             config.get_connection_type().unwrap()
         ];
         assert_eq!["Lobby", config.get_essid().unwrap()];
-        assert_eq!["KS201819", config.get_encryption_key().unwrap()];
+        assert_eq!["KS211819", config.get_encryption_key().unwrap()];
     }
 }

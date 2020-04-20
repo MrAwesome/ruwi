@@ -174,9 +174,9 @@ mod tests {
             _ if filename == WIRELESS_ENCRYPTED_SAMPLE_FILENAME => NetctlRawParsedFields {
                 identifier: NetctlIdentifier::new(WIRELESS_ENCRYPTED_SAMPLE_FILENAME),
                 connection_type: NetctlConnectionType::Wifi,
-                interface_name: "wlp3s0".to_string(),
+                interface_name: "wlp3s1".to_string(),
                 essid: Some("Lobby".to_string()),
-                encryption_key: Some("KS201819".to_string()),
+                encryption_key: Some("KS211819".to_string()),
             },
             _ => panic!(format!("Config {} not found!", filename)),
         }
@@ -202,9 +202,9 @@ mod tests {
             },
             _ if filename == WIRELESS_ENCRYPTED_SAMPLE_FILENAME => WifiNetctlConfig {
                 identifier: NetctlIdentifier::new(WIRELESS_ENCRYPTED_SAMPLE_FILENAME),
-                interface_name: "wlp3s0".to_string(),
+                interface_name: "wlp3s1".to_string(),
                 essid: "Lobby".to_string(),
-                encryption_key: Some("KS201819".to_string()),
+                encryption_key: Some("KS211819".to_string()),
             },
             _ => panic!(format!("Wifi config {} not found!", filename)),
         }
@@ -293,5 +293,23 @@ mod tests {
             .iter()
             .find(|&x| x.identifier == *WIRELESS_OPEN_SAMPLE_FILENAME);
         assert![wireless_open_config.is_none()];
+    }
+
+    #[test]
+    fn test_get_matching_config() {
+        let opts = GlobalOptions::default();
+        let handler = get_sample_handler(&opts);
+
+        let interface_name = "wlp3s1";
+        let criteria = WifiNetctlConfigFinderCriteria::builder()
+            .interface_name(interface_name)
+            .build();
+
+        let configs = handler
+            .find_matching_configs::<WifiNetctlConfig>(&criteria)
+            .unwrap();
+        assert_eq![1, configs.len()];
+        let config = configs.first().unwrap();
+        assert_eq!["kingship_lobby", &config.identifier];
     }
 }
