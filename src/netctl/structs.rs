@@ -115,6 +115,12 @@ impl<'a> NetctlConfig<'a> for WifiNetctlConfig {
     }
 }
 
+impl WifiNetctlConfig {
+    pub(super) fn get_essid(&self) -> &str {
+        self.essid.as_ref()
+    }
+}
+
 impl TryFrom<NetctlRawParsedFields> for WifiNetctlConfig {
     type Error = NetctlParseError;
 

@@ -70,6 +70,21 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
             .collect::<Vec<C>>())
     }
 
+    pub(crate) fn get_wifi_essids_and_identifiers(
+        &self,
+    ) -> Result<Vec<(String, NetctlIdentifier)>, RuwiError> {
+        Ok(self
+            .get_all_typed_configs::<WifiNetctlConfig>()?
+            .iter()
+            .map(|config| {
+                (
+                    config.get_essid().to_string(),
+                    config.get_identifier().clone(),
+                )
+            })
+            .collect())
+    }
+
     fn find_matching_configs<C>(
         &self,
         criteria: &C::Checker,
@@ -85,7 +100,6 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
         Ok(matching_configs)
     }
 
-    // put this into a trait and implement for both kinds of network/interface
     pub(crate) fn write_wifi_config(
         &self,
         interface: &WifiIPInterface,
@@ -97,7 +111,6 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
         self.write_config_to_file(&config)
     }
 
-    // put this into a trait and implement for both kinds of network/interface
     pub(crate) fn write_wired_config(
         &self,
         interface: &WiredIPInterface,

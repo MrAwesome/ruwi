@@ -5,7 +5,7 @@ use std::iter::FromIterator;
 type Essid = String;
 
 // For netctl, this is the filename of the config. For NetworkManager, it is just the essid.
-pub(super) type UnparsedKnownNetworkNamesAndIdentifiers = Vec<(Essid, NetworkServiceIdentifier)>;
+pub(super) type UnfilteredKnownNetworkNamesAndIdentifiers = Vec<(Essid, NetworkServiceIdentifier)>;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct WifiKnownNetworks {
@@ -21,7 +21,7 @@ impl Default for WifiKnownNetworks {
 }
 
 impl WifiKnownNetworks {
-    pub(crate) fn new(seen_networks: UnparsedKnownNetworkNamesAndIdentifiers) -> Self {
+    pub(crate) fn new(seen_networks: UnfilteredKnownNetworkNamesAndIdentifiers) -> Self {
         let essid_to_identifiers = HashMap::from_iter(seen_networks);
         Self {
             essid_to_identifiers,
