@@ -14,7 +14,7 @@ pub(crate) fn connect_to_network<O>(
 where
     O: Global + Wifi + WifiConnect,
 {
-    manage_services(options)?;
+    manage_services(options, interface)?;
 
     let connect_via = options.get_connect_via();
     match connect_via {
@@ -82,12 +82,13 @@ where
 }
 
 // TODO: test service-switching behavior in VM integration test
-fn manage_services<O>(options: &O) -> Result<(), RuwiError>
+// TODO: make work for wired
+fn manage_services<O>(options: &O, interface: &WifiIPInterface) -> Result<(), RuwiError>
 where
     O: Global + Wifi + WifiConnect,
 {
-    let scan_service = options.get_scan_type().get_service();
-    let connect_service = options.get_connect_via().get_service();
+    let scan_service = options.get_scan_type().get_service(Some(interface));
+    let connect_service = options.get_connect_via().get_service(Some(interface));
 
     if scan_service != connect_service {
         scan_service.stop(options)?;

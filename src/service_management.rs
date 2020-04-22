@@ -1,5 +1,6 @@
 use crate::enums::*;
 use crate::errors::*;
+use crate::interface_management::ip_interfaces::WifiIPInterface;
 use crate::options::interfaces::*;
 use crate::run_commands::SystemCommandRunner;
 use crate::wpa_cli_initialize::*;
@@ -18,7 +19,7 @@ impl NetworkingService {
         match self {
             Self::Netctl => start_netctl(options),
             Self::NetworkManager => start_networkmanager(options),
-            Self::WpaSupplicant => initialize_wpa_supplicant(options),
+            Self::WpaSupplicant(interface) => initialize_wpa_supplicant(options, interface),
             Self::None => Ok(()),
         }
     }
@@ -30,7 +31,7 @@ impl NetworkingService {
         match self {
             Self::Netctl => stop_netctl(options),
             Self::NetworkManager => stop_networkmanager(options),
-            Self::WpaSupplicant => kill_wpa_supplicant(options),
+            Self::WpaSupplicant(_) => kill_wpa_supplicant(options),
             Self::None => Ok(()),
         }
     }
@@ -63,11 +64,7 @@ fn start_netctl<O>(options: &O) -> Result<(), RuwiError>
 where
     O: Global,
 {
-    SystemCommandRunner::new(
-        options,
-        "systemctl",
-        &["start", "netctl"],
-    ).run_command_pass(
+    SystemCommandRunner::new(options, "systemctl", &["start", "netctl"]).run_command_pass(
         RuwiErrorKind::FailedToStartNetctl,
         "Failed to start netctl. Is it installed? Are you running as root?",
     )
@@ -77,19 +74,11 @@ fn stop_netctl<O>(options: &O) -> Result<(), RuwiError>
 where
     O: Global,
 {
-    SystemCommandRunner::new( 
-        options,
-        "netctl",
-        &["stop-all"],
-    ).run_command_pass(
+    SystemCommandRunner::new(options, "netctl", &["stop-all"]).run_command_pass(
         RuwiErrorKind::FailedToStopNetctl,
         "Failed to stop netctl. Are you running as root?",
     )?;
-    SystemCommandRunner::new( 
-        options,
-        "systemctl",
-        &["stop", "netctl"],
-    ).run_command_pass(
+    SystemCommandRunner::new(options, "systemctl", &["stop", "netctl"]).run_command_pass(
         RuwiErrorKind::FailedToStopNetctl,
         "Failed to stop netctl. Are you running as root?",
     )?;
@@ -100,11 +89,7 @@ fn start_networkmanager<O>(options: &O) -> Result<(), RuwiError>
 where
     O: Global,
 {
-    SystemCommandRunner::new( 
-        options,
-        "systemctl",
-        &["start", "NetworkManager"],
-    ).run_command_pass(
+    SystemCommandRunner::new(options, "systemctl", &["start", "NetworkManager"]).run_command_pass(
         RuwiErrorKind::FailedToStartNetworkManager,
         "Failed to start NetworkManager. Is it installed? Are you running as root?",
     )
@@ -114,18 +99,14 @@ fn stop_networkmanager<O>(options: &O) -> Result<(), RuwiError>
 where
     O: Global,
 {
-    SystemCommandRunner::new( 
-        options,
-        "systemctl",
-        &["stop", "NetworkManager"],
-    ).run_command_pass(
+    SystemCommandRunner::new(options, "systemctl", &["stop", "NetworkManager"]).run_command_pass(
         RuwiErrorKind::FailedToStopNetworkManager,
         "Failed to stop NetworkManager. Are you running as root?",
     )
 }
 
 impl GetService for WifiConnectionType {
-    fn get_service(&self) -> NetworkingService {
+    fn get_service(&self, _interface: Option<&WifiIPInterface>) -> NetworkingService {
         match self {
             Self::Nmcli => NetworkingService::NetworkManager,
             Self::Netctl => NetworkingService::Netctl,
@@ -134,14 +115,14 @@ impl GetService for WifiConnectionType {
     }
 }
 
-impl GetService for ScanType {
-    fn get_service(&self) -> NetworkingService {
+impl GetService for WifiScanType {
+    fn get_service(&self, interface: Option<&WifiIPInterface>) -> NetworkingService {
         match self {
-            Self::Wifi(WifiScanType::Nmcli) => NetworkingService::NetworkManager,
-            Self::Wifi(WifiScanType::WpaCli) => NetworkingService::WpaSupplicant,
-            Self::Wifi(WifiScanType::IW) | Self::Wifi(WifiScanType::RuwiJSON) => {
-                NetworkingService::None
-            }
+            WifiScanType::Nmcli => NetworkingService::NetworkManager,
+            WifiScanType::WpaCli => NetworkingService::WpaSupplicant(
+                interface.expect("Interface must be provided to wpa_supplicant!").clone(),
+            ),
+            WifiScanType::IW | WifiScanType::RuwiJSON => NetworkingService::None,
         }
     }
 }

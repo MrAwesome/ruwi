@@ -294,8 +294,9 @@ mod tests {
 
     #[test]
     fn test_iw_one_network() {
-        let st = ScanType::Wifi(WifiScanType::IW);
-        let options = WifiConnectOptions::from_scan_type(st.clone());
+        let wifi_scan_type = WifiScanType::IW;
+        let st = ScanType::Wifi(wifi_scan_type.clone());
+        let options = WifiConnectOptions::from_scan_type(wifi_scan_type);
         let scan_result = ScanResult {
             scan_type: st.clone(),
             scan_output: include_str!("samples/iw_one_network.txt").to_string(),
@@ -315,8 +316,9 @@ mod tests {
 
     #[test]
     fn test_iw_two_different_networks() {
-        let st = ScanType::Wifi(WifiScanType::IW);
-        let options = WifiConnectOptions::from_scan_type(st.clone());
+        let wifi_scan_type = WifiScanType::IW;
+        let st = ScanType::Wifi(wifi_scan_type.clone());
+        let options = WifiConnectOptions::from_scan_type(wifi_scan_type);
         let scan_result = ScanResult {
             scan_type: st.clone(),
             scan_output: include_str!("samples/iw_two_different_networks.txt").to_string(),
@@ -344,8 +346,9 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_no_networks() {
-        let st = ScanType::Wifi(WifiScanType::WpaCli);
-        let options = WifiConnectOptions::from_scan_type(st.clone());
+        let wifi_scan_type = WifiScanType::WpaCli;
+        let st = ScanType::Wifi(wifi_scan_type.clone());
+        let options = WifiConnectOptions::from_scan_type(wifi_scan_type);
         let scan_result = ScanResult {
             scan_type: st,
             scan_output: include_str!("samples/wpa_cli_no_networks.txt").to_string(),
@@ -356,8 +359,9 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_two_different_networks() {
-        let st = ScanType::Wifi(WifiScanType::WpaCli);
-        let options = WifiConnectOptions::from_scan_type(st.clone());
+        let wifi_scan_type = WifiScanType::WpaCli;
+        let st = ScanType::Wifi(wifi_scan_type.clone());
+        let options = WifiConnectOptions::from_scan_type(wifi_scan_type);
         let scan_result = ScanResult {
             scan_type: st.clone(),
             scan_output: include_str!("samples/wpa_cli_two_different_networks.txt").to_string(),
@@ -385,8 +389,9 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_seven_networks_two_duplicates_two_empty() {
-        let st = ScanType::Wifi(WifiScanType::WpaCli);
-        let options = WifiConnectOptions::from_scan_type(st.clone());
+        let wifi_scan_type = WifiScanType::WpaCli;
+        let st = ScanType::Wifi(wifi_scan_type.clone());
+        let options = WifiConnectOptions::from_scan_type(wifi_scan_type);
         let scan_result = ScanResult {
             scan_type: st.clone(),
             scan_output: include_str!(
@@ -447,8 +452,9 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_two_lines_missing_info() {
-        let st = ScanType::Wifi(WifiScanType::WpaCli);
-        let options = WifiConnectOptions::from_scan_type(st.clone());
+        let wifi_scan_type = WifiScanType::WpaCli;
+        let st = ScanType::Wifi(wifi_scan_type.clone());
+        let options = WifiConnectOptions::from_scan_type(wifi_scan_type);
         let scan_result = ScanResult {
             scan_type: st.clone(),
             scan_output: include_str!("samples/wpa_cli_two_lines_missing_info.txt").to_string(),
@@ -477,8 +483,9 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_two_networks_one_with_signal_level_parse_error() {
-        let st = ScanType::Wifi(WifiScanType::WpaCli);
-        let options = WifiConnectOptions::from_scan_type(st.clone());
+        let wifi_scan_type = WifiScanType::WpaCli;
+        let st = ScanType::Wifi(wifi_scan_type.clone());
+        let options = WifiConnectOptions::from_scan_type(wifi_scan_type);
         let scan_result = ScanResult {
             scan_type: st.clone(),
             scan_output: include_str!(
@@ -505,8 +512,9 @@ mod tests {
 
     #[test]
     fn test_wpa_cli_broken_input_two_words() {
-        let st = ScanType::Wifi(WifiScanType::WpaCli);
-        let options = WifiConnectOptions::from_scan_type(st.clone());
+        let wifi_scan_type = WifiScanType::WpaCli;
+        let st = ScanType::Wifi(wifi_scan_type.clone());
+        let options = WifiConnectOptions::from_scan_type(wifi_scan_type);
         let scan_result = ScanResult {
             scan_type: st,
             scan_output: include_str!("samples/broken_input_two_words.txt").to_string(),

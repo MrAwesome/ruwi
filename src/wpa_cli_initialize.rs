@@ -1,6 +1,8 @@
 use crate::errors::*;
+use crate::interface_management::ip_interfaces::LinuxIPInterface;
 use crate::options::interfaces::*;
 use crate::run_commands::SystemCommandRunner;
+
 use std::thread;
 use std::time::Duration;
 
@@ -12,9 +14,10 @@ update_config=1
 
 See https://wiki.archlinux.org/index.php/WPA_supplicant#Connecting_with_wpa_cli for more info.";
 
-pub(crate) fn initialize_wpa_supplicant<O>(options: &O) -> Result<(), RuwiError>
+pub(crate) fn initialize_wpa_supplicant<O, T>(options: &O, interface: &T) -> Result<(), RuwiError>
 where
     O: Global,
+    T: LinuxIPInterface,
 {
     //        /etc/wpa_supplicant/wpa_supplicant.conf
     //    ctrl_interface=/run/wpa_supplicant
@@ -29,14 +32,14 @@ where
         eprintln!(
             "[NOTE]: wpa_cli was not functioning correctly. Attempting to start it manually."
         );
-        let todo = "CHANGE FROM wlp3s0";
+        let interface_name = interface.get_ifname();
         let supplicant_status = SystemCommandRunner::new(
             options,
             "wpa_supplicant",
             &[
                 "-B",
                 "-i",
-                "wlp3s0", // TODO Fix!!!
+                interface_name,
                 "-c",
                 "/etc/wpa_supplicant/wpa_supplicant.conf",
             ],

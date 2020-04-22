@@ -25,7 +25,7 @@ pub trait LinuxIPInterface {
 }
 
 // TODO: Remove code duplication between wifi and wired
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct WifiIPInterface {
     ifname: String,
 }
@@ -79,7 +79,7 @@ impl WifiIPInterface {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct WiredIPInterface {
     ifname: String,
 }

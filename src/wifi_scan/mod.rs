@@ -37,20 +37,20 @@ where
     let res = match sm {
         ScanMethod::ByRunning => {
             // TODO: integration test that service is only started on byrunning scan
-            st.get_service().start(options)?;
+            st.get_service(Some(interface)).start(options)?;
             match &st {
-                ScanType::Wifi(WifiScanType::Nmcli) => run_nmcli_scan(options, interface, st, synchronous_rescan),
-                ScanType::Wifi(WifiScanType::WpaCli) => run_wpa_cli_scan(options, st),
-                ScanType::Wifi(WifiScanType::IW) => run_iw_scan(options, interface, st, synchronous_rescan),
-                ScanType::Wifi(WifiScanType::RuwiJSON) => 
+                WifiScanType::Nmcli => run_nmcli_scan(options, interface, st, synchronous_rescan),
+                WifiScanType::WpaCli => run_wpa_cli_scan(options, st),
+                WifiScanType::IW => run_iw_scan(options, interface, st, synchronous_rescan),
+                WifiScanType::RuwiJSON => 
                     Err(rerr!(
                         RuwiErrorKind::InvalidScanTypeAndMethod,
                         "There is currently no binary for providing JSON results, you must format them yourself and pass in via stdin or from a file.",
                     ))
             }
         },
-        ScanMethod::FromFile(filename) => get_scan_contents_from_file(options, st, &filename),
-        ScanMethod::FromStdin => get_scan_contents_from_stdin(options, st),
+        ScanMethod::FromFile(filename) => get_scan_contents_from_file(options, ScanType::Wifi(st), &filename),
+        ScanMethod::FromStdin => get_scan_contents_from_stdin(options, ScanType::Wifi(st)),
     };
 
     if options.d() {

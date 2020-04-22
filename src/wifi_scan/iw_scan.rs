@@ -33,7 +33,7 @@ const IW_SCAN_SYNC_ERR_MSG: &str = concat!(
 pub(crate) fn run_iw_scan<O>(
     options: &O,
     interface: &WifiIPInterface,
-    scan_type: ScanType,
+    wifi_scan_type: WifiScanType,
     synchronous_rescan: &Option<SynchronousRescanType>,
 ) -> Result<ScanResult, RuwiError>
 where
@@ -53,7 +53,7 @@ where
     };
 
     Ok(ScanResult {
-        scan_type,
+        scan_type: ScanType::Wifi(wifi_scan_type),
         scan_output,
     })
 }

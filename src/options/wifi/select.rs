@@ -49,7 +49,7 @@ impl Global for WifiSelectOptions {
 }
 
 impl Wifi for WifiSelectOptions {
-    fn get_scan_type(&self) -> &ScanType {
+    fn get_scan_type(&self) -> &WifiScanType {
         self.wifi.get_scan_type()
     }
     fn get_scan_method(&self) -> &ScanMethod {

@@ -4,6 +4,9 @@
 #![allow(clippy::similar_names)]
 #![allow(clippy::missing_errors_doc)]
 
+// And TypedBuilder is triggering this:
+#![allow(clippy::default_trait_access)]
+
 #![forbid(unsafe_code)]
 
 extern crate clap;

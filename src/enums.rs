@@ -3,6 +3,8 @@
 
 use strum_macros::{AsStaticStr, Display, EnumIter, EnumString};
 
+use crate::interface_management::ip_interfaces::WifiIPInterface;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ScanMethod {
     ByRunning,
@@ -113,7 +115,7 @@ pub enum SynchronousRescanType {
 pub(crate) enum NetworkingService {
     Netctl,
     NetworkManager,
-    WpaSupplicant,
+    WpaSupplicant(WifiIPInterface),
     None,
 }
 

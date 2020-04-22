@@ -12,7 +12,7 @@ pub struct WifiOptions {
     #[builder(default = None)]
     given_interface_name: Option<String>,
     #[builder(default)]
-    scan_type: ScanType,
+    scan_type: WifiScanType,
     #[builder(default)]
     scan_method: ScanMethod,
     #[builder(default = false)]
@@ -25,7 +25,7 @@ impl Default for WifiOptions {
     fn default() -> Self {
         Self {
             globals: GlobalOptions::default(),
-            scan_type: ScanType::default(),
+            scan_type: WifiScanType::default(),
             scan_method: ScanMethod::default(),
             given_interface_name: None,
             ignore_known: false,
@@ -36,7 +36,7 @@ impl Default for WifiOptions {
 
 impl WifiOptions {
     #[cfg(test)]
-    pub fn from_scan_type(scan_type: ScanType) -> Self {
+    pub fn from_scan_type(scan_type: WifiScanType) -> Self {
         Self {
             scan_type,
             ..Self::default()
@@ -45,7 +45,7 @@ impl WifiOptions {
 }
 
 impl Wifi for WifiOptions {
-    fn get_scan_type(&self) -> &ScanType {
+    fn get_scan_type(&self) -> &WifiScanType {
         &self.scan_type
     }
     fn get_scan_method(&self) -> &ScanMethod {

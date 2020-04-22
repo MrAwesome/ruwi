@@ -114,14 +114,11 @@ impl fmt::Display for WifiNetctlConfig {
 }
 
 impl WiredNetctlConfig {
-    fn TODO() {}
     pub(super) fn new(interface: &WiredIPInterface, network: &AnnotatedWiredNetwork) -> Self {
-        //pub(super) fn new(interface: &WiredIPInterface) -> Self {
         let identifier = match network.get_service_identifier() {
             Some(NetworkServiceIdentifier::Netctl(ident)) => ident.clone(),
             _ => format!("ethernet-{}", interface.get_ifname()),
         };
-        let TODO = "use WiredNetwork here, have finder look for them for selection in netctl mode";
         let interface_name = interface.get_ifname().to_string();
         Self::builder()
             .identifier(identifier)

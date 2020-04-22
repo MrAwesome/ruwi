@@ -362,24 +362,22 @@ mod tests {
     #[test]
     fn test_scan_type() {
         let wifi_type = WifiScanType::WpaCli;
-        let expected = ScanType::Wifi(wifi_type.clone());
         let opts =
             expect_wifi_connect_opts(getopts(&["wifi", "-s", wifi_type.to_string().as_ref()]));
-        assert_eq![opts.get_scan_type(), &expected];
+        assert_eq![opts.get_scan_type(), &wifi_type];
 
         let wifi_type = WifiScanType::IW;
-        let expected = ScanType::Wifi(wifi_type.clone());
         let opts = expect_wifi_connect_opts(getopts(&[
             "wifi",
             "--scan-type",
             wifi_type.to_string().as_ref(),
         ]));
-        assert_eq![opts.get_scan_type(), &expected];
+        assert_eq![opts.get_scan_type(), &wifi_type];
     }
 
     #[test]
     fn test_scan_method_default() {
-        let scan_type = ScanType::default();
+        let scan_type = WifiScanType::default();
         let scan_method = ScanMethod::default();
         let opts = expect_wifi_connect_opts(getopts(&[]));
         assert_eq![opts.get_scan_method(), &scan_method];
@@ -388,14 +386,13 @@ mod tests {
 
     #[test]
     fn test_scan_method_stdin() {
-        let scan_type = ScanType::default();
+        let wifi_scan_type = WifiScanType::default();
         let scan_method = ScanMethod::FromStdin;
         let opts = expect_wifi_connect_opts(getopts(&["wifi", "-I"]));
         assert_eq![opts.get_scan_method(), &scan_method];
-        assert_eq![opts.get_scan_type(), &scan_type];
+        assert_eq![opts.get_scan_type(), &wifi_scan_type];
 
         let wifi_scan_type = WifiScanType::WpaCli;
-        let scan_type = ScanType::Wifi(wifi_scan_type.clone());
         let scan_method = ScanMethod::FromStdin;
         let opts = expect_wifi_connect_opts(getopts(&[
             "wifi",
@@ -404,7 +401,7 @@ mod tests {
             wifi_scan_type.to_string().as_ref(),
         ]));
         assert_eq![opts.get_scan_method(), &scan_method];
-        assert_eq![opts.get_scan_type(), &scan_type];
+        assert_eq![opts.get_scan_type(), &wifi_scan_type];
     }
 
     #[test]

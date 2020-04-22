@@ -10,8 +10,8 @@ use crate::options::wifi::select::WifiSelectOptions;
 use crate::options::wifi::*;
 use crate::options::*;
 use crate::rerr;
-use crate::strum_utils::*;
 use crate::service_detection::*;
+use crate::strum_utils::*;
 
 use clap::ArgMatches;
 
@@ -39,19 +39,20 @@ pub(super) fn get_wifi_cmd(
     Ok(cmd)
 }
 
-fn get_wifi_options(globals: GlobalOptions, wifi_matcher: &ArgMatches) -> Result<WifiOptions, RuwiError> {
+fn get_wifi_options(
+    globals: GlobalOptions,
+    wifi_matcher: &ArgMatches,
+) -> Result<WifiOptions, RuwiError> {
     let scan_method = get_scan_method(wifi_matcher);
     let force_synchronous_scan = wifi_matcher.is_present("force_synchronous_scan");
     let ignore_known = wifi_matcher.is_present("ignore_known");
     let given_interface_name = wifi_matcher.value_of("interface").map(String::from);
-    let scan_type = ScanType::Wifi(
-        if wifi_matcher.is_present(SCAN_TYPE_TOKEN) {
-            get_val_as_enum::<WifiScanType>(&wifi_matcher, SCAN_TYPE_TOKEN)
-        } else {
-            let checker = SystemCheckerReal::new(&globals);
-            WifiScanType::choose_best_from_system(&checker, SCAN_TYPE_TOKEN)
-        }
-    );
+    let scan_type = if wifi_matcher.is_present(SCAN_TYPE_TOKEN) {
+        get_val_as_enum::<WifiScanType>(&wifi_matcher, SCAN_TYPE_TOKEN)
+    } else {
+        let checker = SystemCheckerReal::new(&globals);
+        WifiScanType::choose_best_from_system(&checker, SCAN_TYPE_TOKEN)
+    };
 
     let wifi_opts = WifiOptions::builder()
         .globals(globals)
@@ -65,9 +66,7 @@ fn get_wifi_options(globals: GlobalOptions, wifi_matcher: &ArgMatches) -> Result
 }
 
 fn get_default_wifi_command(globals: GlobalOptions) -> Result<RuwiWifiCommand, RuwiError> {
-    let wifi_opts = WifiOptions::builder()
-        .globals(globals)
-        .build();
+    let wifi_opts = WifiOptions::builder().globals(globals).build();
     let connect_opts = WifiConnectOptions::builder().wifi(wifi_opts).build();
     Ok(RuwiWifiCommand::Connect(connect_opts))
 }
@@ -78,7 +77,6 @@ fn get_wifi_connect_opts(
 ) -> Result<WifiConnectOptions, RuwiError> {
     let connect_builder = WifiConnectOptions::builder();
     let connect_opts = if let Some(connect_matcher) = maybe_connect_matcher {
-
         let force_ask_password = connect_matcher.is_present("force_ask_password");
         let given_essid = connect_matcher.value_of("essid").map(String::from);
         let given_encryption_key = connect_matcher.value_of("password").map(String::from);
@@ -105,9 +103,7 @@ fn get_wifi_connect_opts(
             .force_ask_password(force_ask_password)
             .build()
     } else {
-        connect_builder
-            .wifi(wifi_opts)
-            .build()
+        connect_builder.wifi(wifi_opts).build()
     };
 
     validate_wifi_connect_options(connect_opts)
@@ -147,7 +143,7 @@ fn validate_wifi_options(options: WifiOptions) -> Result<WifiOptions, RuwiError>
     let scan_method = options.get_scan_method();
     let scan_type = options.get_scan_type();
     match (scan_method, scan_type) {
-        (ScanMethod::ByRunning, ScanType::Wifi(WifiScanType::RuwiJSON)) => Err(rerr!(
+        (ScanMethod::ByRunning, WifiScanType::RuwiJSON) => Err(rerr!(
             RuwiErrorKind::InvalidScanTypeAndMethod,
             "There is currently no binary for providing JSON results, you must format them yourself and pass in via stdin or from a file.",
         )),
@@ -161,8 +157,8 @@ fn validate_wifi_connect_options(
     let scan_method = options.get_scan_method();
     let scan_type = options.get_scan_type();
     let connect_via = options.get_connect_via();
-    match (scan_method, scan_type, connect_via) {
-        (ScanMethod::ByRunning, ScanType::Wifi(scan_type), WifiConnectionType::Nmcli) => {
+    match (scan_method, connect_via) {
+        (ScanMethod::ByRunning, WifiConnectionType::Nmcli) => {
             if let WifiScanType::Nmcli = scan_type {
                 Ok(options)
             } else {
@@ -173,7 +169,7 @@ fn validate_wifi_connect_options(
                 ))
             }
         }
-        _ => Ok(options)
+        _ => Ok(options),
     }
 }
 

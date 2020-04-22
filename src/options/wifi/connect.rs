@@ -54,7 +54,7 @@ impl Global for WifiConnectOptions {
 }
 
 impl Wifi for WifiConnectOptions {
-    fn get_scan_type(&self) -> &ScanType {
+    fn get_scan_type(&self) -> &WifiScanType {
         self.wifi.get_scan_type()
     }
     fn get_scan_method(&self) -> &ScanMethod {
@@ -94,7 +94,7 @@ impl WifiConnect for WifiConnectOptions {
 
 impl WifiConnectOptions {
     #[cfg(test)]
-    pub fn from_scan_type(scan_type: ScanType) -> Self {
+    pub fn from_scan_type(scan_type: WifiScanType) -> Self {
         Self {
             wifi: WifiOptions::from_scan_type(scan_type),
             ..Self::default()

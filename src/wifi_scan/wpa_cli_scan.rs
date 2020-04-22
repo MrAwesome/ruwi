@@ -6,7 +6,7 @@ use crate::structs::*;
 
 // TODO: synchronous rescan if no results seen (make a generic rescan logic for scans?)
 
-pub(crate) fn run_wpa_cli_scan<O>(options: &O, scan_type: ScanType) -> Result<ScanResult, RuwiError>
+pub(crate) fn run_wpa_cli_scan<O>(options: &O, wifi_scan_type: WifiScanType) -> Result<ScanResult, RuwiError>
 where
     O: Global,
 {
@@ -32,7 +32,7 @@ where
         dbg![&scan_output];
     }
     Ok(ScanResult {
-        scan_type,
+        scan_type: ScanType::Wifi(wifi_scan_type),
         scan_output,
     })
 }

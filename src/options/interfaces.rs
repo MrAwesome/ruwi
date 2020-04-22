@@ -26,7 +26,7 @@ pub trait Global {
 }
 
 pub trait Wifi {
-    fn get_scan_type(&self) -> &ScanType;
+    fn get_scan_type(&self) -> &WifiScanType;
     fn get_scan_method(&self) -> &ScanMethod;
     fn get_ignore_known(&self) -> bool;
     fn get_force_synchronous_scan(&self) -> bool;
@@ -85,5 +85,5 @@ pub trait RuwiNetwork: Identifiable + Debug + Clone {}
 pub trait AnnotatedRuwiNetwork: RuwiNetwork + Selectable + Known + Ord {}
 
 pub(crate) trait GetService {
-    fn get_service(&self) -> NetworkingService;
+    fn get_service(&self, interface: Option<&WifiIPInterface>) -> NetworkingService;
 }
