@@ -9,6 +9,8 @@ pub struct WiredConnectOptions {
     wired: WiredOptions,
     #[builder(default)]
     connect_via: RawInterfaceConnectionType,
+    #[builder(default)]
+    given_profile_name: Option<String>,
 }
 
 impl Default for WiredConnectOptions {
@@ -16,6 +18,7 @@ impl Default for WiredConnectOptions {
         Self {
             wired: WiredOptions::default(),
             connect_via: RawInterfaceConnectionType::default(),
+            given_profile_name: None,
         }
     }
 }
@@ -50,5 +53,9 @@ impl Wired for WiredConnectOptions {
 impl WiredConnect for WiredConnectOptions {
     fn get_connect_via(&self) -> &RawInterfaceConnectionType {
         &self.connect_via
+    }
+
+    fn get_given_profile_name(&self) -> &Option<String> {
+        &self.given_profile_name
     }
 }

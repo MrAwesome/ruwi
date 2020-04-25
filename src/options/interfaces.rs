@@ -50,6 +50,7 @@ pub trait WifiConnect {
 
 pub trait WiredConnect {
     fn get_connect_via(&self) -> &RawInterfaceConnectionType;
+    fn get_given_profile_name(&self) -> &Option<String>;
 }
 
 pub trait WifiDataGatherer {

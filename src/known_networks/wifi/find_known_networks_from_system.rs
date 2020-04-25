@@ -4,7 +4,6 @@ use crate::options::interfaces::*;
 #[cfg(not(test))]
 use crate::run_commands::SystemCommandRunner;
 
-#[cfg(not(test))]
 use crate::netctl::NetctlConfigHandler;
 
 use super::{WifiKnownNetworks, UnfilteredKnownNetworkNamesAndIdentifiers};
@@ -68,15 +67,6 @@ where
     output
 }
 
-#[cfg(test)]
-fn find_known_netctl_networks<O>(_options: &O) -> Result<UnfilteredKnownNetworkNamesAndIdentifiers, RuwiError> 
-where
-    O: Global,
-{
-    Ok(vec![])
-}
-
-#[cfg(not(test))]
 fn find_known_netctl_networks<O>(options: &O) -> Result<UnfilteredKnownNetworkNamesAndIdentifiers, RuwiError> 
 where
     O: Global,

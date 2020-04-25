@@ -20,14 +20,14 @@ use std::fmt;
 // TODO: split into reader, writer, and connector
 
 impl<'a, O: Global> NetctlConfigHandler<'a, O> {
-    pub(super) fn write_config_to_file<C>(&self, config: &C) -> Result<ConfigResult, RuwiError>
+    pub(super) fn write_config_to_file<C>(&self, config: &C) -> Result<(), RuwiError>
     where
         C: NetctlConfig<'a>,
     {
         let config_text = format!("{}", config);
 
         let netctl_file_name = config.get_identifier().as_ref();
-        let netctl_location = &self.netctl_cfg_dir;
+        let netctl_location = &self.get_netctl_cfg_dir();
         let fullpath = format!("{}{}", netctl_location, netctl_file_name);
 
         if self.opts.get_dry_run() {
@@ -46,12 +46,17 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
             );
         }
 
-        Ok(ConfigResult {
-            //connection_type: WifiConnectionType::Netctl,
-            config_data: ConfigData {
-                config_path: Some(fullpath),
-            },
-        })
+        Ok(())
+    }
+}
+
+impl From<&AnnotatedWirelessNetwork> for NetctlIdentifier {
+    fn from(nw: &AnnotatedWirelessNetwork) -> Self {
+        let ident = match nw.get_service_identifier() {
+            Some(NetworkServiceIdentifier::Netctl(ident)) => ident.clone(),
+            _ => nw.get_public_name().replace(" ", "_"),
+        };
+        Self::new(ident)
     }
 }
 

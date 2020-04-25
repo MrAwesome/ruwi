@@ -160,6 +160,7 @@ pub struct ConfigResult {
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ConfigData {
+    pub identifier: Option<NetworkServiceIdentifier>,
     pub config_path: Option<String>,
 }
 

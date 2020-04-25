@@ -1,8 +1,9 @@
 use super::config_finder::*;
 use super::utils::*;
 
-use crate::common::*;
 use crate::string_container;
+
+use super::NetctlIdentifier;
 
 use strum_macros::AsStaticStr;
 use strum_macros::{Display, EnumString};
@@ -11,17 +12,7 @@ use typed_builder::TypedBuilder;
 use std::convert::TryFrom;
 use std::str::FromStr;
 
-string_container! {NetctlIdentifier, NetctlRawConfigContents}
-
-impl From<&AnnotatedWirelessNetwork> for NetctlIdentifier {
-    fn from(nw: &AnnotatedWirelessNetwork) -> Self {
-        let ident = match nw.get_service_identifier() {
-            Some(NetworkServiceIdentifier::Netctl(ident)) => ident.clone(),
-            _ => nw.get_public_name().replace(" ", "_"),
-        };
-        Self::new(ident)
-    }
-}
+string_container! {NetctlRawConfigContents}
 
 pub(super) trait NetctlConfig<'a>: fmt::Display + TryFrom<NetctlRawParsedFields> {
     type Checker: NetctlConfigFinderCriteria<'a>;
@@ -30,7 +21,7 @@ pub(super) trait NetctlConfig<'a>: fmt::Display + TryFrom<NetctlRawParsedFields>
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
-pub(crate) struct NetctlRawConfig<'a> {
+pub(super) struct NetctlRawConfig<'a> {
     // TODO: get rid of pub(super) here
     pub(super) identifier: NetctlIdentifier,
     pub(super) contents: NetctlRawConfigContents,

@@ -45,7 +45,7 @@ impl<'a> NetctlConfigFinderCriteria<'a> for WifiNetctlConfigFinderCriteria<'a> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
-pub(super) struct WiredNetctlConfigFinderCriteria<'a> {
+pub(crate) struct WiredNetctlConfigFinderCriteria<'a> {
     #[builder(default = None)]
     interface_name: Option<&'a str>,
     #[builder(default = None)]

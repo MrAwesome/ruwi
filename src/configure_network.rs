@@ -1,24 +1,23 @@
 use crate::enums::*;
 use crate::errors::*;
+use crate::interface_management::ip_interfaces::WifiIPInterface;
 use crate::netctl::*;
 use crate::options::interfaces::*;
 use crate::structs::*;
-use crate::interface_management::ip_interfaces::WifiIPInterface;
 
 pub(crate) fn possibly_configure_network<O>(
     options: &O,
     interface: &WifiIPInterface,
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
-) -> Result<Option<ConfigResult>, RuwiError>
+) -> Result<(), RuwiError>
 where
     O: Global + Wifi + WifiConnect,
-
 {
     let res = if !network.is_known() || options.get_given_encryption_key().is_some() {
-        Some(configure_network(options, interface, network, encryption_key)).transpose()
+        configure_network(options, interface, network, encryption_key)
     } else {
-        Ok(None)
+        Ok(())
     };
 
     if options.d() {
@@ -33,18 +32,15 @@ fn configure_network<O>(
     interface: &WifiIPInterface,
     network: &AnnotatedWirelessNetwork,
     encryption_key: &Option<String>,
-) -> Result<ConfigResult, RuwiError>
+) -> Result<(), RuwiError>
 where
     O: Global + Wifi + WifiConnect,
 {
     let cv = options.get_connect_via();
     match cv {
-        WifiConnectionType::Netctl => NetctlConfigHandler::new(options).write_wifi_config(interface, network, encryption_key),
-        WifiConnectionType::Nmcli | WifiConnectionType::None | WifiConnectionType::Print => {
-            Ok(ConfigResult {
-                // connection_type: cv.clone(),
-                config_data: ConfigData::default(),
-            })
-        }
+        WifiConnectionType::Netctl => NetctlConfigHandler::new(options)
+            .write_wifi_config(interface, network, encryption_key)
+            .and(Ok(())),
+        WifiConnectionType::Nmcli | WifiConnectionType::None | WifiConnectionType::Print => Ok(()),
     }
 }

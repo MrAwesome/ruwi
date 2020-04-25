@@ -3,7 +3,7 @@ use crate::common::*;
 use crate::interface_management::ip_interfaces::*;
 use crate::run_commands::SystemCommandRunner;
 use crate::netctl::utils::*;
-use crate::netctl::structs::NetctlIdentifier;
+use crate::netctl::NetctlIdentifier;
 
 pub(crate) fn connect_to_network<O>(
     options: &O,
