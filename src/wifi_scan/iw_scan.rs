@@ -1,10 +1,6 @@
-use crate::enums::*;
-use crate::errors::*;
+use crate::common::*;
 use crate::interface_management::ip_interfaces::*;
-use crate::options::interfaces::*;
-use crate::rerr;
 use crate::run_commands::SystemCommandRunner;
-use crate::structs::*;
 use std::process::Output;
 
 #[cfg(not(test))]

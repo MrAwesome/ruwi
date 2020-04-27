@@ -1,7 +1,7 @@
 pub(crate) mod connect;
 
 use crate::enums::*;
-use crate::options::interfaces::*;
+use crate::options::traits::*;
 use crate::options::GlobalOptions;
 use typed_builder::TypedBuilder;
 

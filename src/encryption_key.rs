@@ -1,8 +1,5 @@
-use crate::enums::*;
-use crate::errors::*;
-use crate::options::interfaces::*;
+use crate::common::*;
 use crate::select::prompt_for_encryption_key::prompt_for_encryption_key;
-use crate::structs::*;
 
 pub(crate) fn possibly_get_encryption_key<O>(
     options: &O,

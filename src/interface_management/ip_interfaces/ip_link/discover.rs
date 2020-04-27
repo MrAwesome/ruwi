@@ -1,7 +1,7 @@
 use super::LinuxIPLinkInterface;
 
 use crate::errors::*;
-use crate::options::interfaces::Global;
+use crate::options::traits::Global;
 use crate::rerr;
 use crate::run_commands::SystemCommandRunner;
 

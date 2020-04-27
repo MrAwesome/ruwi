@@ -1,16 +1,13 @@
 use super::utils::*;
 
-use crate::known_networks::WifiKnownNetworks;
-use crate::interface_management::ip_interfaces::*;
+use crate::common::*;
 use crate::configure_network::possibly_configure_network;
 use crate::connect::wifi_connect::connect_to_network;
 use crate::encryption_key::possibly_get_encryption_key;
-use crate::enums::*;
-use crate::errors::*;
-use crate::options::interfaces::*;
+use crate::interface_management::ip_interfaces::*;
+use crate::known_networks::WifiKnownNetworks;
 use crate::options::wifi::connect::WifiConnectOptions;
 use crate::runner::Runner;
-use crate::structs::*;
 
 impl Runner for WifiConnectOptions {
     fn run(&self) -> Result<(), RuwiError> {

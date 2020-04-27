@@ -1,6 +1,6 @@
 use crate::errors::*;
 use crate::interface_management::ip_interfaces::LinuxIPInterface;
-use crate::options::interfaces::*;
+use crate::options::traits::*;
 use crate::run_commands::SystemCommandRunner;
 
 use std::thread;

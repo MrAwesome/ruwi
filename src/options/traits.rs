@@ -1,20 +1,15 @@
-// TODO: rename this file to something closer to context_traits
+// TODO: rename this file to something closer to traits.rs, then find all places that break and have them use crate::common::*; instead
 // TODO: use trait-associated functions to just have e.g. d() return self.globals().d()?
 //       in other words, Find a way to reduce the need for so much new boilerplate when a new
 //       method or command is added
 
 use crate::errors::*;
-// TODO: remove reliance on naked structs here
 use crate::enums::*;
+
 use crate::interface_management::ip_interfaces::WifiIPInterface;
 use crate::known_networks::WifiKnownNetworks;
+
 use crate::structs::ScanResult;
-use std::fmt::Debug;
-
-// TODO: Remove networks from here and put elsewhere
-
-// TODO: make more usages look like this
-// impl<O> NetworkingService where O: Global {
 
 pub trait Global {
     fn d(&self) -> bool;
@@ -49,7 +44,7 @@ pub trait WifiConnect {
 }
 
 pub trait WiredConnect {
-    fn get_connect_via(&self) -> &RawInterfaceConnectionType;
+    fn get_connect_via(&self) -> &WiredConnectionType;
     fn get_given_profile_name(&self) -> &Option<String>;
 }
 
@@ -61,30 +56,3 @@ pub trait WifiDataGatherer {
     ) -> Result<(WifiKnownNetworks, ScanResult), RuwiError>;
 }
 
-pub trait Identifiable {
-    // For wifi, this is ESSID.
-    fn get_public_name(&self) -> &str;
-}
-
-pub trait Known {
-    fn is_known(&self) -> bool;
-    fn get_service_identifier(&self) -> Option<&NetworkServiceIdentifier>;
-}
-
-pub trait Selectable {
-    fn get_display_string(&self) -> String;
-}
-
-// This exists so that AnnotatedRuwiNetwork does not need to have the
-// associated type defined everywhere it is used, since associated trait
-// bounds are unstable right now (Q1 2020).
-pub trait Annotated<T>: Known + Debug {
-    fn from_nw(nw: T, service_identifier: Option<&NetworkServiceIdentifier>) -> Self;
-}
-
-pub trait RuwiNetwork: Identifiable + Debug + Clone {}
-pub trait AnnotatedRuwiNetwork: RuwiNetwork + Selectable + Known + Ord {}
-
-pub(crate) trait GetService {
-    fn get_service(&self, interface: Option<&WifiIPInterface>) -> NetworkingService;
-}

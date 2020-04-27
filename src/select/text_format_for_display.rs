@@ -1,8 +1,8 @@
+use crate::networks::traits::*;
 use crate::structs::*;
+
 pub static KNOWN_TOKEN: &str = "K";
 pub static OPEN_TOKEN: &str = "O";
-
-use crate::options::interfaces::*;
 
 impl Selectable for AnnotatedWirelessNetwork {
     fn get_display_string(&self) -> String {

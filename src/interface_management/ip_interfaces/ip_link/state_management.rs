@@ -1,5 +1,5 @@
 use crate::errors::*;
-use crate::options::interfaces::*;
+use crate::options::traits::*;
 use crate::options::PROG_NAME;
 use crate::run_commands::SystemCommandRunner;
 

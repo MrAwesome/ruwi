@@ -1,6 +1,4 @@
-use crate::enums::*;
-use crate::options::interfaces::*;
-use crate::structs::*;
+use crate::common::*;
 
 pub(crate) fn should_auto_retry_with_synchronous_scan<O>(
     options: &O,

@@ -1,13 +1,10 @@
 use super::utils::*;
 
-use crate::known_networks::WifiKnownNetworks;
+use crate::common::*;
 use crate::interface_management::ip_interfaces::*;
-use crate::enums::*;
-use crate::errors::*;
-use crate::options::interfaces::*;
+use crate::known_networks::WifiKnownNetworks;
 use crate::options::wifi::select::WifiSelectOptions;
 use crate::runner::Runner;
-use crate::structs::*;
 use crate::wifi_scan::wifi_scan;
 
 impl Runner for WifiSelectOptions {

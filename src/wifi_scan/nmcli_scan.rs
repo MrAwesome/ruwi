@@ -1,9 +1,6 @@
+use crate::common::*;
 use crate::interface_management::ip_interfaces::*;
-use crate::enums::*;
-use crate::errors::*;
-use crate::options::interfaces::*;
 use crate::run_commands::SystemCommandRunner;
-use crate::structs::*;
 
 const NMCLI_SCAN_ERR_MSG: &str = concat!(
     "Failed to load cached list of seen networks with `nmcli`. Is it installed? ",
@@ -51,10 +48,8 @@ where
             "wifi",
             "list",
         ],
-    ).run_command_pass_stdout(
-        RuwiErrorKind::FailedToRunNmcliScan,
-        NMCLI_SCAN_ERR_MSG,
     )
+    .run_command_pass_stdout(RuwiErrorKind::FailedToRunNmcliScan, NMCLI_SCAN_ERR_MSG)
 }
 
 fn run_nmcli_scan_cmd_synchronous<O>(options: &O) -> Result<String, RuwiError>
@@ -77,7 +72,8 @@ where
             "--rescan",
             "yes",
         ],
-    ).run_command_pass_stdout(
+    )
+    .run_command_pass_stdout(
         RuwiErrorKind::FailedToRunNmcliScanSynchronous,
         NMCLI_SCAN_ERR_MSG,
     )

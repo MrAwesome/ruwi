@@ -1,11 +1,7 @@
 mod nmcli;
 use nmcli::parse_nmcli_scan;
 
-use crate::enums::*;
-use crate::errors::*;
-use crate::options::interfaces::*;
-use crate::rerr;
-use crate::structs::*;
+use crate::common::*;
 
 use unescape::unescape;
 

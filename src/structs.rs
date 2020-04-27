@@ -2,9 +2,12 @@
 #![allow(clippy::used_underscore_binding)]
 
 use crate::enums::*;
-use crate::options::interfaces::*;
+use crate::networks::traits::*;
+
 use std::fmt::Debug;
 use typed_builder::TypedBuilder;
+use crate::interface_management::ip_interfaces::{WifiIPInterface, WiredIPInterface};
+use crate::netctl::NetctlIdentifier;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ScanResult {
@@ -137,6 +140,24 @@ impl Known for AnnotatedWirelessNetwork {
 impl RuwiNetwork for AnnotatedWirelessNetwork {}
 impl AnnotatedRuwiNetwork for AnnotatedWirelessNetwork {}
 
+//impl HasInterface for AnnotatedWirelessNetwork {
+//    type Interface = WifiIPInterface;
+//
+//    fn get_interface(&self) -> &Self::Interface {
+//        self.interface
+//    }
+//}
+//
+//impl ToNetctlIdentifier for AnnotatedWirelessNetwork {
+//    fn get_netctl_identifier(&self, interface: WifiIPInterface) -> NetctlIdentifier {
+//        let ident = match self.get_service_identifier() {
+//            Some(NetworkServiceIdentifier::Netctl(ident)) => ident.clone(),
+//            _ => self.get_public_name().replace(" ", "_"),
+//        };
+//        NetctlIdentifier::new(ident)
+//    }
+//}
+
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
 pub struct AnnotatedWiredNetwork {
     #[builder(default = None)]
@@ -151,6 +172,32 @@ impl Known for AnnotatedWiredNetwork {
         self.service_identifier.as_ref()
     }
 }
+
+impl Identifiable for AnnotatedWiredNetwork {
+    fn get_public_name(&self) -> &str {
+        todo!()
+    }
+}
+
+//impl Selectable for AnnotatedWiredNetwork {
+//    fn get_display_string(&self) -> String {
+//        todo!()
+//    }
+//}
+//
+//// TODO: associate interface with networks? wired will certainly need this.
+//impl RuwiNetwork for AnnotatedWiredNetwork {}
+//impl AnnotatedRuwiNetwork for AnnotatedWiredNetwork {}
+//
+//impl ToNetctlIdentifier for AnnotatedWiredNetwork {
+//    fn get_netctl_identifier(&self, interface: WiredIPInterface) -> NetctlIdentifier {
+//        let ident = match self.get_service_identifier() {
+//            Some(NetworkServiceIdentifier::Netctl(ident)) => ident.clone(),
+//            _ => self.get_public_name().replace(" ", "_"),
+//        };
+//        NetctlIdentifier::new(ident)
+//    }
+//}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConfigResult {

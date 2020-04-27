@@ -2,7 +2,7 @@ pub(crate) mod connect;
 pub(crate) mod select;
 
 use crate::enums::*;
-use crate::options::interfaces::*;
+use crate::options::traits::*;
 use crate::options::GlobalOptions;
 use typed_builder::TypedBuilder;
 

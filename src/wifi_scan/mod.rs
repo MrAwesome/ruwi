@@ -7,11 +7,7 @@ use nmcli_scan::run_nmcli_scan;
 mod wpa_cli_scan;
 use wpa_cli_scan::run_wpa_cli_scan;
 
-use crate::rerr;
-use crate::errors::*;
-use crate::enums::*;
-use crate::structs::*;
-use crate::options::interfaces::*;
+use crate::common::*;
 use crate::interface_management::ip_interfaces::WifiIPInterface;
 
 use std::fs::File;

@@ -5,12 +5,13 @@
 #![allow(clippy::used_underscore_binding)]
 
 pub(crate) mod command;
-pub mod interfaces;
+pub mod traits;
 pub(crate) mod wifi;
 pub(crate) mod wired;
 
 use crate::enums::*;
-use crate::options::interfaces::*;
+
+use traits::*;
 
 use typed_builder::TypedBuilder;
 pub static PROG_NAME: &str = "ruwi";

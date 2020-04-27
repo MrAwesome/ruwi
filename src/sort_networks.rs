@@ -1,5 +1,6 @@
-use crate::options::interfaces::*;
+use crate::networks::traits::*;
 use crate::structs::*;
+
 use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::fmt::Debug;

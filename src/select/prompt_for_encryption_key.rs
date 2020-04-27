@@ -1,7 +1,7 @@
 use super::external_selection_programs::*;
 use crate::enums::SelectionMethod;
 use crate::errors::*;
-use crate::options::interfaces::*;
+use crate::options::traits::*;
 
 pub(crate) fn prompt_for_encryption_key<O>(
     options: &O,

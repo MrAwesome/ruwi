@@ -1,6 +1,4 @@
-use crate::errors::*;
-use crate::options::interfaces::*;
-use crate::rerr;
+use crate::common::*;
 
 use std::io;
 use std::process::Output;

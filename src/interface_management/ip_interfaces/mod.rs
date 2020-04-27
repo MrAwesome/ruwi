@@ -2,7 +2,7 @@ mod ip_link;
 use ip_link::{WifiLinuxIPLinkInterface, WiredLinuxIPLinkInterface};
 
 use crate::errors::*;
-use crate::options::interfaces::Global;
+use crate::options::traits::Global;
 
 pub(crate) const FAKE_INTERFACE_NAME: &str = "FAKE_INTERFACE";
 

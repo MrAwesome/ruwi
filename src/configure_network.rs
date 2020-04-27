@@ -1,9 +1,6 @@
-use crate::enums::*;
-use crate::errors::*;
+use crate::common::*;
 use crate::interface_management::ip_interfaces::WifiIPInterface;
 use crate::netctl::*;
-use crate::options::interfaces::*;
-use crate::structs::*;
 
 pub(crate) fn possibly_configure_network<O>(
     options: &O,

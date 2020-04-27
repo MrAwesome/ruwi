@@ -1,7 +1,4 @@
-use crate::enums::*;
-use crate::errors::*;
-use crate::options::interfaces::*;
-use crate::structs::*;
+use crate::common::*;
 
 pub(crate) fn parse_nmcli_scan<O>(
     _options: &O,

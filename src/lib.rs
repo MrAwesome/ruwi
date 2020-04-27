@@ -29,16 +29,17 @@ pub(crate) mod macros;
 pub(crate) mod annotate_networks;
 pub(crate) mod bluetooth;
 pub(crate) mod common;
+pub(crate) mod conversion;
 pub(crate) mod cmdline_parser;
 pub(crate) mod configure_network;
 pub(crate) mod connect;
 pub(crate) mod encryption_key;
 pub(crate) mod enums;
 pub mod errors;
-// TODO: instead of making this public, have a "public constants" module
 pub(crate) mod interface_management;
 pub(crate) mod known_networks;
 pub(crate) mod netctl;
+pub(crate) mod networks;
 pub(crate) mod options;
 pub(crate) mod parse;
 pub(crate) mod run_commands;

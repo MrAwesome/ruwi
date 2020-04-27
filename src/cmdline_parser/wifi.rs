@@ -1,15 +1,12 @@
 use super::utils::*;
 use super::{WIFI_CONNECT_TOKEN, WIFI_SELECT_TOKEN};
 
-use crate::enums::*;
-use crate::errors::*;
+use crate::common::*;
 use crate::options::command::*;
-use crate::options::interfaces::*;
 use crate::options::wifi::connect::WifiConnectOptions;
 use crate::options::wifi::select::WifiSelectOptions;
 use crate::options::wifi::*;
 use crate::options::*;
-use crate::rerr;
 use crate::service_detection::*;
 use crate::strum_utils::*;
 

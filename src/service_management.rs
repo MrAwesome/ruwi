@@ -1,7 +1,5 @@
-use crate::enums::*;
-use crate::errors::*;
+use crate::common::*;
 use crate::interface_management::ip_interfaces::WifiIPInterface;
-use crate::options::interfaces::*;
 use crate::run_commands::SystemCommandRunner;
 use crate::wpa_cli_initialize::*;
 
@@ -120,7 +118,9 @@ impl GetService for WifiScanType {
         match self {
             WifiScanType::Nmcli => NetworkingService::NetworkManager,
             WifiScanType::WpaCli => NetworkingService::WpaSupplicant(
-                interface.expect("Interface must be provided to wpa_supplicant!").clone(),
+                interface
+                    .expect("Interface must be provided to wpa_supplicant!")
+                    .clone(),
             ),
             WifiScanType::IW | WifiScanType::RuwiJSON => NetworkingService::None,
         }

@@ -8,7 +8,7 @@ use crate::enums::*;
 // if scanning type isn't given:
 //    check NetworkingServices installed/running, check scanning binaries installed/running, pick a WifiScanType
 
-impl HasSystemCheckMapping for RawInterfaceConnectionType {
+impl HasSystemCheckMapping for WiredConnectionType {
     fn get_system_check_mapping() -> Vec<(SystemCheckPredicate, Self)> {
         vec![
             (SystemCheckPredicate::NetworkManagerRunning, Self::Nmcli),
@@ -111,7 +111,7 @@ mod tests {
         mock_func!(mock, 1, check_dhclient_installed, false);
         mock_func!(mock, 1, check_dhcpcd_installed, true);
         assert_eq!(
-            RawInterfaceConnectionType::Dhcpcd,
+            WiredConnectionType::Dhcpcd,
             choose_best_from_system_impl(&mock, "fake_name")
         );
     }
@@ -126,7 +126,7 @@ mod tests {
         mock_func_not_called!(mock, check_dhclient_installed);
         mock_func_not_called!(mock, check_dhcpcd_installed);
         assert_eq!(
-            RawInterfaceConnectionType::Netctl,
+            WiredConnectionType::Netctl,
             choose_best_from_system_impl(&mock, "fake_name")
         );
     }

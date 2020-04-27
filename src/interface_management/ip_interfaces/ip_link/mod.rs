@@ -3,7 +3,7 @@ pub(super) mod state_management;
 use serde_derive::Deserialize;
 
 use crate::errors::*;
-use crate::options::interfaces::Global;
+use crate::options::traits::Global;
 
 // TODO: make sure ip is installed by default on Ubuntu, check the package name
 // TODO: implement selectable

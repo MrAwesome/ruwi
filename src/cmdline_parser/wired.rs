@@ -2,17 +2,18 @@ use super::utils::*;
 use super::WIRED_CONNECT_TOKEN;
 
 use crate::enums::*;
-use crate::options::wired::connect::WiredConnectOptions;
-use crate::options::command::*;
-use crate::options::wired::*;
 use crate::errors::*;
+use crate::options::command::*;
+use crate::options::wired::connect::WiredConnectOptions;
+use crate::options::wired::*;
 use crate::options::*;
-use crate::strum_utils::*;
 use crate::service_detection::*;
+use crate::strum_utils::*;
 
 use clap::ArgMatches;
 
 const CONNECT_VIA_TOKEN: &str = "connect_via";
+const PROFILE_TOKEN: &str = "profile";
 
 pub(super) fn get_wired_cmd(
     globals: GlobalOptions,
@@ -37,11 +38,7 @@ pub(super) fn get_wired_cmd(
 fn get_default_wired_command(globals: GlobalOptions) -> Result<RuwiWiredCommand, RuwiError> {
     Ok(RuwiWiredCommand::Connect(
         WiredConnectOptions::builder()
-            .wired(
-                WiredOptions::builder()
-                    .globals(globals)
-                    .build(),
-            )
+            .wired(WiredOptions::builder().globals(globals).build())
             .build(),
     ))
 }
@@ -53,20 +50,21 @@ fn get_wired_connect_opts(
     let connect_builder = WiredConnectOptions::builder();
     let connect_opts = if let Some(connect_matcher) = maybe_connect_matcher {
         let connect_via = if connect_matcher.is_present(CONNECT_VIA_TOKEN) {
-            get_val_as_enum::<RawInterfaceConnectionType>(&connect_matcher, CONNECT_VIA_TOKEN)
+            get_val_as_enum::<WiredConnectionType>(&connect_matcher, CONNECT_VIA_TOKEN)
         } else {
             let checker = SystemCheckerReal::new(&wired_opts);
-            RawInterfaceConnectionType::choose_best_from_system(&checker, CONNECT_VIA_TOKEN)
+            WiredConnectionType::choose_best_from_system(&checker, CONNECT_VIA_TOKEN)
         };
+
+        let profile = connect_matcher.value_of(PROFILE_TOKEN).map(Into::into);
 
         connect_builder
             .wired(wired_opts)
             .connect_via(connect_via)
+            .given_profile_name(profile)
             .build()
     } else {
-        connect_builder
-            .wired(wired_opts)
-            .build()
+        connect_builder.wired(wired_opts).build()
     };
     Ok(connect_opts)
 }

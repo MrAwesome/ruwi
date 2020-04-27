@@ -1,5 +1,6 @@
 use crate::known_networks::WifiKnownNetworks;
-use crate::options::interfaces::*;
+use crate::options::traits::*;
+use crate::networks::traits::*;
 
 // TODO: make this not wifi-specific with known networks
 pub(crate) fn annotate_networks<O, T, U>(

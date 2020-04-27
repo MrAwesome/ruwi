@@ -77,14 +77,14 @@ impl Default for WifiConnectionType {
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
 #[strum(serialize_all = "snake_case")]
-pub enum RawInterfaceConnectionType {
+pub enum WiredConnectionType {
     Netctl,
     Nmcli,
     Dhclient,
     Dhcpcd,
 }
 
-impl Default for RawInterfaceConnectionType {
+impl Default for WiredConnectionType {
     fn default() -> Self {
         Self::Netctl
     }

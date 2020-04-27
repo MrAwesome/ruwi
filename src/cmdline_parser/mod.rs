@@ -6,8 +6,7 @@ use utils::*;
 use wifi::get_wifi_cmd;
 use wired::get_wired_cmd;
 
-use crate::enums::*;
-use crate::errors::*;
+use crate::common::*;
 use crate::options::command::*;
 use crate::options::*;
 use crate::strum_utils::*;
@@ -133,9 +132,15 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .short("c")
         .long("connect-via")
         .takes_value(true)
-        .default_value(&RawInterfaceConnectionType::default().as_static())
-        .possible_values(&possible_string_vals::<RawInterfaceConnectionType, _>())
+        .default_value(&WiredConnectionType::default().as_static())
+        .possible_values(&possible_string_vals::<WiredConnectionType, _>())
         .help("Which network management suite to use to connect on the given interface.");
+
+    let connection_manager_profile = Arg::with_name("profile")
+        .short("p")
+        .long("profile")
+        .takes_value(true)
+        .help("The name of a connection manager profile to connect on, if relevant. This is mainly useful for netctl.");
 
     App::new("Ruwi")
         .version("0.2")
@@ -149,6 +154,7 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
             .arg(networking_interface.clone())
             .subcommand(SubCommand::with_name(WIRED_CONNECT_TOKEN)
                 .arg(wired_connect_via)
+                .arg(connection_manager_profile)
             )
         )
         .subcommand(SubCommand::with_name(WIFI_TOKEN)
@@ -240,10 +246,8 @@ fn only_parse_cmdline_check() -> Result<(), RuwiError> {
 mod tests {
     use super::*;
 
-    use crate::options::interfaces::*;
     use crate::options::wifi::connect::WifiConnectOptions;
     use crate::options::wired::connect::WiredConnectOptions;
-    use crate::rerr;
 
     use clap::ArgMatches;
     use strum::IntoEnumIterator;
@@ -533,7 +537,7 @@ mod tests {
 
     #[test]
     fn test_wired_connect_via() {
-        for connect_type in RawInterfaceConnectionType::iter() {
+        for connect_type in WiredConnectionType::iter() {
             dbg!(&connect_type);
             let opts = expect_wired_connect_opts(getopts(&[
                 "wired",

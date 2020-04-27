@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::options::interfaces::Global;
+use crate::options::traits::Global;
 use crate::run_commands::SystemCommandRunner;
 
 pub(crate) struct SystemCheckerReal<'a, O: Global> {

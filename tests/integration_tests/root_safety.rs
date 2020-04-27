@@ -12,7 +12,7 @@ fn test_malicious_interface_determinator_binary() -> Result<()> {
 
 #[test]
 fn test_malicious_selection_binary() -> Result<()> {
-    impl_test_malicious_binary("fzf", "-m fzf wifi -F src/parse/samples/iw_many_networks.txt -s iw connect")
+    impl_test_malicious_binary("fzf", "-m fzf wifi -F src/parse/samples/iw_many_networks.txt -s iw connect -c print")
 }
 
 fn get_full_malicious_binary_name(malicious_dir: &str, malicious_binary_name: &str) -> String {

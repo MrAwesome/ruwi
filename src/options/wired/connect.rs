@@ -1,14 +1,14 @@
 use typed_builder::TypedBuilder;
 
 use crate::enums::*;
-use crate::options::interfaces::*;
+use crate::options::traits::*;
 use crate::options::wired::WiredOptions;
 
 #[derive(Debug, Clone, TypedBuilder)]
 pub struct WiredConnectOptions {
     wired: WiredOptions,
     #[builder(default)]
-    connect_via: RawInterfaceConnectionType,
+    connect_via: WiredConnectionType,
     #[builder(default)]
     given_profile_name: Option<String>,
 }
@@ -17,7 +17,7 @@ impl Default for WiredConnectOptions {
     fn default() -> Self {
         Self {
             wired: WiredOptions::default(),
-            connect_via: RawInterfaceConnectionType::default(),
+            connect_via: WiredConnectionType::default(),
             given_profile_name: None,
         }
     }
@@ -51,7 +51,7 @@ impl Wired for WiredConnectOptions {
 }
 
 impl WiredConnect for WiredConnectOptions {
-    fn get_connect_via(&self) -> &RawInterfaceConnectionType {
+    fn get_connect_via(&self) -> &WiredConnectionType {
         &self.connect_via
     }
 

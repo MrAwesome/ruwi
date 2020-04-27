@@ -8,10 +8,7 @@ use additional_options_for_manual_selection::*;
 use external_selection_programs::*;
 use get_index_of_selected_item::get_index_of_selected_item;
 
-use crate::enums::*;
-use crate::errors::*;
-use crate::options::interfaces::*;
-use crate::rerr;
+use crate::common::*;
 use crate::sort_networks::SortedFilteredNetworks;
 
 // TODO: make a trait/API for selection
