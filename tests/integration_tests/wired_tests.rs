@@ -36,11 +36,8 @@ fn test_netctl_manual_profile_name() -> Result<()> {
     let mut p = spawn_dryrun(
         &format!("wired connect -c netctl -p {}", netctl_profile),
     )?;
-    let x = p.exp_regex("Not running command in dryrun mode: `netctl.*FAKE_INTERFACE`")?;
-    dbg!(x);
-    let x = p.exp_string(&format!("Using manually-specified netctl profile \"{}\"", netctl_profile))?;
-    dbg!(x);
-    let x = p.exp_string("Successfully connected on \"FAKE_INTERFACE\" using netctl!")?;
-    dbg!(x);
+    p.exp_regex("Not running command in dryrun mode: `netctl.*FAKE_INTERFACE`")?;
+    p.exp_string(&format!("Using manually-specified netctl profile \"{}\"", netctl_profile))?;
+    p.exp_string("Successfully connected on \"FAKE_INTERFACE\" using netctl!")?;
     Ok(())
 }
