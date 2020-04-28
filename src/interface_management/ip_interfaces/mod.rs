@@ -110,6 +110,12 @@ impl WiredIPInterface {
     }
 }
 
+impl Default for WiredIPInterface {
+    fn default() -> Self {
+        Self::new(FAKE_INTERFACE_NAME)
+    }
+}
+
 impl From<String> for WiredIPInterface {
     fn from(ifname: String) -> Self {
         Self { ifname }

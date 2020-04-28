@@ -196,26 +196,6 @@ impl Identifiable for AnnotatedWiredNetwork {
     }
 }
 
-//impl Selectable for AnnotatedWiredNetwork {
-//    fn get_display_string(&self) -> String {
-//        todo!()
-//    }
-//}
-//
-//// TODO: associate interface with networks? wired will certainly need this.
-//impl RuwiNetwork for AnnotatedWiredNetwork {}
-//impl AnnotatedRuwiNetwork for AnnotatedWiredNetwork {}
-//
-//impl ToNetctlIdentifier for AnnotatedWiredNetwork {
-//    fn get_netctl_identifier(&self, interface: WiredIPInterface) -> NetctlIdentifier {
-//        let ident = match self.get_service_identifier() {
-//            Some(NetworkServiceIdentifier::Netctl(ident)) => ident.clone(),
-//            _ => self.get_public_name().replace(" ", "_"),
-//        };
-//        NetctlIdentifier::new(ident)
-//    }
-//}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConfigResult {
     //pub connection_type: WifiConnectionType,

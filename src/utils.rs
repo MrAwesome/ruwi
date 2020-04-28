@@ -36,6 +36,13 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_osstr_to_str() {
+        let lawl = "lawl";
+        let osstr = OsStr::new(lawl);
+        assert_eq!(lawl, convert_osstr_to_string(osstr));
+    }
+
+    #[test]
     fn test_big_loop_check_allows_at_least_5_loops() -> Result<(), RuwiError> {
         let mut start = 0;
         let max = 1000;

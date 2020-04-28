@@ -7,7 +7,7 @@ mod utils;
 
 use config_finder::*;
 #[cfg(not(test))]
-use config_reader::read_all_netctl_config_files;
+use config_reader::reader_implementation::read_all_netctl_config_files;
 use structs::*;
 
 use crate::common::*;
