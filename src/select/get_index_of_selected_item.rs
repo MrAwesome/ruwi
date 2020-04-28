@@ -5,9 +5,6 @@ use super::additional_options_for_manual_selection::SelectionOption;
 use std::str::FromStr;
 
 pub(super) fn get_index_of_selected_item(line: &str) -> Result<usize, RuwiError> {
-    #[cfg(test)]
-    dbg!(line);
-
     let line = line.trim();
 
     if line == "." {

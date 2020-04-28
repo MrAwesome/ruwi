@@ -19,7 +19,7 @@ impl<'a, O: Global + Wired + WiredConnect> RawInterfaceConnector<'a, O> {
     }
 
     // TODO: support profile connections with nmcli? It doesn't seem to support them.
-    pub(crate) fn connect(&self, network: AnnotatedWiredNetwork) -> Result<(), RuwiError> {
+    pub(crate) fn connect(&self, network: &AnnotatedWiredNetwork) -> Result<(), RuwiError> {
         match self.options.get_connect_via() {
             WiredConnectionType::Dhcpcd => self.dhcpcd_connect(),
             WiredConnectionType::Dhclient => self.dhclient_connect(),
@@ -66,16 +66,10 @@ impl<'a, O: Global + Wired + WiredConnect> RawInterfaceConnector<'a, O> {
         )
     }
 
-    // TODO: unit test? integration test?
-    fn netctl_connect(&self, network: AnnotatedWiredNetwork) -> Result<(), RuwiError> {
+    fn netctl_connect(&self, network: &AnnotatedWiredNetwork) -> Result<(), RuwiError> {
         NetworkingService::Netctl.start(self.options)?;
-        // if network has identifier: use identifier
-        // if not: write new config and use it
 
-        let ifname = self.interface.get_ifname();
-        let identifier = NetctlIdentifier::from(&network);
-
-        // TODO: create netctl/connect, use that here and for wifi. don't put it on confighandler, since this just runs an external command. maybe just in utils?
+        let identifier = NetctlIdentifier::from(network);
         netctl_switch_to(self.options, identifier)
     }
 }

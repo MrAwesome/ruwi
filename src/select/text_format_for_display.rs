@@ -12,6 +12,12 @@ impl Selectable for AnnotatedWirelessNetwork {
     }
 }
 
+impl Selectable for AnnotatedWiredNetwork {
+    fn get_display_string(&self) -> String {
+        format!("{}", self.get_public_name())
+    }
+}
+
 impl AnnotatedWirelessNetwork {
     pub(crate) fn get_tags_string(&self) -> String {
         let open = !self.is_encrypted();

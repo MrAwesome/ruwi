@@ -217,7 +217,6 @@ where
     }
 }
 
-// TODO: unit test that this is run
 pub(super) fn verify_command_safety<O>(
     opts: &O,
     cmd_path: &FullCommandPath,

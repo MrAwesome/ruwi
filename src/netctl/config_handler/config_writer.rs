@@ -32,7 +32,7 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
 
         if self.opts.get_dry_run() {
             eprintln!(
-                "Would write the following config contents to \"{}\":\n{}",
+                "[NOTE]: Would write the following config contents to \"{}\":\n{}",
                 fullpath, config_text
             );
         } else {
@@ -59,7 +59,7 @@ impl WifiNetctlConfig {
     ) -> Self {
         let identifier = NetctlIdentifier::from(network);
         let interface_name = interface.get_ifname().to_string();
-        let essid = network.get_public_name().to_string();
+        let essid = network.get_public_name();
         let encryption_key = encryption_key.clone();
         Self::builder()
             .identifier(identifier)

@@ -8,6 +8,7 @@ use crate::parse::parse_result;
 use crate::sort_networks::SortedFilteredNetworks;
 use crate::synchronous_retry_logic::should_auto_retry_with_synchronous_scan;
 use crate::utils::*;
+use crate::select::*;
 use crate::wifi_scan::wifi_scan;
 
 const LOOP_MAX: u16 = 1000;

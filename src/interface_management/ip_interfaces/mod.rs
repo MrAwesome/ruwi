@@ -1,5 +1,5 @@
 mod ip_link;
-use ip_link::{WifiLinuxIPLinkInterface, WiredLinuxIPLinkInterface};
+use ip_link::*;
 
 use crate::errors::*;
 use crate::options::traits::Global;
@@ -12,36 +12,10 @@ pub(crate) const FAKE_INTERFACE_NAME: &str = "FAKE_INTERFACE";
 //       * iw dev
 //       * wpa_cli dev
 
-pub trait LinuxIPInterface {
+pub(crate) trait LinuxIPInterface: Sized + From<String> {
+    type Finder: TypedLinuxInterfaceFinder + Clone;
+
     fn get_ifname(&self) -> &str;
-    fn from_name_or_first<O: Global>(
-        opts: &O,
-        maybe_name: &Option<String>,
-    ) -> Result<Self, RuwiError>
-    where
-        Self: Sized;
-    fn bring_up<O: Global>(&self, opts: &O) -> Result<(), RuwiError>;
-    fn bring_down<O: Global>(&self, opts: &O) -> Result<(), RuwiError>;
-}
-
-// TODO: Remove code duplication between wifi and wired
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct WifiIPInterface {
-    ifname: String,
-}
-
-impl Default for WifiIPInterface {
-    fn default() -> Self {
-        Self {
-            ifname: FAKE_INTERFACE_NAME.to_string(),
-        }
-    }
-}
-
-impl LinuxIPInterface for WifiIPInterface {
-    fn get_ifname(&self) -> &str {
-        &self.ifname
-    }
 
     fn bring_up<O: Global>(&self, opts: &O) -> Result<(), RuwiError> {
         ip_link::state_management::bring_up(opts, self.get_ifname())
@@ -51,15 +25,53 @@ impl LinuxIPInterface for WifiIPInterface {
         ip_link::state_management::bring_down(opts, self.get_ifname())
     }
 
+    fn get_all<O: Global>(opts: &O) -> Result<Vec<Self>, RuwiError> {
+        let interfaces = Self::Finder::get_all(opts)?
+            .into_iter()
+            .map(|x| Self::from(x.get_ifname().to_string()))
+            .collect();
+        Ok(interfaces)
+    }
+
+    fn from_name_or_all<O: Global>(
+        opts: &O,
+        maybe_name: &Option<String>,
+    ) -> Result<Vec<Self>, RuwiError> {
+        if let Some(ifname) = maybe_name {
+            Ok(vec![Self::from(ifname.clone())])
+        } else {
+            Self::get_all(opts)
+        }
+    }
+
+    fn find_first<O: Global>(opts: &O) -> Result<Self, RuwiError> {
+        if opts.is_test_or_dry_run() {
+            return Ok(Self::from(FAKE_INTERFACE_NAME.to_string()));
+        }
+        let first_seen_wifi_iface = Self::Finder::get_first(opts)?;
+        Ok(Self::from(first_seen_wifi_iface.get_ifname().to_string()))
+    }
+
     fn from_name_or_first<O: Global>(
         opts: &O,
         maybe_name: &Option<String>,
     ) -> Result<Self, RuwiError> {
         if let Some(ifname) = maybe_name {
-            Ok(Self::new(ifname))
+            Ok(Self::from(ifname.clone()))
         } else {
             Self::find_first(opts)
         }
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct WifiIPInterface {
+    ifname: String,
+}
+
+impl Default for WifiIPInterface {
+    fn default() -> Self {
+        Self::new(FAKE_INTERFACE_NAME)
     }
 }
 
@@ -69,13 +81,19 @@ impl WifiIPInterface {
             ifname: ifname.to_string(),
         }
     }
+}
 
-    pub(crate) fn find_first<O: Global>(opts: &O) -> Result<Self, RuwiError> {
-        if opts.is_test_or_dry_run() {
-            return Ok(Self::default());
-        }
-        let first_seen_wifi_iface = WifiLinuxIPLinkInterface::get_first(opts)?;
-        Ok(Self::new(first_seen_wifi_iface.get_ifname()))
+impl From<String> for WifiIPInterface {
+    fn from(ifname: String) -> Self {
+        Self { ifname }
+    }
+}
+
+impl LinuxIPInterface for WifiIPInterface {
+    type Finder = WifiLinuxIPLinkInterface;
+
+    fn get_ifname(&self) -> &str {
+        &self.ifname
     }
 }
 
@@ -84,50 +102,23 @@ pub struct WiredIPInterface {
     ifname: String,
 }
 
-impl LinuxIPInterface for WiredIPInterface {
-    fn get_ifname(&self) -> &str {
-        &self.ifname
-    }
-    fn bring_up<O: Global>(&self, opts: &O) -> Result<(), RuwiError> {
-        ip_link::state_management::bring_up(opts, self.get_ifname())
-    }
-
-    fn bring_down<O: Global>(&self, opts: &O) -> Result<(), RuwiError> {
-        ip_link::state_management::bring_down(opts, self.get_ifname())
-    }
-
-    fn from_name_or_first<O: Global>(
-        opts: &O,
-        maybe_name: &Option<String>,
-    ) -> Result<Self, RuwiError> {
-        if let Some(ifname) = maybe_name {
-            Ok(Self::new(ifname))
-        } else {
-            Self::find_first(opts)
-        }
-    }
-}
-
 impl WiredIPInterface {
     pub(crate) fn new(ifname: &str) -> Self {
         Self {
             ifname: ifname.to_string(),
         }
     }
+}
 
-    pub(crate) fn find_first<O: Global>(opts: &O) -> Result<Self, RuwiError> {
-        if opts.is_test_or_dry_run() {
-            return Ok(Self::default());
-        }
-        let first_seen_wifi_iface = WiredLinuxIPLinkInterface::get_first(opts)?;
-        Ok(Self::new(first_seen_wifi_iface.get_ifname()))
+impl From<String> for WiredIPInterface {
+    fn from(ifname: String) -> Self {
+        Self { ifname }
     }
 }
 
-impl Default for WiredIPInterface {
-    fn default() -> Self {
-        Self {
-            ifname: FAKE_INTERFACE_NAME.to_string(),
-        }
+impl LinuxIPInterface for WiredIPInterface {
+    type Finder = WiredLinuxIPLinkInterface;
+    fn get_ifname(&self) -> &str {
+        &self.ifname
     }
 }

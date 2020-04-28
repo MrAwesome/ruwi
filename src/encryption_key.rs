@@ -32,7 +32,7 @@ where
                 if options.get_force_ask_password()
                     || (!selected_network.is_known() && selected_network.is_encrypted())
                 {
-                    Some(prompt_func(options, selected_network.get_public_name())?)
+                    Some(prompt_func(options, selected_network.get_public_name().as_ref())?)
                 } else {
                     None
                 }

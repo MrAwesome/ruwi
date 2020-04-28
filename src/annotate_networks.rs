@@ -17,8 +17,10 @@ where
         .iter()
         .map(|nw| {
             //let is_known = known_networks.check_for_essid(nw.get_public_name());
+            // TODO: get_public_name is inefficient here - should wireless networks have their own
+            // function for returning a reference to essid?
             let service_identifier =
-                known_networks.get_service_identifier_for_essid(nw.get_public_name());
+                known_networks.get_service_identifier_for_essid(nw.get_public_name().as_ref());
             U::from_nw(nw.clone(), service_identifier)
         })
         .collect();

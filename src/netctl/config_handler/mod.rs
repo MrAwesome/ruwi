@@ -76,19 +76,15 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
             .collect::<Vec<C>>())
     }
 
-    pub(crate) fn get_wired_configs_with_interface(
+    pub(crate) fn get_wired_configs(
         &self,
         ifname: &str,
-    ) -> Result<Vec<NetctlIdentifier>, RuwiError> {
+    ) -> Result<Vec<WiredNetctlConfig>, RuwiError> {
         // TODO: allow for specifying a particular netctl profile for wired netctl connect
         let criteria = WiredNetctlConfigFinderCriteria::builder()
             .interface_name(ifname)
             .build();
-        Ok(self
-            .find_matching_configs::<WiredNetctlConfig>(&criteria)?
-            .iter()
-            .map(|config| config.get_identifier().clone())
-            .collect())
+        self.find_matching_configs::<WiredNetctlConfig>(&criteria)
     }
 
     pub(crate) fn get_wifi_essids_and_identifiers(

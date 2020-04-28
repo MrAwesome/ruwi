@@ -1,9 +1,44 @@
 pub(super) mod discover;
 pub(super) mod state_management;
-use serde_derive::Deserialize;
 
 use crate::errors::*;
 use crate::options::traits::Global;
+
+use serde_derive::Deserialize;
+use std::convert::TryFrom;
+
+pub(crate) struct InterfaceNotDesiredTypeError;
+
+pub(crate) trait TypedLinuxInterfaceFinder: TryFrom<LinuxIPLinkInterface> {
+    fn get_ifname(&self) -> &str;
+    fn check(untyped_interface: &LinuxIPLinkInterface) -> bool;
+    fn none_found_error() -> RuwiError;
+
+    fn get_first<O: Global>(opts: &O) -> Result<Self, RuwiError>
+    where
+        Self: Sized + Clone,
+    {
+        Self::get_all(opts)?
+            .first()
+            .ok_or_else(Self::none_found_error)
+            .map(Clone::clone)
+    }
+
+    fn get_all<O: Global>(opts: &O) -> Result<Vec<Self>, RuwiError>
+    where
+        Self: Sized,
+    {
+        let raw_interfaces = LinuxIPLinkInterface::get_all(opts)?
+            .into_iter()
+            .filter_map(|x| Self::try_from(x).ok())
+            .collect::<Vec<_>>();
+        if raw_interfaces.len() < 1 {
+            Err(Self::none_found_error())
+        } else {
+            Ok(raw_interfaces)
+        }
+    }
+}
 
 // TODO: make sure ip is installed by default on Ubuntu, check the package name
 // TODO: implement selectable
@@ -11,7 +46,7 @@ use crate::options::traits::Global;
 
 // A direct representation of what `ip -j link show` gives back to us in JSON.
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-pub(super) struct LinuxIPLinkInterface {
+pub(crate) struct LinuxIPLinkInterface {
     ifname: String,
     link_type: String,
     operstate: OperState,
@@ -38,55 +73,71 @@ impl LinuxIPLinkInterface {
     pub(crate) fn get_ifname(&self) -> &str {
         &self.ifname
     }
+}
 
-    pub(crate) fn is_wifi(&self) -> bool {
-        let ifname = self.get_ifname();
+#[derive(Debug, Clone)]
+pub(crate) struct WifiLinuxIPLinkInterface(LinuxIPLinkInterface);
+
+impl TryFrom<LinuxIPLinkInterface> for WifiLinuxIPLinkInterface {
+    type Error = InterfaceNotDesiredTypeError;
+    fn try_from(
+        untyped_interface: LinuxIPLinkInterface,
+    ) -> Result<Self, InterfaceNotDesiredTypeError> {
+        match Self::check(&untyped_interface) {
+            true => Ok(Self(untyped_interface)),
+            false => Err(InterfaceNotDesiredTypeError),
+        }
+    }
+}
+
+impl TypedLinuxInterfaceFinder for WifiLinuxIPLinkInterface {
+    fn get_ifname(&self) -> &str {
+        self.0.get_ifname()
+    }
+
+    fn check(untyped_interface: &LinuxIPLinkInterface) -> bool {
+        let ifname = untyped_interface.get_ifname();
         ifname.starts_with("wlp") || ifname.starts_with("wlan")
     }
 
-    pub(crate) fn is_wired(&self) -> bool {
-        let ifname = self.get_ifname();
+    fn none_found_error() -> RuwiError {
+        rerr!(
+            RuwiErrorKind::NoWifiInterfacesFound,
+            "No wifi interfaces found with `ip link show`! Is \"iproute2\" installed? You can manually specify an interface with `... wifi -i <INTERFACE_NAME>`."
+        )
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct WiredLinuxIPLinkInterface(LinuxIPLinkInterface);
+
+impl TryFrom<LinuxIPLinkInterface> for WiredLinuxIPLinkInterface {
+    type Error = InterfaceNotDesiredTypeError;
+    fn try_from(
+        untyped_interface: LinuxIPLinkInterface,
+    ) -> Result<Self, InterfaceNotDesiredTypeError> {
+        match Self::check(&untyped_interface) {
+            true => Ok(Self(untyped_interface)),
+            false => Err(InterfaceNotDesiredTypeError),
+        }
+    }
+}
+
+impl TypedLinuxInterfaceFinder for WiredLinuxIPLinkInterface {
+    fn get_ifname(&self) -> &str {
+        self.0.get_ifname()
+    }
+
+    fn check(untyped_interface: &LinuxIPLinkInterface) -> bool {
+        let ifname = untyped_interface.get_ifname();
         ifname.starts_with("enp") || ifname.starts_with("eth")
     }
-}
 
-pub(super) struct WifiLinuxIPLinkInterface(LinuxIPLinkInterface);
-impl WifiLinuxIPLinkInterface {
-    pub(super) fn get_ifname(&self) -> &str {
-        self.0.get_ifname()
-    }
-}
-
-impl WifiLinuxIPLinkInterface {
-    pub(super) fn get_first<O: Global>(opts: &O) -> Result<Self, RuwiError> {
-        let raw_interface = LinuxIPLinkInterface::get_all(opts)?
-            .into_iter()
-            .find(LinuxIPLinkInterface::is_wifi)
-            .ok_or_else(|| rerr!(
-                RuwiErrorKind::NoWifiInterfacesFound,
-                "No wifi interfaces found with `ip link show`! Is \"iproute2\" installed? You can manually specify an interface with `... wifi -i <INTERFACE_NAME>`."
-            ))?;
-        Ok(Self(raw_interface))
-    }
-}
-
-pub(super) struct WiredLinuxIPLinkInterface(LinuxIPLinkInterface);
-impl WiredLinuxIPLinkInterface {
-    pub(super) fn get_ifname(&self) -> &str {
-        self.0.get_ifname()
-    }
-}
-
-impl WiredLinuxIPLinkInterface {
-    pub(super) fn get_first<O: Global>(opts: &O) -> Result<Self, RuwiError> {
-        let raw_interface = LinuxIPLinkInterface::get_all(opts)?
-        .into_iter()
-        .find(LinuxIPLinkInterface::is_wired)
-        .ok_or_else(|| rerr!(
+    fn none_found_error() -> RuwiError {
+        rerr!(
             RuwiErrorKind::NoWiredInterfacesFound,
             "No wired interfaces found with `ip link show`! Is \"iproute2\" installed? You can manually specify an interface with `... wired -i <INTERFACE_NAME>`."
-        ))?;
-        Ok(Self(raw_interface))
+        )
     }
 }
 
@@ -104,8 +155,8 @@ mod tests {
             flags: vec![],
         };
 
-        assert![dev.is_wired()];
-        assert![!dev.is_wifi()];
+        assert![WiredLinuxIPLinkInterface::try_from(dev.clone()).is_ok()];
+        assert![!WifiLinuxIPLinkInterface::try_from(dev).is_ok()];
     }
 
     #[test]
@@ -117,7 +168,7 @@ mod tests {
             flags: vec![],
         };
 
-        assert![dev.is_wifi()];
-        assert![!dev.is_wired()];
+        assert![WifiLinuxIPLinkInterface::try_from(dev.clone()).is_ok()];
+        assert![!WiredLinuxIPLinkInterface::try_from(dev).is_ok()];
     }
 }

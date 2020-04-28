@@ -5,23 +5,26 @@ use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::fmt::Debug;
 
+use crate::select::Selector;
+
 #[derive(Debug)]
 pub(crate) struct SortedFilteredNetworks<N: Debug> {
     networks: Vec<N>,
 }
 
-impl<N: Debug> SortedFilteredNetworks<N> {
-    pub(crate) fn get_networks(&self) -> &[N] {
+impl<N: AnnotatedRuwiNetwork> Selector<N> for SortedFilteredNetworks<N> {
+    fn get_networks(&self) -> &[N] {
         &self.networks
     }
 
+}
+
+impl<N: Ord + Identifiable + Clone + Debug> SortedFilteredNetworks<N> {
     #[cfg(test)]
     pub(crate) fn get_networks_mut(&mut self) -> &mut [N] {
         &mut self.networks
     }
-}
 
-impl<N: Ord + Identifiable + Clone + Debug> SortedFilteredNetworks<N> {
     pub(crate) fn new(networks: Vec<N>) -> Self {
         let mut networks = networks; 
         Self::put_best_networks_first(&mut networks);
@@ -44,7 +47,7 @@ impl<N: Identifiable + Clone + Debug> SortedFilteredNetworks<N> {
         for nw in networks {
             let identifier = nw.get_public_name();
             if !seen_network_names.contains(identifier) {
-                seen_network_names.insert(identifier.to_owned());
+                seen_network_names.insert(identifier.to_string());
 
                 unique_networks.push(nw.clone());
             }

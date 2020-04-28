@@ -6,8 +6,7 @@ use crate::networks::traits::*;
 
 use std::fmt::Debug;
 use typed_builder::TypedBuilder;
-use crate::interface_management::ip_interfaces::{WifiIPInterface, WiredIPInterface};
-use crate::netctl::NetctlIdentifier;
+use crate::interface_management::ip_interfaces::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ScanResult {
@@ -104,9 +103,7 @@ impl AnnotatedWirelessNetwork {
     pub fn from_essid_only(essid: &str) -> Self {
         Self::builder().essid(essid).build()
     }
-}
 
-impl AnnotatedWirelessNetwork {
     #[cfg(test)]
     pub(crate) fn set_service_identifier_for_tests(
         &mut self,
@@ -116,15 +113,16 @@ impl AnnotatedWirelessNetwork {
     }
 }
 
+// TODO: most uses of this should probably be "get_essid()" instead
 impl Identifiable for WirelessNetwork {
     fn get_public_name(&self) -> &str {
-        self.essid.as_ref()
+        &self.essid
     }
 }
 
 impl Identifiable for AnnotatedWirelessNetwork {
     fn get_public_name(&self) -> &str {
-        self.essid.as_ref()
+        &self.essid
     }
 }
 
@@ -160,8 +158,16 @@ impl AnnotatedRuwiNetwork for AnnotatedWirelessNetwork {}
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
 pub struct AnnotatedWiredNetwork {
+    interface: WiredIPInterface,
+
     #[builder(default = None)]
     service_identifier: Option<NetworkServiceIdentifier>,
+}
+
+impl AnnotatedWiredNetwork {
+    pub fn get_ifname(&self) -> &str {
+        self.interface.get_ifname()
+    }
 }
 
 impl Known for AnnotatedWiredNetwork {
@@ -175,7 +181,18 @@ impl Known for AnnotatedWiredNetwork {
 
 impl Identifiable for AnnotatedWiredNetwork {
     fn get_public_name(&self) -> &str {
-        todo!()
+        let ifname = self.interface.get_ifname();
+        if let Some(ident) = self.get_service_identifier() {
+            match ident {
+                NetworkServiceIdentifier::Netctl(netident) => {
+                    // TODO: just the identifier? mention netctl?
+                    netident.as_ref()
+                },
+                NetworkServiceIdentifier::NetworkManager => ifname,
+            }
+        } else {
+            ifname
+        }
     }
 }
 

@@ -9,28 +9,33 @@ use external_selection_programs::*;
 use get_index_of_selected_item::get_index_of_selected_item;
 
 use crate::common::*;
-use crate::sort_networks::SortedFilteredNetworks;
+
+use std::fmt::Debug;
 
 // TODO: make a trait/API for selection
 // TODO: make a trait/API for selectors
 
-impl<N: AnnotatedRuwiNetwork> SortedFilteredNetworks<N> {
-    pub fn get_tokens_for_selection(&self) -> Vec<String> {
-        self.get_network_tokens()
-            .into_iter()
-            .chain(get_possible_selection_options_as_strings())
-            .collect()
-    }
+pub trait Selector<N>: Sized + Debug
+where
+    N: Selectable + Identifiable + Clone + Debug + Known,
+{
+    fn get_networks(&self) -> &[N];
 
-    pub fn get_network_tokens(&self) -> Vec<String> {
+    fn get_network_tokens(&self) -> Vec<String> {
         self.get_networks()
             .iter()
             .enumerate()
             .map(|(i, x)| format!("{}) {}", i, x.get_display_string()))
             .collect()
     }
+    fn get_tokens_for_selection(&self) -> Vec<String> {
+        self.get_network_tokens()
+            .into_iter()
+            .chain(get_possible_selection_options_as_strings())
+            .collect()
+    }
 
-    pub(crate) fn select_network<O>(&self, options: &O) -> Result<N, RuwiError>
+    fn select_network<O>(&self, options: &O) -> Result<N, RuwiError>
     where
         O: Global + AutoSelect,
     {
@@ -202,6 +207,7 @@ mod tests {
     use super::*;
     use crate::options::wifi::connect::WifiConnectOptions;
     use crate::options::wifi::WifiOptions;
+    use crate::sort_networks::*;
     use crate::structs::AnnotatedWirelessNetwork;
     use crate::strum::AsStaticRef;
 

@@ -1,9 +1,9 @@
 use super::config_finder::*;
 use super::utils::*;
+use super::NetctlIdentifier;
 
 use crate::string_container;
-
-use super::NetctlIdentifier;
+use crate::common::*;
 
 use strum_macros::AsStaticStr;
 use strum_macros::{Display, EnumString};
@@ -131,9 +131,19 @@ impl TryFrom<NetctlRawParsedFields> for WifiNetctlConfig {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
-pub(super) struct WiredNetctlConfig {
+pub(crate) struct WiredNetctlConfig {
     pub(super) identifier: NetctlIdentifier,
     pub(super) interface_name: String,
+}
+
+impl From<&WiredNetctlConfig> for AnnotatedWiredNetwork {
+    fn from(config: &WiredNetctlConfig) -> Self {
+        AnnotatedWiredNetwork::builder()
+            .interface(config.interface_name.clone())
+            .service_identifier(NetworkServiceIdentifier::Netctl(config.identifier.as_ref().to_string()))
+            .build()
+            
+    }
 }
 
 impl<'a> NetctlConfig<'a> for WiredNetctlConfig {

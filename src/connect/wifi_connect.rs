@@ -23,14 +23,14 @@ where
             eprintln!(
                 "[NOTE]: Running in `{}` connection mode, so will not connect to: \"{}\"",
                 conn_type,
-                &selected_network.get_public_name()
+                selected_network.get_public_name()
             );
         }
         conn_type @ WifiConnectionType::Netctl | conn_type @ WifiConnectionType::Nmcli => {
             eprintln!(
                 "[NOTE]: Attempting to use {} to connect to: \"{}\"",
                 conn_type,
-                &selected_network.get_public_name()
+                selected_network.get_public_name()
             );
         }
     }
@@ -41,7 +41,7 @@ where
             connect_via_networkmanager(options, selected_network, encryption_key)
         }
         WifiConnectionType::Print => {
-            let essid = selected_network.get_public_name().clone();
+            let essid = selected_network.get_public_name();
             // TODO: integration tests to ensure this happens
             println!("{}", essid);
             Ok(ConnectionResult {
@@ -65,14 +65,14 @@ where
                 eprintln!(
                     "[NOTE]: Running in `{}` connection mode, so did not connect to: \"{}\"",
                     conn_type,
-                    &selected_network.get_public_name()
+                    selected_network.get_public_name()
                 );
             }
             WifiConnectionType::Print => {}
             WifiConnectionType::Netctl | WifiConnectionType::Nmcli => {
                 eprintln!(
                     "[NOTE]: Successfully connected to: \"{}\"",
-                    &selected_network.get_public_name()
+                    selected_network.get_public_name()
                 );
             }
         }
@@ -148,7 +148,7 @@ where
         "device",
         "wifi",
         "connect",
-        &selected_network.get_public_name(),
+        selected_network.get_public_name(),
     ];
     let args = if let Some(pw) = encryption_key {
         let pw_args = vec!["password", pw];

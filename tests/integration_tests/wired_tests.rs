@@ -27,17 +27,26 @@ fn test_nmcli() -> Result<()> {
 
 #[test]
 fn test_netctl() -> Result<()> {
-    basic_wired_dryrun_test("netctl")
+    let interface_name = "SO_FAKE";
+    let mut p = spawn_dryrun(
+        &format!("wired -i {} connect -c netctl", interface_name),
+    )?;
+    p.exp_string(&format!("Would write the following config contents to \"/etc/netctl/ethernet-{}\"", interface_name))?;
+    p.exp_string(&format!("Interface={}", interface_name))?;
+    p.exp_string("Connection=ethernet")?;
+    p.exp_string("IP=dhcp")?;
+    p.exp_string(&format!("Successfully connected on \"{}\" using netctl!", interface_name))?;
+    Ok(())
 }
 
 #[test]
 fn test_netctl_manual_profile_name() -> Result<()> {
+    let interface_name = "SO_FAKE_PART_TWO";
     let netctl_profile = "MUH_PROFILE";
     let mut p = spawn_dryrun(
-        &format!("wired connect -c netctl -p {}", netctl_profile),
+        &format!("wired -i {} connect -c netctl -p {}", interface_name, netctl_profile),
     )?;
-    p.exp_regex("Not running command in dryrun mode: `netctl.*FAKE_INTERFACE`")?;
-    p.exp_string(&format!("Using manually-specified netctl profile \"{}\"", netctl_profile))?;
-    p.exp_string("Successfully connected on \"FAKE_INTERFACE\" using netctl!")?;
+    p.exp_string(&format!("Not running command in dryrun mode: `netctl switch-to {}`", netctl_profile))?;
+    p.exp_string(&format!("Successfully connected on \"{}\" using netctl!", interface_name))?;
     Ok(())
 }

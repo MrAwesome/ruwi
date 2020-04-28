@@ -34,8 +34,7 @@ pub(crate) trait GetService {
 }
 
 pub(crate) trait HasInterface: RuwiNetwork {
-    type Interface: LinuxIPInterface;
-    fn get_interface(&self) -> &Self::Interface;
+    fn get_interface<T: LinuxIPInterface>(&self) -> &T;
 }
 
 pub(crate) trait ToNetctlIdentifier: AnnotatedRuwiNetwork + HasInterface {
