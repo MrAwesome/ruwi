@@ -53,19 +53,18 @@ impl<'a, O: Global> SystemCommandRunner<'a, O> {
 
         let mut cmd = get_output_command(self.opts, self.cmd_name, &self.args)?;
         let output_res = spawn_and_await_output_command(self.opts, &mut cmd);
-        let res =
-            match output_res {
-                Ok(output) => {
-                    if output.status.success() {
-                        Ok(output)
-                    } else {
-                        Err(self.format_output_and_given_err(&cmd, &output, err_kind, err_msg))
-                    }
+
+        match output_res {
+            Ok(output) => {
+                if output.status.success() {
+                    Ok(output)
+                } else {
+                    Err(self.format_output_and_given_err(&cmd, &output, err_kind, err_msg))
                 }
-                Err(io_err) => Err(self
-                    .format_failure_to_run_command_and_given_err(&cmd, &io_err, err_kind, err_msg)),
-            };
-        res
+            }
+            Err(io_err) => Err(self
+                .format_failure_to_run_command_and_given_err(&cmd, &io_err, err_kind, err_msg)),
+        }
     }
 
     pub(crate) fn run_command_output_raw(

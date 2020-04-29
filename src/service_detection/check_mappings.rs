@@ -41,7 +41,6 @@ impl HasSystemCheckMapping for WifiScanType {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use paste;
 
     macro_rules! mock_func {
         ( $mock:ident, $times:expr, $funcname:ident, $retval:expr ) => {

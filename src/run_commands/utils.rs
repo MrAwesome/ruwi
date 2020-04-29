@@ -52,7 +52,7 @@ impl FullCommandPath {
             Ok(output) => {
                 if output.status.success() {
                     let full_path_untrimmed = String::from_utf8_lossy(&output.stdout).to_string();
-                    return Ok(full_path_untrimmed.trim().to_string());
+                    Ok(full_path_untrimmed.trim().to_string())
                 } else {
                     Err(rerr!(
                         RuwiErrorKind::CommandNotFound,

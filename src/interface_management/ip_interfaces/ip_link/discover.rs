@@ -5,7 +5,6 @@ use crate::options::traits::Global;
 use crate::rerr;
 use crate::run_commands::SystemCommandRunner;
 
-use serde_json;
 
 impl LinuxIPLinkInterface {
     pub(super) fn get_all<O>(opts: &O) -> Result<Vec<Self>, RuwiError>
