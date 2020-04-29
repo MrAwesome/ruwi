@@ -1,4 +1,4 @@
-use crate::errors::*;
+use crate::errors::RuwiError;
 
 mod wifi;
 mod wired;

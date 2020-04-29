@@ -1,6 +1,5 @@
 use crate::known_networks::WifiKnownNetworks;
-use crate::options::traits::*;
-use crate::networks::traits::*;
+use crate::prelude::*;
 
 // TODO: make this not wifi-specific with known networks
 pub(crate) fn annotate_networks<O, T, U>(
@@ -35,9 +34,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::enums::*;
     use crate::options::wifi::connect::WifiConnectOptions;
-    use crate::structs::*;
 
     #[test]
     fn test_default_network_not_known() {

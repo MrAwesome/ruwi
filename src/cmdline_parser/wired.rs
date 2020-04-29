@@ -1,8 +1,7 @@
 use super::utils::*;
 use super::WIRED_CONNECT_TOKEN;
 
-use crate::enums::*;
-use crate::errors::*;
+use crate::prelude::*;
 use crate::options::command::*;
 use crate::options::wired::connect::WiredConnectOptions;
 use crate::options::wired::*;

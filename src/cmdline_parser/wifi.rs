@@ -1,14 +1,14 @@
-use super::utils::*;
+use super::utils::handle_cmdline_parsing_error;
 use super::{WIFI_CONNECT_TOKEN, WIFI_SELECT_TOKEN};
 
 use crate::prelude::*;
-use crate::options::command::*;
+use crate::options::command::RuwiWifiCommand;
 use crate::options::wifi::connect::WifiConnectOptions;
 use crate::options::wifi::select::WifiSelectOptions;
-use crate::options::wifi::*;
-use crate::options::*;
-use crate::service_detection::*;
-use crate::strum_utils::*;
+use crate::options::wifi::WifiOptions;
+use crate::options::GlobalOptions;
+use crate::service_detection::{HasSystemCheckMapping, SystemCheckerReal};
+use crate::strum_utils::get_val_as_enum;
 
 use clap::ArgMatches;
 
