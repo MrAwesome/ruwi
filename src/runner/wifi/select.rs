@@ -1,6 +1,6 @@
 use super::utils::*;
 
-use crate::common::*;
+use crate::prelude::*;
 use crate::interface_management::ip_interfaces::*;
 use crate::known_networks::WifiKnownNetworks;
 use crate::options::wifi::select::WifiSelectOptions;

@@ -1,4 +1,4 @@
-use crate::common::*;
+use crate::prelude::*;
 use crate::netctl::NetctlIdentifier;
 
 impl From<&AnnotatedWirelessNetwork> for NetctlIdentifier {

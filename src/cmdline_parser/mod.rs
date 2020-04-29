@@ -6,7 +6,7 @@ use utils::*;
 use wifi::get_wifi_cmd;
 use wired::get_wired_cmd;
 
-use crate::common::*;
+use crate::prelude::*;
 use crate::options::command::*;
 use crate::options::*;
 use crate::strum_utils::*;

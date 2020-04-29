@@ -1,7 +1,7 @@
 use super::utils::*;
 use super::structs::*;
 use super::*;
-use crate::common::*;
+use crate::prelude::*;
 use crate::interface_management::ip_interfaces::*;
 
 use std::fmt;

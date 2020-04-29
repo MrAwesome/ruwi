@@ -1,4 +1,4 @@
-// TODO: rename this file to something closer to traits.rs, then find all places that break and have them use crate::common::*; instead
+// TODO: rename this file to something closer to traits.rs, then find all places that break and have them use crate::prelude::*; instead
 // TODO: use trait-associated functions to just have e.g. d() return self.globals().d()?
 //       in other words, Find a way to reduce the need for so much new boilerplate when a new
 //       method or command is added

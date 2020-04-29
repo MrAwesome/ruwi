@@ -1,4 +1,4 @@
-use crate::common::*;
+use crate::prelude::*;
 use crate::connect::raw_interface_connect::*;
 use crate::interface_management::ip_interfaces::*;
 use crate::netctl::NetctlConfigHandler;

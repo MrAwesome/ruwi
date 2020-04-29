@@ -1,6 +1,6 @@
 use super::NetctlIdentifier;
 
-use crate::common::*;
+use crate::prelude::*;
 use crate::run_commands::SystemCommandRunner;
 
 pub(crate) fn netctl_switch_to<O>(

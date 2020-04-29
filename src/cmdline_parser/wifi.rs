@@ -1,7 +1,7 @@
 use super::utils::*;
 use super::{WIFI_CONNECT_TOKEN, WIFI_SELECT_TOKEN};
 
-use crate::common::*;
+use crate::prelude::*;
 use crate::options::command::*;
 use crate::options::wifi::connect::WifiConnectOptions;
 use crate::options::wifi::select::WifiSelectOptions;

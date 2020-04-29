@@ -1,6 +1,6 @@
 use super::utils::*;
 
-use crate::common::*;
+use crate::prelude::*;
 use crate::configure_network::possibly_configure_network;
 use crate::connect::wifi_connect::connect_to_network;
 use crate::encryption_key::possibly_get_encryption_key;

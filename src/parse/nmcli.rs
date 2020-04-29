@@ -1,4 +1,4 @@
-use crate::common::*;
+use crate::prelude::*;
 
 pub(crate) fn parse_nmcli_scan<O>(
     _options: &O,

@@ -1,4 +1,4 @@
-use crate::common::*;
+use crate::prelude::*;
 use crate::interface_management::ip_interfaces::WifiIPInterface;
 use crate::netctl::*;
 

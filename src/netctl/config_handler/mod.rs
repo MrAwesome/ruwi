@@ -10,7 +10,7 @@ use config_finder::*;
 use config_reader::reader_implementation::read_all_netctl_config_files;
 use structs::*;
 
-use crate::common::*;
+use crate::prelude::*;
 use crate::interface_management::ip_interfaces::*;
 use std::convert::TryFrom;
 use typed_builder::TypedBuilder;

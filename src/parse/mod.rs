@@ -1,7 +1,7 @@
 mod nmcli;
 use nmcli::parse_nmcli_scan;
 
-use crate::common::*;
+use crate::prelude::*;
 
 use unescape::unescape;
 

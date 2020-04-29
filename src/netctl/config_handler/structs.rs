@@ -3,7 +3,7 @@ use super::utils::*;
 use super::NetctlIdentifier;
 
 use crate::string_container;
-use crate::common::*;
+use crate::prelude::*;
 
 use strum_macros::AsStaticStr;
 use strum_macros::{Display, EnumString};

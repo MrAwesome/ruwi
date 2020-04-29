@@ -1,4 +1,4 @@
-use crate::common::*;
+use crate::prelude::*;
 use crate::select::prompt_for_encryption_key::prompt_for_encryption_key;
 
 pub(crate) fn possibly_get_encryption_key<O>(

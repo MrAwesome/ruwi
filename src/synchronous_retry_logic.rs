@@ -1,4 +1,4 @@
-use crate::common::*;
+use crate::prelude::*;
 
 pub(crate) fn should_auto_retry_with_synchronous_scan<O>(
     options: &O,

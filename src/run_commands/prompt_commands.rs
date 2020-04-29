@@ -1,6 +1,6 @@
 use super::utils::*;
 
-use crate::common::*;
+use crate::prelude::*;
 
 pub(crate) struct PromptCommandRunner<'a, O: Global> {
     opts: &'a O,

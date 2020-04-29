@@ -1,7 +1,7 @@
 use std::thread;
 
 use crate::annotate_networks::annotate_networks;
-use crate::common::*;
+use crate::prelude::*;
 use crate::interface_management::ip_interfaces::*;
 use crate::known_networks::WifiKnownNetworks;
 use crate::parse::parse_result;

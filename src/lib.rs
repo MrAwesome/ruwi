@@ -28,7 +28,7 @@ pub(crate) mod macros;
 // TODO: collapse these into subdirs
 pub(crate) mod annotate_networks;
 pub(crate) mod bluetooth;
-pub(crate) mod common;
+pub(crate) mod prelude;
 pub(crate) mod conversion;
 pub(crate) mod cmdline_parser;
 pub(crate) mod configure_network;
@@ -63,7 +63,7 @@ use errors::RuwiError;
 
 // TODO(urgent): fix netctl wired connections, create selector/reader/writer
 // TODO(urgent): fix wpa_cli service start interface (associate interface with service enum?)
-// TODO(high): use crate::common::*; instead of misc imports
+// TODO(high): use crate::prelude::*; instead of misc imports
 // TODO(high): add `clear` success messages (and note that it's expected to see some error messages there, or just hide all of them)
 // TODO(high): make `ruwi` with no arguments still go through system checks
 // TODO(high): include netctl profile name with annotated wired/wireless networks, for connecting to known networks with non-ruwified names - have known netctl networks return essid + config name, for matching/annotation with config name
