@@ -5,13 +5,15 @@ mod config_writer;
 mod structs;
 mod utils;
 
-use config_finder::*;
+use config_finder::{NetctlConfigFinderCriteria, WiredNetctlConfigFinderCriteria};
 #[cfg(not(test))]
 use config_reader::reader_implementation::read_all_netctl_config_files;
-use structs::*;
+use structs::{NetctlConfig, NetctlRawConfig, NetctlRawParsedFields, WifiNetctlConfig, WiredNetctlConfig};
+#[cfg(test)]
+use structs::NetctlRawConfigContents;
 
 use crate::prelude::*;
-use crate::interface_management::ip_interfaces::*;
+use crate::interface_management::ip_interfaces::{WifiIPInterface, WiredIPInterface};
 use std::convert::TryFrom;
 use typed_builder::TypedBuilder;
 
@@ -144,6 +146,8 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::structs::NetctlConnectionType;
+    use super::config_finder::WifiNetctlConfigFinderCriteria;
 
     use crate::options::GlobalOptions;
 

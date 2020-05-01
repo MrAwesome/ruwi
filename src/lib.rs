@@ -4,8 +4,9 @@
 #![allow(clippy::similar_names)]
 #![allow(clippy::missing_errors_doc)]
 
-// And TypedBuilder is triggering this:
+// And TypedBuilder is triggering these:
 #![allow(clippy::default_trait_access)]
+#![allow(clippy::used_underscore_binding)]
 
 #![forbid(unsafe_code)]
 

@@ -1,8 +1,7 @@
 pub(super) mod discover;
 pub(super) mod state_management;
 
-use crate::errors::*;
-use crate::options::traits::Global;
+use crate::prelude::*;
 
 use serde_derive::Deserialize;
 use std::convert::TryFrom;
@@ -32,7 +31,7 @@ pub(crate) trait TypedLinuxInterfaceFinder: TryFrom<LinuxIPLinkInterface> {
             .into_iter()
             .filter_map(|x| Self::try_from(x).ok())
             .collect::<Vec<_>>();
-        if raw_interfaces.len() < 1 {
+        if raw_interfaces.is_empty() {
             Err(Self::none_found_error())
         } else {
             Ok(raw_interfaces)
@@ -83,9 +82,10 @@ impl TryFrom<LinuxIPLinkInterface> for WifiLinuxIPLinkInterface {
     fn try_from(
         untyped_interface: LinuxIPLinkInterface,
     ) -> Result<Self, InterfaceNotDesiredTypeError> {
-        match Self::check(&untyped_interface) {
-            true => Ok(Self(untyped_interface)),
-            false => Err(InterfaceNotDesiredTypeError),
+        if Self::check(&untyped_interface) {
+            Ok(Self(untyped_interface))
+        } else {
+            Err(InterfaceNotDesiredTypeError)
         }
     }
 }
@@ -116,9 +116,10 @@ impl TryFrom<LinuxIPLinkInterface> for WiredLinuxIPLinkInterface {
     fn try_from(
         untyped_interface: LinuxIPLinkInterface,
     ) -> Result<Self, InterfaceNotDesiredTypeError> {
-        match Self::check(&untyped_interface) {
-            true => Ok(Self(untyped_interface)),
-            false => Err(InterfaceNotDesiredTypeError),
+        if Self::check(&untyped_interface) {
+            Ok(Self(untyped_interface))
+        } else {
+            Err(InterfaceNotDesiredTypeError)
         }
     }
 }

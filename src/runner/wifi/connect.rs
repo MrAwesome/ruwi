@@ -1,10 +1,10 @@
-use super::utils::*;
+use super::utils::{gather_wifi_network_data, get_network_from_given_essid, scan_and_select_network};
 
 use crate::prelude::*;
 use crate::configure_network::possibly_configure_network;
 use crate::connect::wifi_connect::connect_to_network;
 use crate::encryption_key::possibly_get_encryption_key;
-use crate::interface_management::ip_interfaces::*;
+use crate::interface_management::ip_interfaces::{LinuxIPInterface, WifiIPInterface};
 use crate::known_networks::WifiKnownNetworks;
 use crate::options::wifi::connect::WifiConnectOptions;
 use crate::runner::Runner;

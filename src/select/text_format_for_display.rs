@@ -1,5 +1,4 @@
-use crate::networks::traits::*;
-use crate::structs::*;
+use crate::prelude::*;
 
 pub static KNOWN_TOKEN: &str = "K";
 pub static OPEN_TOKEN: &str = "O";
@@ -14,7 +13,7 @@ impl Selectable for AnnotatedWirelessNetwork {
 
 impl Selectable for AnnotatedWiredNetwork {
     fn get_display_string(&self) -> String {
-        format!("{}", self.get_public_name())
+        self.get_public_name().to_string()
     }
 }
 
@@ -43,7 +42,6 @@ impl AnnotatedWirelessNetwork {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::enums::*;
 
     fn verify_display_strength_and_tags(
         is_known: bool,

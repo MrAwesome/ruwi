@@ -1,7 +1,6 @@
 use typed_builder::TypedBuilder;
 
-use crate::enums::*;
-use crate::options::traits::*;
+use crate::prelude::*;
 use crate::options::wifi::WifiOptions;
 
 #[derive(Debug, Clone, TypedBuilder)]

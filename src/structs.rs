@@ -1,12 +1,11 @@
 // For typedbuilder:
 #![allow(clippy::used_underscore_binding)]
 
-use crate::enums::*;
-use crate::networks::traits::*;
+use crate::prelude::*;
 
 use std::fmt::Debug;
 use typed_builder::TypedBuilder;
-use crate::interface_management::ip_interfaces::*;
+use crate::interface_management::ip_interfaces::{LinuxIPInterface, WiredIPInterface};
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ScanResult {
@@ -137,24 +136,6 @@ impl Known for AnnotatedWirelessNetwork {
 
 impl RuwiNetwork for AnnotatedWirelessNetwork {}
 impl AnnotatedRuwiNetwork for AnnotatedWirelessNetwork {}
-
-//impl HasInterface for AnnotatedWirelessNetwork {
-//    type Interface = WifiIPInterface;
-//
-//    fn get_interface(&self) -> &Self::Interface {
-//        self.interface
-//    }
-//}
-//
-//impl ToNetctlIdentifier for AnnotatedWirelessNetwork {
-//    fn get_netctl_identifier(&self, interface: WifiIPInterface) -> NetctlIdentifier {
-//        let ident = match self.get_service_identifier() {
-//            Some(NetworkServiceIdentifier::Netctl(ident)) => ident.clone(),
-//            _ => self.get_public_name().replace(" ", "_"),
-//        };
-//        NetctlIdentifier::new(ident)
-//    }
-//}
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
 pub struct AnnotatedWiredNetwork {

@@ -1,4 +1,4 @@
-use super::structs::*;
+use super::structs::{NetctlConfig, WifiNetctlConfig, WiredNetctlConfig};
 use typed_builder::TypedBuilder;
 
 // TODO: use predicates? Look for PredicatesStrExt.

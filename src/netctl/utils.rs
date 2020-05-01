@@ -5,7 +5,7 @@ use crate::run_commands::SystemCommandRunner;
 
 pub(crate) fn netctl_switch_to<O>(
     options: &O,
-    netctl_identifier: NetctlIdentifier,
+    netctl_identifier: &NetctlIdentifier,
 ) -> Result<(), RuwiError>
 where
     O: Global,

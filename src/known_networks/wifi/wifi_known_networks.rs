@@ -1,4 +1,4 @@
-use crate::enums::*;
+use crate::enums::NetworkServiceIdentifier;
 use std::collections::HashMap;
 use std::iter::FromIterator;
 

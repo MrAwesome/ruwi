@@ -1,5 +1,5 @@
-use super::config_finder::*;
-use super::utils::*;
+use super::config_finder::{NetctlConfigFinderCriteria, WifiNetctlConfigFinderCriteria, WiredNetctlConfigFinderCriteria};
+use super::utils::{check_connection_type, check_for_field};
 use super::NetctlIdentifier;
 
 use crate::string_container;
@@ -50,7 +50,7 @@ impl<'a> TryFrom<&NetctlRawConfig<'a>> for NetctlRawParsedFields {
         // user later
         let connection_type_text =
             raw.get_connection_type()
-                .ok_or(NetctlParseError::MissingFieldInNetctlConfig(format!(
+                .ok_or_else(|| NetctlParseError::MissingFieldInNetctlConfig(format!(
                     "No connection type found for config {}!",
                     raw.identifier.as_ref()
                 )))?;
@@ -64,7 +64,7 @@ impl<'a> TryFrom<&NetctlRawConfig<'a>> for NetctlRawParsedFields {
             })?;
         let interface_name =
             raw.get_interface()
-                .ok_or(NetctlParseError::MissingFieldInNetctlConfig(format!(
+                .ok_or_else(|| NetctlParseError::MissingFieldInNetctlConfig(format!(
                     "No interface found for config {}!",
                     raw.identifier.as_ref()
                 )))?;
@@ -116,7 +116,7 @@ impl TryFrom<NetctlRawParsedFields> for WifiNetctlConfig {
     type Error = NetctlParseError;
 
     fn try_from(f: NetctlRawParsedFields) -> Result<Self, Self::Error> {
-        check_connection_type(NetctlConnectionType::Wifi, f.connection_type)?;
+        check_connection_type(&NetctlConnectionType::Wifi, &f.connection_type)?;
         let identifier = f.identifier;
         let interface_name = f.interface_name;
         let essid = check_for_field(&f.essid, &identifier, "ESSID")?;
@@ -158,7 +158,7 @@ impl TryFrom<NetctlRawParsedFields> for WiredNetctlConfig {
     type Error = NetctlParseError;
 
     fn try_from(f: NetctlRawParsedFields) -> Result<Self, Self::Error> {
-        check_connection_type(NetctlConnectionType::Wired, f.connection_type)?;
+        check_connection_type(&NetctlConnectionType::Wired, &f.connection_type)?;
         let identifier = f.identifier;
         let interface_name = f.interface_name;
 

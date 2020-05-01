@@ -1,4 +1,4 @@
-use super::*;
+use super::{HasSystemCheckMapping, SystemCheckPredicate, WifiConnectionType, WifiScanType, WiredConnectionType};
 
 // if connection type isn't given:
 //    check NetworkingServices installed/running, pick a WifiConnectionType

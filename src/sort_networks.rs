@@ -1,5 +1,4 @@
-use crate::networks::traits::*;
-use crate::structs::*;
+use crate::prelude::*;
 
 use std::cmp::Ordering;
 use std::collections::HashSet;
@@ -76,7 +75,6 @@ impl PartialOrd for AnnotatedWirelessNetwork {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::enums::*;
 
     fn compare_order(
         should_be_first: AnnotatedWirelessNetwork,

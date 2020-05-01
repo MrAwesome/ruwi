@@ -1,5 +1,5 @@
 use crate::enums::NetworkingService;
-use crate::errors::*;
+use crate::errors::RuwiError;
 use crate::options::wifi::connect::WifiConnectOptions;
 use crate::options::wifi::select::WifiSelectOptions;
 use crate::options::wired::connect::WiredConnectOptions;

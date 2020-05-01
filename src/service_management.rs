@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use crate::interface_management::ip_interfaces::WifiIPInterface;
 use crate::run_commands::SystemCommandRunner;
-use crate::wpa_cli_initialize::*;
+use crate::wpa_cli_initialize::{initialize_wpa_supplicant, kill_wpa_supplicant};
 
 use strum::IntoEnumIterator;
 

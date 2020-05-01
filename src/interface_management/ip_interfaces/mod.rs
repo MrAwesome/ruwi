@@ -1,10 +1,9 @@
 mod ip_link;
-use ip_link::*;
+use ip_link::{TypedLinuxInterfaceFinder, WifiLinuxIPLinkInterface, WiredLinuxIPLinkInterface};
 
-use crate::errors::*;
-use crate::options::traits::Global;
+use crate::prelude::*;
 
-pub(crate) const FAKE_INTERFACE_NAME: &str = "FAKE_INTERFACE";
+pub(crate) const DRYRUN_FAKE_INTERFACE_NAME: &str = "DRYRUN_FAKE_INTERFACE";
 
 // TODO: better detection of whether an interface is wireless or wired
 //       * find interfaces recognized by `iw`, other interfaces are likely ethernet if not loopback
@@ -46,7 +45,7 @@ pub(crate) trait LinuxIPInterface: Sized + From<String> {
 
     fn find_first<O: Global>(opts: &O) -> Result<Self, RuwiError> {
         if opts.is_test_or_dry_run() {
-            return Ok(Self::from(FAKE_INTERFACE_NAME.to_string()));
+            return Ok(Self::from(DRYRUN_FAKE_INTERFACE_NAME.to_string()));
         }
         let first_seen_wifi_iface = Self::Finder::get_first(opts)?;
         Ok(Self::from(first_seen_wifi_iface.get_ifname().to_string()))
@@ -71,7 +70,7 @@ pub struct WifiIPInterface {
 
 impl Default for WifiIPInterface {
     fn default() -> Self {
-        Self::new(FAKE_INTERFACE_NAME)
+        Self::new(DRYRUN_FAKE_INTERFACE_NAME)
     }
 }
 
@@ -112,7 +111,7 @@ impl WiredIPInterface {
 
 impl Default for WiredIPInterface {
     fn default() -> Self {
-        Self::new(FAKE_INTERFACE_NAME)
+        Self::new(DRYRUN_FAKE_INTERFACE_NAME)
     }
 }
 

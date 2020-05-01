@@ -1,10 +1,7 @@
 use super::LinuxIPLinkInterface;
 
-use crate::errors::*;
-use crate::options::traits::Global;
-use crate::rerr;
+use crate::prelude::*;
 use crate::run_commands::SystemCommandRunner;
-
 
 impl LinuxIPLinkInterface {
     pub(super) fn get_all<O>(opts: &O) -> Result<Vec<Self>, RuwiError>

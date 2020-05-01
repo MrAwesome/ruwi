@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::interface_management::ip_interfaces::*;
+use crate::interface_management::ip_interfaces::{LinuxIPInterface, WifiIPInterface};
 use crate::run_commands::SystemCommandRunner;
 
 const NMCLI_SCAN_ERR_MSG: &str = concat!(

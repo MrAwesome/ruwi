@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use crate::enums::NetworkingService;
 use crate::enums::WiredConnectionType;
-use crate::interface_management::ip_interfaces::*;
+use crate::interface_management::ip_interfaces::{LinuxIPInterface, WiredIPInterface};
 use crate::netctl::utils::netctl_switch_to;
 use crate::netctl::NetctlIdentifier;
 use crate::run_commands::SystemCommandRunner;
@@ -70,6 +70,6 @@ impl<'a, O: Global + Wired + WiredConnect> RawInterfaceConnector<'a, O> {
         NetworkingService::Netctl.start(self.options)?;
 
         let identifier = NetctlIdentifier::from(network);
-        netctl_switch_to(self.options, identifier)
+        netctl_switch_to(self.options, &identifier)
     }
 }

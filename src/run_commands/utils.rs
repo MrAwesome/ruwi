@@ -125,7 +125,7 @@ where
     } else {
         let full_path = FullCommandPath::new_from(opts, cmd_name)?;
         verify_command_safety(opts, &full_path)?;
-        make_piped_command_raw(full_path, args)
+        make_piped_command_raw(&full_path, args)
     })
 }
 
@@ -146,7 +146,7 @@ where
 {
     let full_path = FullCommandPath::new_from(opts, cmd_name)?;
     verify_command_safety(opts, &full_path)?;
-    Ok(make_prompt_stdin_command_raw(full_path, args))
+    Ok(make_prompt_stdin_command_raw(&full_path, args))
 }
 
 pub(super) fn empty_command_dryrun(cmd_name: &str, args: &[&str]) -> Command {
@@ -158,14 +158,14 @@ pub(super) fn empty_command_dryrun(cmd_name: &str, args: &[&str]) -> Command {
     Command::new("true")
 }
 
-fn make_piped_command_raw(full_path: FullCommandPath, args: &[&str]) -> Command {
+fn make_piped_command_raw(full_path: &FullCommandPath, args: &[&str]) -> Command {
     let mut cmd = Command::new(full_path.as_str());
     cmd.args(args).stdout(Stdio::piped()).stderr(Stdio::piped());
     cmd
 }
 
 // TODO: use VerifiedSafeFullCommandPath
-fn make_prompt_stdin_command_raw(full_path: FullCommandPath, args: &[&str]) -> Command {
+fn make_prompt_stdin_command_raw(full_path: &FullCommandPath, args: &[&str]) -> Command {
     let mut cmd = Command::new(full_path.as_str());
     cmd.args(args)
         .stdin(Stdio::piped())

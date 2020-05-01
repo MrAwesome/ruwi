@@ -1,13 +1,13 @@
-use super::utils::*;
+use super::utils::handle_cmdline_parsing_error;
 use super::WIRED_CONNECT_TOKEN;
 
 use crate::prelude::*;
-use crate::options::command::*;
+use crate::options::command::RuwiWiredCommand;
 use crate::options::wired::connect::WiredConnectOptions;
-use crate::options::wired::*;
-use crate::options::*;
-use crate::service_detection::*;
-use crate::strum_utils::*;
+use crate::options::wired::WiredOptions;
+use crate::options::GlobalOptions;
+use crate::service_detection::{HasSystemCheckMapping, SystemCheckerReal};
+use crate::strum_utils::get_val_as_enum;
 
 use clap::ArgMatches;
 

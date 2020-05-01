@@ -1,4 +1,4 @@
-use crate::errors::*;
+use crate::errors::{RuwiError, RuwiErrorKind};
 use std::thread;
 
 use std::ffi::OsStr;

@@ -5,8 +5,8 @@ fn basic_wired_dryrun_test(connect_via: &str) -> Result<()> {
     let mut p = spawn_dryrun(
         &format!("wired connect -c {}", connect_via),
     )?;
-    p.exp_regex(&format!("Not running command in dryrun mode: `{}.*FAKE_INTERFACE`", connect_via))?;
-    p.exp_string(&format!("Successfully connected on \"FAKE_INTERFACE\" using {}!", connect_via))?;
+    p.exp_regex(&format!("Not running command in dryrun mode: `{}.*DRYRUN_FAKE_INTERFACE`", connect_via))?;
+    p.exp_string(&format!("Successfully connected on \"DRYRUN_FAKE_INTERFACE\" using {}!", connect_via))?;
     Ok(())
 }
 

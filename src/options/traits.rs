@@ -3,8 +3,7 @@
 //       in other words, Find a way to reduce the need for so much new boilerplate when a new
 //       method or command is added
 
-use crate::errors::*;
-use crate::enums::*;
+use crate::prelude::*;
 
 use crate::interface_management::ip_interfaces::WifiIPInterface;
 use crate::known_networks::WifiKnownNetworks;

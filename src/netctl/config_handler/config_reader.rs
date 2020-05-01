@@ -1,7 +1,7 @@
 // TODO: determine if things in this file should be unit tested, or just integration tested.
 #[cfg(not(test))]
 pub(super) mod reader_implementation {
-    use super::super::*;
+    use super::super::{NetctlRawConfig, RuwiError, RuwiErrorKind, rerr};
 
     use std::fs::{read_dir, DirEntry, File};
     use std::io;
@@ -26,8 +26,8 @@ pub(super) mod reader_implementation {
             .collect())
     }
 
-    fn read_all_netctl_config_files_impl<'a>(
-        netctl_path_name: &'a str,
+    fn read_all_netctl_config_files_impl(
+        netctl_path_name: &str,
     ) -> Result<Vec<(FileName, FileContents)>, RuwiError> {
         let netctl_path = Path::new(netctl_path_name);
         if netctl_path.is_dir() {

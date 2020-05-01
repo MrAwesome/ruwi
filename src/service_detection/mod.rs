@@ -4,7 +4,7 @@ mod system_checker_real;
 use crate::prelude::*;
 
 #[cfg(test)]
-use mockall::{automock, predicate::*};
+use mockall::automock;
 
 use std::fmt::{Debug, Display};
 

@@ -1,5 +1,5 @@
-use crate::enums::*;
-use crate::interface_management::ip_interfaces::*;
+use crate::enums::{NetworkServiceIdentifier, NetworkingService};
+use crate::interface_management::ip_interfaces::{LinuxIPInterface, WifiIPInterface};
 use crate::netctl::NetctlIdentifier;
 
 use std::fmt::Debug;

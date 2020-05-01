@@ -9,9 +9,9 @@ pub mod traits;
 pub(crate) mod wifi;
 pub(crate) mod wired;
 
-use crate::enums::*;
+use crate::enums::SelectionMethod;
 
-use traits::*;
+use traits::Global;
 
 use typed_builder::TypedBuilder;
 pub static PROG_NAME: &str = "ruwi";

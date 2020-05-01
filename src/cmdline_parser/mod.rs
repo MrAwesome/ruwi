@@ -2,14 +2,14 @@ mod utils;
 mod wifi;
 mod wired;
 
-use utils::*;
+use utils::handle_cmdline_parsing_error;
 use wifi::get_wifi_cmd;
 use wired::get_wired_cmd;
 
 use crate::prelude::*;
-use crate::options::command::*;
-use crate::options::*;
-use crate::strum_utils::*;
+use crate::options::command::RuwiCommand;
+use crate::options::GlobalOptions;
+use crate::strum_utils::{get_val_as_enum, possible_string_vals};
 
 use std::env;
 
@@ -245,6 +245,8 @@ fn only_parse_cmdline_check() -> Result<(), RuwiError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use crate::options::command::{RuwiCommand, RuwiWifiCommand, RuwiWiredCommand};
 
     use crate::options::wifi::connect::WifiConnectOptions;
     use crate::options::wired::connect::WiredConnectOptions;

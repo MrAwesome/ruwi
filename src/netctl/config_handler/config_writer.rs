@@ -1,8 +1,10 @@
-use super::utils::*;
-use super::structs::*;
-use super::*;
+use super::structs::{NetctlConfig, WifiNetctlConfig, WiredNetctlConfig};
+use super::utils::write_to_netctl_config;
+use super::{NetctlConfigHandler, NetctlIdentifier};
+use crate::interface_management::ip_interfaces::{
+    LinuxIPInterface, WifiIPInterface, WiredIPInterface,
+};
 use crate::prelude::*;
-use crate::interface_management::ip_interfaces::*;
 
 use std::fmt;
 
@@ -110,11 +112,15 @@ impl fmt::Display for WifiNetctlConfig {
 
 impl WiredNetctlConfig {
     pub(super) fn new(interface: &WiredIPInterface, network: &AnnotatedWiredNetwork) -> Self {
-        let identifier = match network.get_service_identifier() {
-            Some(NetworkServiceIdentifier::Netctl(ident)) => ident.clone(),
-            _ => format!("ethernet-{}", interface.get_ifname()),
+        let maybe_ident = network.get_service_identifier();
+        let identifier = if let Some(NetworkServiceIdentifier::Netctl(ident)) = maybe_ident {
+            ident.clone()
+        } else {
+            format!("ethernet-{}", interface.get_ifname())
         };
+
         let interface_name = interface.get_ifname().to_string();
+
         Self::builder()
             .identifier(identifier)
             .interface_name(interface_name)

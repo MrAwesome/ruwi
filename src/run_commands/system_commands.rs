@@ -1,5 +1,4 @@
-//use super::types::*;
-use super::utils::*;
+use super::utils::{check_command_exists, get_output_command, spawn_and_await_output_command};
 
 use crate::prelude::*;
 
@@ -59,11 +58,14 @@ impl<'a, O: Global> SystemCommandRunner<'a, O> {
                 if output.status.success() {
                     Ok(output)
                 } else {
-                    Err(self.format_output_and_given_err(&cmd, &output, err_kind, err_msg))
+                    Err(format_output_and_given_err(
+                        &cmd, &output, err_kind, err_msg,
+                    ))
                 }
             }
-            Err(io_err) => Err(self
-                .format_failure_to_run_command_and_given_err(&cmd, &io_err, err_kind, err_msg)),
+            Err(io_err) => Err(format_failure_to_run_command_and_given_err(
+                &cmd, &io_err, err_kind, err_msg,
+            )),
         }
     }
 
@@ -79,7 +81,7 @@ impl<'a, O: Global> SystemCommandRunner<'a, O> {
         let mut cmd = get_output_command(self.opts, self.cmd_name, &self.args)?;
         let output_res = spawn_and_await_output_command(self.opts, &mut cmd);
         output_res.map_err(|e| {
-            self.format_failure_to_run_command_and_given_err(&cmd, &e, err_kind, err_msg)
+            format_failure_to_run_command_and_given_err(&cmd, &e, err_kind, err_msg)
         })
     }
 
@@ -102,35 +104,33 @@ impl<'a, O: Global> SystemCommandRunner<'a, O> {
     pub(crate) fn check_command_exists(&self) -> bool {
         check_command_exists(self.opts, self.cmd_name)
     }
+}
 
-    fn format_output_and_given_err(
-        &self,
-        cmd: &Command,
-        output: &Output,
-        err_kind: RuwiErrorKind,
-        err_msg: &str,
-    ) -> RuwiError {
-        rerr!(
-            err_kind,
-            err_msg,
-            "Command" => format!("{:?}", cmd),
-            "STDOUT" => String::from_utf8_lossy(&output.stdout),
-            "STDERR" => String::from_utf8_lossy(&output.stderr)
-        )
-    }
+fn format_output_and_given_err(
+    cmd: &Command,
+    output: &Output,
+    err_kind: RuwiErrorKind,
+    err_msg: &str,
+) -> RuwiError {
+    rerr!(
+        err_kind,
+        err_msg,
+        "Command" => format!("{:?}", cmd),
+        "STDOUT" => String::from_utf8_lossy(&output.stdout),
+        "STDERR" => String::from_utf8_lossy(&output.stderr)
+    )
+}
 
-    fn format_failure_to_run_command_and_given_err(
-        &self,
-        cmd: &Command,
-        io_error: &io::Error,
-        err_kind: RuwiErrorKind,
-        err_msg: &str,
-    ) -> RuwiError {
-        rerr!(
-            err_kind,
-            err_msg,
-            "Command" => format!("{:?}", cmd),
-            "OS Error" => io_error.to_string()
-        )
-    }
+fn format_failure_to_run_command_and_given_err(
+    cmd: &Command,
+    io_error: &io::Error,
+    err_kind: RuwiErrorKind,
+    err_msg: &str,
+) -> RuwiError {
+    rerr!(
+        err_kind,
+        err_msg,
+        "Command" => format!("{:?}", cmd),
+        "OS Error" => io_error.to_string()
+    )
 }

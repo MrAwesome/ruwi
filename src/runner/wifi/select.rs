@@ -1,7 +1,7 @@
-use super::utils::*;
+use super::utils::scan_and_select_network;
 
 use crate::prelude::*;
-use crate::interface_management::ip_interfaces::*;
+use crate::interface_management::ip_interfaces::{LinuxIPInterface, WifiIPInterface};
 use crate::known_networks::WifiKnownNetworks;
 use crate::options::wifi::select::WifiSelectOptions;
 use crate::runner::Runner;

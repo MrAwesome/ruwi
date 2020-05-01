@@ -1,4 +1,4 @@
-use super::*;
+use super::SystemChecksImpl;
 
 use crate::options::traits::Global;
 use crate::run_commands::SystemCommandRunner;

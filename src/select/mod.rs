@@ -4,8 +4,8 @@ mod get_index_of_selected_item;
 pub(crate) mod prompt_for_encryption_key;
 mod text_format_for_display;
 
-use additional_options_for_manual_selection::*;
-use external_selection_programs::*;
+use additional_options_for_manual_selection::get_possible_selection_options_as_strings;
+use external_selection_programs::{run_dmenu, run_fzf, run_select_nocurses};
 use get_index_of_selected_item::get_index_of_selected_item;
 
 use crate::prelude::*;
@@ -205,6 +205,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::additional_options_for_manual_selection::SelectionOption;
     use crate::options::wifi::connect::WifiConnectOptions;
     use crate::options::wifi::WifiOptions;
     use crate::sort_networks::*;

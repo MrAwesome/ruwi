@@ -1,4 +1,4 @@
-use super::structs::*;
+use super::structs::{NetctlRawConfig};
 
 use strum::AsStaticRef;
 use strum_macros::AsStaticStr;
@@ -17,7 +17,7 @@ enum NetctlFieldKey {
 }
 
 impl<'a> NetctlRawConfig<'a> {
-    fn get_field(&self, field: NetctlFieldKey) -> Option<String> {
+    fn get_field(&self, field: &NetctlFieldKey) -> Option<String> {
         let token = field.as_static();
         self.contents.as_ref().lines().find_map(|line| {
             if line.starts_with(token) {
@@ -38,26 +38,27 @@ impl<'a> NetctlRawConfig<'a> {
 
     // NOTE: ESSID is unescaped here. This can happen further up the stack if necessary.
     pub(super) fn get_essid(&self) -> Option<String> {
-        self.get_field(NetctlFieldKey::Essid)
+        self.get_field(&NetctlFieldKey::Essid)
             .map(|raw_essid_entry| unescape(&raw_essid_entry).unwrap_or(raw_essid_entry))
     }
 
     pub(super) fn get_interface(&self) -> Option<String> {
-        self.get_field(NetctlFieldKey::Interface)
+        self.get_field(&NetctlFieldKey::Interface)
     }
 
     pub(super) fn get_connection_type(&self) -> Option<String> {
-        self.get_field(NetctlFieldKey::ConnectionType)
+        self.get_field(&NetctlFieldKey::ConnectionType)
     }
 
     pub(super) fn get_encryption_key(&self) -> Option<String> {
-        self.get_field(NetctlFieldKey::EncryptionKey)
+        self.get_field(&NetctlFieldKey::EncryptionKey)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::structs::NetctlConnectionType;
     use strum::AsStaticRef;
 
     fn get_config<'a>(contents: &str) -> NetctlRawConfig<'a> {

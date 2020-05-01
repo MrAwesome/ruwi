@@ -1,4 +1,4 @@
-use super::structs::*;
+use super::structs::{NetctlConnectionType, NetctlParseError};
 use super::NetctlIdentifier;
 
 use std::fs::File;
@@ -21,8 +21,8 @@ pub(super) fn check_for_field<'a>(
 }
 
 pub(super) fn check_connection_type(
-    expected: NetctlConnectionType,
-    actual: NetctlConnectionType,
+    expected: &NetctlConnectionType,
+    actual: &NetctlConnectionType,
 ) -> Result<(), NetctlParseError> {
     if expected == actual {
         Ok(())
