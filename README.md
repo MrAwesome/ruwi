@@ -2,11 +2,36 @@
 
 Ruwi simplifies connecting to the Internet on Linux.
 
-It does this by providing a flexible+extensible selection+interaction layer over many different Linux networking utilities. 
+It does this by providing a simple CLI for interacting with many different Linux existing networking and selection utilities.
 
 Bluetooth support is planned, but currently not in progress.
 
-Ruwi is still heavily under construction, but feel free to tinker away. Wired and wireless connections are heavily tested and working well. It's very unlikely that the commands below will change, and for these use cases Ruwi makes an excellent daily driver.
+Ruwi is still heavily under construction, but feel free to tinker away. Wired and wireless connections are heavily tested and working well. If something doesn't work for you, feel free to create an issue on GitHub.
+
+Ruwi is written in 100% safe Rust, and will stay that way.
+
+# Strengths and Weaknesses
+
+### Some things Ruwi can do well:
+* Provide a human-intuitive CLI for connecting to the Internet (`ruwi wired connect` vs. `dhcpcd enp0s25`)
+* Present available networks for selection in the least amount of time and with the most convenience possible
+* Connect to known networks, *regardless of configuration complexity*, by offloading the work to netctl/NetworkManager
+* Prioritize seen wifi networks based on signal strength and whether or not that network is already known
+* Use that prioritization to automatically connect to the strongest known network, if requested
+* Decide whether or not a synchronous wifi rescan is needed based on the results of a cached scan
+* Support many different functional combinations of scanning/selection/connection methods
+* Handle bringing networking interfaces and services up or down when needed
+* Discover and connect to new non-encrypted or WPA2 (password) wifi networks
+* Discover and connect on new non-encrypted Ethernet interfaces
+* Piggyback on existing battle-tested scanning, selection, and connection technologies
+* Detect which connection managers and scanning utilities are installed/running, and make intelligent decisions about which ones to use
+* Support keyboard-centric workflows, both at the CLI and via keybindings in window managers
+
+### Some things Ruwi does not do:
+* Communicate directly with the kernel to facilitate scanning/connection<sup id="a3">[3](#f3)</sup>
+* Add configuration details for wifi connections beyond "here's the encryption key (password)"
+* Add configuration details for encrypted/complex Ethernet connections
+* Support mouse-centric workflows (although fzf does have support for clicking, if you're using that you might be missing the point)
 
 # Philosophy
 
@@ -25,6 +50,7 @@ Ruwi is still heavily under construction, but feel free to tinker away. Wired an
 * A connection or scanning utility. Ruwi tries to know as little as possible about networking, and tries instead to use external programs and libraries to offload all interactions with the kernel and networking devices.
 * Stateful. Ruwi remembers nothing about previous runs, remembers nothing about individual networks. What you see on the command line is what you get. Any state relating to a network (whether it is already known, the encryption key, etc) is stored with the service used to connect to it, such as `netctl` or `NetworkManager`.
 * Designed to handle complicated network configuration. Anything more complex than "use this WPA2 passphrase" is not supported, by design. With that said, you only need to set up your complex config once in your connection manager (netctl config file, NetworkManager network, etc) and Ruwi will detect it and happily help you connect to it quickly from that point on.
+
 
 # Manual Installation
 While still under construction, ruwi will not live in any distro repositories, and you'll need to build it for yourself using `cargo`. See https://www.rust-lang.org/tools/install if you aren't sure what `cargo` is.
@@ -69,3 +95,5 @@ Stop all known networking daemons, bring down all IP networking interfaces, and 
 <b id="f1">1</b> In truth, it's hard to imagine any "find, select, and connect to an unknown wireless network" workflow being faster than what Ruwi does. If you know of something, contact your dear author immediately. [↩](#a1)
 
 <b id="f2">2</b> With the caveat that `nmcli` doesn't play nicely with other scan types. This is handled in code, and a descriptive error message will guide you if you forget. [↩](#a2)
+
+<b id="f3">3</b> There's no reason Ruwi can't do these things, but it would make much more sense to add the functionality into another crate and simply plug that into Ruwi. [↩](#a3)
