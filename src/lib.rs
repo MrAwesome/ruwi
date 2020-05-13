@@ -62,13 +62,9 @@ use errors::RuwiError;
 // Arch dependencies: wireless_tools, netctl, iw, bluetooth things?, iptools
 // Arch optional dependencies: dmenu, NetworkManager, fzf
 
-// TODO(urgent): fix netctl wired connections, create selector/reader/writer
-// TODO(urgent): fix wpa_cli service start interface (associate interface with service enum?)
-// TODO(high): use crate::prelude::*; instead of misc imports
 // TODO(high): add `clear` success messages (and note that it's expected to see some error messages there, or just hide all of them)
 // TODO(high): make `ruwi` with no arguments still go through system checks
 // TODO(high): include netctl profile name with annotated wired/wireless networks, for connecting to known networks with non-ruwified names - have known netctl networks return essid + config name, for matching/annotation with config name
-// TODO(high): implement Selectable for netctl profiles, for wired connections (and wifi as well, since that seems like a reasonable use case)
 // TODO(high): `clear` should be `wifi clear`? or at least call into it? i guess wired and wireless may use the same services. bluetooth also will have services i suppose. should ip/bt be different service types?
 // TODO(high): implement speed/connection/dns test - see `nmcli networking connectivity` for networkmanager mode
 // TODO(high): implement bluetooth
@@ -79,11 +75,12 @@ use errors::RuwiError;
 // TODO(mid): use string_container where you would normally pass around String or an existing less-nice string container
 // TODO(mid): kill, or suggest killing, wpa_supplicant if netctl fails to connect (clear does this, can you just suggest clear in error messages?)
 // TODO(mid): have `ruwi -a` detect wired, try to connect to it, then try wifi -a if not. check "/sys/class/net/{IFNAME}/operstate" after bringing up the interface
+// TODO(low): implement Selectable for netctl profiles, for wired connections (and wifi as well, since that seems like a reasonable use case)
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
 // TODO(low): flag to disable looking for known networks
 // TODO(low): standardize quotes in help text (search codebase for "manually")
 // TODO(low): remove Default trait for structs which use TypedBuilder
-// TODO(low): use TryFrom instead of custom conversion methods
+// TODO(low): use TryFrom instead of custom conversion methods, where applicable
 // TODO(low): use a custom Result type to reduce Result<_, RuwiError> boilerplate
 // TODO(wishlist): `ruwi wifi get_default_interface` and/or `ruwi wifi select_interface`?
 // TODO(wishlist): JSON output for `select`

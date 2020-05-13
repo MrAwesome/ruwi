@@ -1,4 +1,4 @@
-use rexpect::errors::*;
+use rexpect::errors::Result;
 use rexpect::spawn_bash;
 
 const ARCH_VERSION: &str = "2020.03.01";

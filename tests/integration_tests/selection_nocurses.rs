@@ -1,6 +1,6 @@
-use super::utils::*;
+use super::utils::get_dryrun_cmd_with_args;
 
-use rexpect::errors::*;
+use rexpect::errors::Result;
 use rexpect::spawn_bash;
 
 // TODO: if running in opt mode, test opt here? there should be a simple way to find the binary name.

@@ -208,7 +208,7 @@ mod tests {
     use super::additional_options_for_manual_selection::SelectionOption;
     use crate::options::wifi::connect::WifiConnectOptions;
     use crate::options::wifi::WifiOptions;
-    use crate::sort_networks::*;
+    use crate::sort_networks::SortedFilteredNetworks;
     use crate::structs::AnnotatedWirelessNetwork;
     use crate::strum::AsStaticRef;
 

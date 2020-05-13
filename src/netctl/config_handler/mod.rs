@@ -217,7 +217,7 @@ mod tests {
         }
     }
 
-    fn get_sample_handler<'a, O: Global>(opts: &'a O) -> NetctlConfigHandler<'a, O> {
+    fn get_sample_handler<O: Global>(opts: &O) -> NetctlConfigHandler<'_, O> {
         let location = "samples/";
         let sample_configs = get_sample_configs();
         NetctlConfigHandler::builder()

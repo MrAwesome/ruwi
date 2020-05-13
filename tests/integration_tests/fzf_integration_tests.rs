@@ -1,4 +1,4 @@
-use rexpect::errors::*;
+use rexpect::errors::Result;
 
 use super::utils::spawn_dryrun;
 

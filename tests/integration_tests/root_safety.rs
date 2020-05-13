@@ -1,7 +1,7 @@
-use rexpect::errors::*;
+use rexpect::errors::Result;
 use rexpect::spawn_bash;
 
-use super::utils::*;
+use super::utils::{get_unguarded_cmd_with_args, UNGUARDED_TIMEOUT_MS};
 
 const BINARY_CREATED_TOKEN: &str = "CREATED_YOUR_BINARY_MLORD";
 

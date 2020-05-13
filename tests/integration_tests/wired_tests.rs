@@ -1,5 +1,5 @@
-use rexpect::errors::*;
-use super::utils::*;
+use rexpect::errors::Result;
+use super::utils::spawn_dryrun;
 
 fn basic_wired_dryrun_test(connect_via: &str) -> Result<()> {
     let mut p = spawn_dryrun(

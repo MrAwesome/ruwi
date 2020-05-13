@@ -1,7 +1,7 @@
-use rexpect::errors::*;
+use rexpect::errors::Result;
 use rexpect::{spawn, spawn_bash};
 
-use super::utils::*;
+use super::utils::{DRYRUN_TIMEOUT_MS, get_dryrun_cmd_with_args, get_unguarded_cmd_with_args, spawn_dryrun};
 
 #[test]
 fn test_cli_help() -> Result<()> {

@@ -178,7 +178,7 @@ where
 mod tests {
     use super::*;
     use crate::options::wifi::connect::WifiConnectOptions;
-    use crate::wifi_scan::tests::*;
+    use crate::wifi_scan::tests::{FAKE_OUTPUT, command_fail_with_device_or_resource_busy, command_fail_with_exitcode_1, command_pass};
 
     #[test]
     fn test_synchronous_scan_pass() {

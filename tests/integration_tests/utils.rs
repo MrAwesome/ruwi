@@ -1,7 +1,7 @@
 #![allow(clippy::missing_errors_doc)]
 #![allow(unused)]
 
-use rexpect::errors::*;
+use rexpect::errors::Result;
 use rexpect::spawn;
 use rexpect::session::PtySession;
 
