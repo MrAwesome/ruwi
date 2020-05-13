@@ -54,6 +54,7 @@ mod tests {
 
         let resulting_nw = annotated_networks.first().unwrap();
         assert![resulting_nw.is_known()];
+        assert_eq![essid, resulting_nw.get_public_name()];
     }
 
     #[test]

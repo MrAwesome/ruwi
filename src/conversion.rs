@@ -24,7 +24,7 @@ impl From<&AnnotatedWiredNetwork> for NetctlIdentifier {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::interface_management::ip_interfaces::*;
+    use crate::interface_management::ip_interfaces::WiredIPInterface;
 
     #[test]
     fn test_wireless_non_netctl_conversion() {

@@ -13,7 +13,7 @@ pub(crate) use prompt_commands::PromptCommandRunner;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::errors::*;
+    use crate::errors::RuwiErrorKind;
     use crate::options::GlobalOptions;
 
     fn get_default_opts(is_debug: bool, is_dry_run: bool) -> GlobalOptions {
