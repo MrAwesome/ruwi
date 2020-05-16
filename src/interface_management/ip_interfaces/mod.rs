@@ -1,5 +1,8 @@
 mod ip_link;
-use ip_link::{TypedLinuxInterfaceFinder, WifiLinuxIPLinkInterface, WiredLinuxIPLinkInterface};
+use ip_link::TypedLinuxInterfaceFinder;
+
+mod structs;
+pub use structs::{WifiIPInterface, WiredIPInterface};
 
 use crate::prelude::*;
 
@@ -60,70 +63,5 @@ pub(crate) trait LinuxIPInterface: Sized + From<String> {
         } else {
             Self::find_first(opts)
         }
-    }
-}
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct WifiIPInterface {
-    ifname: String,
-}
-
-impl Default for WifiIPInterface {
-    fn default() -> Self {
-        Self::new(DRYRUN_FAKE_INTERFACE_NAME)
-    }
-}
-
-impl WifiIPInterface {
-    pub(crate) fn new(ifname: &str) -> Self {
-        Self {
-            ifname: ifname.to_string(),
-        }
-    }
-}
-
-impl From<String> for WifiIPInterface {
-    fn from(ifname: String) -> Self {
-        Self { ifname }
-    }
-}
-
-impl LinuxIPInterface for WifiIPInterface {
-    type Finder = WifiLinuxIPLinkInterface;
-
-    fn get_ifname(&self) -> &str {
-        &self.ifname
-    }
-}
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct WiredIPInterface {
-    ifname: String,
-}
-
-impl WiredIPInterface {
-    pub(crate) fn new(ifname: &str) -> Self {
-        Self {
-            ifname: ifname.to_string(),
-        }
-    }
-}
-
-impl Default for WiredIPInterface {
-    fn default() -> Self {
-        Self::new(DRYRUN_FAKE_INTERFACE_NAME)
-    }
-}
-
-impl From<String> for WiredIPInterface {
-    fn from(ifname: String) -> Self {
-        Self { ifname }
-    }
-}
-
-impl LinuxIPInterface for WiredIPInterface {
-    type Finder = WiredLinuxIPLinkInterface;
-    fn get_ifname(&self) -> &str {
-        &self.ifname
     }
 }

@@ -28,7 +28,7 @@ macro_rules! string_container {
 
         $(
         #[derive(Debug, Clone, Eq, PartialEq)]
-        pub(crate) struct $name(String);
+        pub struct $name(String);
 
         impl $name {
             pub fn new(msg: impl ToString) -> Self {
