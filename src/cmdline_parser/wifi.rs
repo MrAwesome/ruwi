@@ -1,12 +1,12 @@
 use super::utils::handle_cmdline_parsing_error;
 use super::{WIFI_CONNECT_TOKEN, WIFI_SELECT_TOKEN};
 
-use crate::prelude::*;
 use crate::options::command::RuwiWifiCommand;
 use crate::options::wifi::connect::WifiConnectOptions;
 use crate::options::wifi::select::WifiSelectOptions;
 use crate::options::wifi::WifiOptions;
 use crate::options::GlobalOptions;
+use crate::prelude::*;
 use crate::service_detection::{HasSystemCheckMapping, SystemCheckerReal};
 use crate::strum_utils::get_val_as_enum;
 
@@ -63,16 +63,38 @@ fn get_wifi_options(
 }
 
 fn get_default_wifi_command(globals: GlobalOptions) -> Result<RuwiWifiCommand, RuwiError> {
-    let wifi_opts = WifiOptions::builder().globals(globals).build();
-    let connect_opts = WifiConnectOptions::builder().wifi(wifi_opts).build();
+    let default_wifi_opts = get_default_wifi_opts_from_system(globals);
+    let wifi_opts = validate_wifi_options(default_wifi_opts)?;
+
+    let default_wifi_connect_opts = get_default_wifi_connect_opts_from_system(wifi_opts);
+    let connect_opts = validate_wifi_connect_options(default_wifi_connect_opts)?;
     Ok(RuwiWifiCommand::Connect(connect_opts))
+}
+
+fn get_default_wifi_opts_from_system(globals: GlobalOptions) -> WifiOptions {
+    let checker = SystemCheckerReal::new(&globals);
+
+    let scan_type = WifiScanType::choose_best_from_system(&checker, SCAN_TYPE_TOKEN);
+    WifiOptions::builder()
+        .globals(globals)
+        .scan_type(scan_type)
+        .build()
+}
+
+fn get_default_wifi_connect_opts_from_system(wifi_opts: WifiOptions) -> WifiConnectOptions {
+    let checker = SystemCheckerReal::new(&wifi_opts);
+
+    let connect_via = WifiConnectionType::choose_best_from_system(&checker, CONNECT_VIA_TOKEN);
+    WifiConnectOptions::builder()
+        .wifi(wifi_opts)
+        .connect_via(connect_via)
+        .build()
 }
 
 fn get_wifi_connect_opts(
     wifi_opts: WifiOptions,
     maybe_connect_matcher: Option<&ArgMatches>,
 ) -> Result<WifiConnectOptions, RuwiError> {
-    let connect_builder = WifiConnectOptions::builder();
     let connect_opts = if let Some(connect_matcher) = maybe_connect_matcher {
         let force_ask_password = connect_matcher.is_present("force_ask_password");
         let given_essid = connect_matcher.value_of("essid").map(String::from);
@@ -91,7 +113,7 @@ fn get_wifi_connect_opts(
             WifiConnectionType::choose_best_from_system(&checker, CONNECT_VIA_TOKEN)
         };
 
-        connect_builder
+        WifiConnectOptions::builder()
             .wifi(wifi_opts)
             .connect_via(connect_via)
             .given_essid(given_essid)
@@ -100,7 +122,7 @@ fn get_wifi_connect_opts(
             .force_ask_password(force_ask_password)
             .build()
     } else {
-        connect_builder.wifi(wifi_opts).build()
+        get_default_wifi_connect_opts_from_system(wifi_opts)
     };
 
     validate_wifi_connect_options(connect_opts)

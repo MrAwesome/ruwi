@@ -1,7 +1,10 @@
 use rexpect::errors::Result;
 use rexpect::{spawn, spawn_bash};
 
-use super::utils::{DRYRUN_TIMEOUT_MS, get_dryrun_cmd_with_args, get_unguarded_cmd_with_args, spawn_dryrun};
+use super::utils::{
+    get_dryrun_cmd_with_args, get_unguarded_cmd_with_args, spawn_dryrun, spawn_dryrun_noargs,
+    DRYRUN_TIMEOUT_MS,
+};
 
 #[test]
 fn test_cli_help() -> Result<()> {
@@ -169,7 +172,6 @@ fn test_rescan_and_fail_in_auto_mode() -> Result<()> {
     p.exp_regex("Not running command in dryrun mode: .?systemctl start NetworkManager")?;
     p.exp_regex("Not running command in dryrun mode:.*?device wifi list --rescan yes")?;
     p.exp_regex("Failed to find a known network in .known_or_fail. mode")?;
-
     Ok(())
 }
 
@@ -177,6 +179,22 @@ fn test_rescan_and_fail_in_auto_mode() -> Result<()> {
 fn test_no_nmcli_connect_with_non_nmcli_scan() -> Result<()> {
     let mut p = spawn_dryrun("wifi -s iw connect -c nmcli -e MADE_UP_ESSID")?;
     p.exp_string("Non-nmcli scan types do not work when connect_via")?;
+    Ok(())
+}
+
+#[test]
+fn test_check_system_for_no_args_run() -> Result<()> {
+    let mut p = spawn_dryrun_noargs()?;
+    p.exp_string("No value was explicitly given for \"scan_type\", will check the system to determine the best value.")?;
+    p.exp_string("No value was explicitly given for \"connect_via\", will check the system to determine the best value.")?;
+    Ok(())
+}
+
+#[test]
+fn test_check_system_for_wifi_no_args_run() -> Result<()> {
+    let mut p = spawn_dryrun("wifi")?;
+    p.exp_string("No value was explicitly given for \"scan_type\", will check the system to determine the best value.")?;
+    p.exp_string("No value was explicitly given for \"connect_via\", will check the system to determine the best value.")?;
     Ok(())
 }
 

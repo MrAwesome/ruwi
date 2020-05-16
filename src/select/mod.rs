@@ -57,7 +57,6 @@ where
         };
 
         match &selected_network_res {
-            // TODO: should there be a less machine-specific version of get_identifier?
             Ok(nw) => eprintln!("[NOTE]: Selected network: \"{}\"", nw.get_public_name()),
             Err(_) => {
                 if options.get_auto_mode() == &AutoMode::KnownOrFail {
@@ -316,6 +315,22 @@ mod tests {
         assert_eq![networks.get_networks()[2], nw];
         Ok(())
     }
+
+    #[test]
+    fn test_auto_no_ask_unknown() -> Result<(), RuwiError> {
+        let options = WifiConnectOptions::builder()
+            .wifi(WifiOptions::default())
+            .auto_mode(AutoMode::KnownOrFail)
+            .build();
+        let networks = get_3_unknown_networks();
+        let nw = networks.select_network_impl(
+            &options,
+            SortedFilteredNetworks::err_should_not_have_used_manual,
+        );
+        assert_eq![RuwiErrorKind::NoKnownNetworksFound, nw.err().unwrap().kind];
+        Ok(())
+    }
+
 
     #[test]
     fn test_auto_fallback() -> Result<(), RuwiError> {

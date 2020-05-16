@@ -62,6 +62,8 @@ use errors::RuwiError;
 // Arch dependencies: wireless_tools, netctl, iw, bluetooth things?, iptools
 // Arch optional dependencies: dmenu, NetworkManager, fzf
 
+// TODO(high): make `clear` take down networking interfaces
+// TODO(high): remove defaults for wired and selection method in cmdline_parser, and have them check system
 // TODO(high): add `clear` success messages (and note that it's expected to see some error messages there, or just hide all of them)
 // TODO(high): make `ruwi` with no arguments still go through system checks
 // TODO(high): include netctl profile name with annotated wired/wireless networks, for connecting to known networks with non-ruwified names - have known netctl networks return essid + config name, for matching/annotation with config name
@@ -75,6 +77,7 @@ use errors::RuwiError;
 // TODO(mid): use string_container where you would normally pass around String or an existing less-nice string container
 // TODO(mid): kill, or suggest killing, wpa_supplicant if netctl fails to connect (clear does this, can you just suggest clear in error messages?)
 // TODO(mid): have `ruwi -a` detect wired, try to connect to it, then try wifi -a if not. check "/sys/class/net/{IFNAME}/operstate" after bringing up the interface
+// TODO(low): add support for WWAN connections
 // TODO(low): implement Selectable for netctl profiles, for wired connections (and wifi as well, since that seems like a reasonable use case)
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
 // TODO(low): flag to disable looking for known networks

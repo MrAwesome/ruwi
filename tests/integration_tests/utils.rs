@@ -9,16 +9,24 @@ use rexpect::session::PtySession;
 pub(super) const DRYRUN_TIMEOUT_MS: Option<u64> = Some(400);
 pub(super) const UNGUARDED_TIMEOUT_MS: Option<u64> = Some(400);
 
+pub const BINARY_NAME: &str = "./target/debug/ruwi";
+
 #[must_use]
 #[cfg(test)]
 pub fn get_dryrun_cmd_with_args(args: &str) -> String {
-    format!("./target/debug/ruwi -D {}", args)
+    format!("{} -D {}", BINARY_NAME, args)
 }
 
 #[must_use]
 #[cfg(test)]
 pub fn get_unguarded_cmd_with_args(args: &str) -> String {
-    format!("./target/debug/ruwi {}", args)
+    format!("{} {}", BINARY_NAME, args)
+}
+
+#[cfg(test)]
+pub fn spawn_dryrun_noargs() -> Result<PtySession> {
+    let dryrun_cmd = format!("{} -D", BINARY_NAME);
+    spawn(&dryrun_cmd, DRYRUN_TIMEOUT_MS)
 }
 
 #[cfg(test)]

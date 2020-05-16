@@ -34,7 +34,7 @@ const CMDLINE_BAILOUT_MSG: &str = "Command line parsing was successful, but cmdl
 // TODO: add help for connect and clear and select!
 // TODO: respect force_ask_password
 // TODO: fail if not run as root
-// TODO: use subcommands for conuigurations of options, but still go through all functions always?
+// TODO: use subcommands for configurations of options, but still go through all functions always?
 //       or just run certain functions for certain subcommands?
 // TODO: for netctl selection options, alias --identifier and --filename
 #[allow(clippy::too_many_lines)]

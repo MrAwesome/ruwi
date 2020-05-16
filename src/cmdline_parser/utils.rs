@@ -8,6 +8,6 @@ pub(super) fn handle_cmdline_parsing_error<T>(
 ) -> Result<T, RuwiError> {
     Err(rerr!(
         RuwiErrorKind::InvalidSubcommand,
-        format!("[ERR] Unknown command name: {}", invalid_subc_name)
+        format!("Unknown command name: {}", invalid_subc_name)
     ))
 }
