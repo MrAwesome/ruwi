@@ -75,6 +75,7 @@ use errors::RuwiError;
 // TODO(mid): use string_container where you would normally pass around String or an existing less-nice string container
 // TODO(mid): kill, or suggest killing, wpa_supplicant if netctl fails to connect (clear does this, can you just suggest clear in error messages?)
 // TODO(mid): have `ruwi -a` detect wired, try to connect to it, then try wifi -a if not. check "/sys/class/net/{IFNAME}/operstate" after bringing up the interface
+// TODO(low): add support for WWAN connections
 // TODO(low): implement Selectable for netctl profiles, for wired connections (and wifi as well, since that seems like a reasonable use case)
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
 // TODO(low): flag to disable looking for known networks

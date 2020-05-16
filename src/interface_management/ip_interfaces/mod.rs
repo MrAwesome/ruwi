@@ -8,12 +8,19 @@ use crate::prelude::*;
 
 pub(crate) const DRYRUN_FAKE_INTERFACE_NAME: &str = "DRYRUN_FAKE_INTERFACE";
 
-// TODO: better detection of whether an interface is wireless or wired
-//       * find interfaces recognized by `iw`, other interfaces are likely ethernet if not loopback
-//       * nmcli dev
-//       * iw dev
-//       * wpa_cli dev
-
+// Any struct implementing this represents a Linux networking interface.
+// Usually this is a wifi/ethernet interface with a name looking like:
+//
+// Classic:
+//   Ethernet: "eth0"
+//   Wireless: "wlan0"
+// Modern:
+//   Ethernet: "enp0s25"
+//   Wireless: "wlp3s0"
+//
+// You can see which interfaces Ruwi is likely to discover on your
+// system by running `ip link show`. Ignore "lo", and the other results
+// are what Ruwi will see.
 pub(crate) trait LinuxIPInterface: Sized + From<String> {
     type Finder: TypedLinuxInterfaceFinder + Clone;
 

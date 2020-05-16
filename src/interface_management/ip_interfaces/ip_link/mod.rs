@@ -8,6 +8,24 @@ use std::convert::TryFrom;
 
 pub(crate) struct InterfaceNotDesiredTypeError;
 
+// NOTE: This covers both the classic "wlan" and the newer "wl*"
+//       This does not cover WWAN networks, as the author doesn't have
+//       any hardware available to test those connections. Feel free to
+//       try connecting to wwan directly with ruwi by specifying the "ww*"
+//       interface with -i, and file an issue (or a PR!) either way.
+fn is_wireless(ifname: &str) -> bool {
+    ifname.starts_with("wl")
+}
+
+fn is_ethernet(ifname: &str) -> bool {
+    ifname.starts_with("en") || ifname.starts_with("eth")
+}
+
+// This trait is used to find all Linux networking interfaces of a
+// certain type (Wireless, Ethernet, etc).
+//
+// For more info on the naming scheme for networking interfaces,
+// see `man systemd.net-naming-scheme`.
 pub(crate) trait TypedLinuxInterfaceFinder: TryFrom<LinuxIPLinkInterface> {
     fn get_ifname(&self) -> &str;
     fn check(untyped_interface: &LinuxIPLinkInterface) -> bool;
@@ -90,6 +108,12 @@ impl TryFrom<LinuxIPLinkInterface> for WifiLinuxIPLinkInterface {
     }
 }
 
+// TODO: better detection of whether an interface is wireless or wired
+//       * find interfaces recognized by `iw`, other interfaces are likely ethernet if not loopback
+//       * nmcli dev
+//       * iw dev
+//       * wpa_cli dev
+
 impl TypedLinuxInterfaceFinder for WifiLinuxIPLinkInterface {
     fn get_ifname(&self) -> &str {
         self.0.get_ifname()
@@ -97,7 +121,7 @@ impl TypedLinuxInterfaceFinder for WifiLinuxIPLinkInterface {
 
     fn check(untyped_interface: &LinuxIPLinkInterface) -> bool {
         let ifname = untyped_interface.get_ifname();
-        ifname.starts_with("wlp") || ifname.starts_with("wlan")
+        is_wireless(ifname)
     }
 
     fn none_found_error() -> RuwiError {
@@ -131,7 +155,7 @@ impl TypedLinuxInterfaceFinder for WiredLinuxIPLinkInterface {
 
     fn check(untyped_interface: &LinuxIPLinkInterface) -> bool {
         let ifname = untyped_interface.get_ifname();
-        ifname.starts_with("enp") || ifname.starts_with("eth")
+        is_ethernet(ifname)
     }
 
     fn none_found_error() -> RuwiError {
@@ -161,9 +185,35 @@ mod tests {
     }
 
     #[test]
+    fn test_wired_classic() {
+        let dev = LinuxIPLinkInterface {
+            ifname: "eth0".to_string(),
+            link_type: "ether".to_string(),
+            operstate: OperState::UP,
+            flags: vec![],
+        };
+
+        assert![WiredLinuxIPLinkInterface::try_from(dev.clone()).is_ok()];
+        assert![!WifiLinuxIPLinkInterface::try_from(dev).is_ok()];
+    }
+
+    #[test]
     fn test_wifi() {
         let dev = LinuxIPLinkInterface {
             ifname: "wlp3s0".to_string(),
+            link_type: "ether".to_string(),
+            operstate: OperState::UP,
+            flags: vec![],
+        };
+
+        assert![WifiLinuxIPLinkInterface::try_from(dev.clone()).is_ok()];
+        assert![!WiredLinuxIPLinkInterface::try_from(dev).is_ok()];
+    }
+
+    #[test]
+    fn test_wifi_classic() {
+        let dev = LinuxIPLinkInterface {
+            ifname: "wlan0".to_string(),
             link_type: "ether".to_string(),
             operstate: OperState::UP,
             flags: vec![],
