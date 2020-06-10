@@ -25,7 +25,7 @@ impl<N: Ord + Identifiable + Clone + Debug> SortedFilteredNetworks<N> {
     }
 
     pub(crate) fn new(networks: Vec<N>) -> Self {
-        let mut networks = networks; 
+        let mut networks = networks;
         Self::put_best_networks_first(&mut networks);
         let networks = Self::dedup_networks(networks);
         Self { networks }

@@ -9,6 +9,7 @@ use wired::get_wired_cmd;
 use crate::prelude::*;
 use crate::options::command::RuwiCommand;
 use crate::options::GlobalOptions;
+use crate::options::clear::ClearOptions;
 use crate::strum_utils::{get_val_as_enum, possible_string_vals};
 
 use std::env;
@@ -207,7 +208,8 @@ fn get_command_from_command_line_impl(m: &ArgMatches) -> Result<RuwiCommand, Ruw
     let cmd = if command_name == WIFI_TOKEN || command_name == "" {
         RuwiCommand::Wifi(get_wifi_cmd(globals, maybe_cmd_matcher)?)
     } else if command_name == CLEAR_TOKEN {
-        RuwiCommand::Clear(globals)
+        let clear_opts = ClearOptions::builder().globals(globals).build();
+        RuwiCommand::Clear(clear_opts)
     } else if command_name == WIRED_TOKEN {
         RuwiCommand::Wired(get_wired_cmd(globals, maybe_cmd_matcher)?)
     } else {
@@ -277,7 +279,7 @@ mod tests {
         get_command_from_command_line_impl(&get_matches(args)).unwrap()
     }
 
-    fn expect_clear_opts(cmd: RuwiCommand) -> GlobalOptions {
+    fn expect_clear_opts(cmd: RuwiCommand) -> ClearOptions {
         if let RuwiCommand::Clear(opts) = cmd {
             opts
         } else {

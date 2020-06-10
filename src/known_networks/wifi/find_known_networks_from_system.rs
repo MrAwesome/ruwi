@@ -54,7 +54,7 @@ where
     O: Global,
 {
     NetworkingService::NetworkManager.start(options)?;
-    let output = SystemCommandRunner::new( 
+    let output = SystemCommandRunner::new(
         options,
         "nmcli",
         &["-g", "NAME", "connection", "show"],
@@ -66,7 +66,7 @@ where
     output
 }
 
-fn find_known_netctl_networks<O>(options: &O) -> Result<UnfilteredKnownNetworkNamesAndIdentifiers, RuwiError> 
+fn find_known_netctl_networks<O>(options: &O) -> Result<UnfilteredKnownNetworkNamesAndIdentifiers, RuwiError>
 where
     O: Global,
 {

@@ -1,9 +1,8 @@
-use crate::enums::NetworkingService;
 use crate::errors::RuwiError;
+use crate::options::clear::ClearOptions;
 use crate::options::wifi::connect::WifiConnectOptions;
 use crate::options::wifi::select::WifiSelectOptions;
 use crate::options::wired::connect::WiredConnectOptions;
-use crate::options::GlobalOptions;
 use crate::runner::Runner;
 
 use strum_macros::{AsRefStr, AsStaticStr, Display, EnumIter, EnumString};
@@ -14,7 +13,7 @@ pub enum RuwiCommand {
     Wifi(RuwiWifiCommand),
     Wired(RuwiWiredCommand),
     Bluetooth(RuwiBluetoothCommand),
-    Clear(GlobalOptions),
+    Clear(ClearOptions),
 }
 
 impl Default for RuwiCommand {
@@ -25,17 +24,18 @@ impl Default for RuwiCommand {
 
 impl RuwiCommand {
     pub fn run(&self) -> Result<(), RuwiError> {
-        // This slightly odd-looking structure is to give us strong typing of 
+        // This slightly odd-looking structure is to give us strong typing of
         // our "options" context objects, which each impl the logic for their
-        // respective runs. A cleaner-looking alternative to this is a function 
-        // which returns "Box<dyn Runner>" or such, but that requires heap allocation.
+        // respective runs. A cleaner-looking alternative to this is a function
+        // which returns "Box<dyn Runner>" or such, but that requires heap allocation
+        // and loses type info about which options object we're running on.
         match self {
             Self::Wifi(RuwiWifiCommand::Connect(options)) => options.run(),
             Self::Wifi(RuwiWifiCommand::Select(options)) => options.run(),
             Self::Wired(RuwiWiredCommand::Connect(options)) => options.run(),
             Self::Bluetooth(RuwiBluetoothCommand::Pair) => unimplemented!(),
             // TODO: give clear its own options, and make it match this format
-            Self::Clear(options) => NetworkingService::stop_all(options),
+            Self::Clear(options) => options.run(),
         }
     }
 }

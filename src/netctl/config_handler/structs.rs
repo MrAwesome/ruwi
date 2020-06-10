@@ -142,7 +142,6 @@ impl From<&WiredNetctlConfig> for AnnotatedWiredNetwork {
             .interface(config.interface_name.clone())
             .service_identifier(NetworkServiceIdentifier::Netctl(config.identifier.as_ref().to_string()))
             .build()
-            
     }
 }
 

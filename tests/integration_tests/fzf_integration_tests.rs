@@ -6,7 +6,6 @@ use super::utils::spawn_dryrun;
 fn test_iw_fourth_of_many_networks_with_fzf() -> Result<()> {
     let mut p = spawn_dryrun(
         "-m fzf wifi -F src/parse/samples/iw_many_networks.txt -s iw connect -c print",
-        
     )?;
     p.exp_regex("Select a network")?;
     p.send_control('n')?;
@@ -22,7 +21,6 @@ fn test_iw_fourth_of_many_networks_with_fzf() -> Result<()> {
 fn test_iw_fourth_of_many_networks_with_fzf_select() -> Result<()> {
     let mut p = spawn_dryrun(
         "-m fzf wifi -F src/parse/samples/iw_many_networks.txt -s iw select",
-        
     )?;
     p.exp_regex("Select a network")?;
     p.send_control('n')?;
@@ -39,7 +37,6 @@ fn test_iw_fourth_of_many_networks_with_fzf_select() -> Result<()> {
 fn test_fzf_ctrl_c_exits() -> Result<()> {
     let mut p = spawn_dryrun(
         "-m fzf wifi -F src/parse/samples/iw_many_networks.txt -s iw connect -c print",
-        
     )?;
     p.exp_regex("Select a network")?;
     p.send_control('c')?;
@@ -59,7 +56,6 @@ fn test_fzf_ctrl_c_exits() -> Result<()> {
 fn test_fzf_respects_ctrl_r_refresh() -> Result<()> {
     let mut p = spawn_dryrun(
         "-m fzf wifi -F src/parse/samples/iw_many_networks.txt -s iw connect -c print",
-        
     )?;
     p.exp_regex("Select a network")?;
     p.send_control('r')?;
@@ -75,7 +71,6 @@ fn test_fzf_respects_ctrl_r_refresh() -> Result<()> {
 fn test_fzf_respects_refresh_string_refresh() -> Result<()> {
     let mut p = spawn_dryrun(
         "-m fzf wifi -F src/parse/samples/iw_many_networks.txt -s iw connect -c print",
-        
     )?;
     p.exp_regex("Select a network")?;
 

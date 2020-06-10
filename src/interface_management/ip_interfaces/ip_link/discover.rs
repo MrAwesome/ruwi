@@ -8,7 +8,7 @@ impl LinuxIPLinkInterface {
     where
         O: Global,
     {
-        let stdout = SystemCommandRunner::new( 
+        let stdout = SystemCommandRunner::new(
             opts,
             "ip",
             &["-j", "link", "show"],
@@ -28,7 +28,7 @@ impl LinuxIPLinkInterface {
     {
         let err_msg = format!("No interface named \"{}\" found with `ip link show dev {}`! Is \"iproute2\" installed? Does that interface exist? Try `ip link show`.", name, name);
 
-        let stdout = SystemCommandRunner::new( 
+        let stdout = SystemCommandRunner::new(
             opts,
             "ip",
             &["-j", "link", "show", name],

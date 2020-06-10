@@ -9,7 +9,7 @@ use rexpect::session::PtySession;
 pub(super) const DRYRUN_TIMEOUT_MS: Option<u64> = Some(400);
 pub(super) const UNGUARDED_TIMEOUT_MS: Option<u64> = Some(400);
 
-pub const BINARY_NAME: &str = "./target/debug/ruwi";
+pub const BINARY_NAME: &str = env!("CARGO_BIN_EXE_ruwi");
 
 #[must_use]
 #[cfg(test)]

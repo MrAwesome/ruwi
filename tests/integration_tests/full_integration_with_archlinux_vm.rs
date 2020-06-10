@@ -1,13 +1,26 @@
 use rexpect::errors::Result;
 use rexpect::spawn_bash;
 
+use super::utils::BINARY_NAME;
+
 const ARCH_VERSION: &str = "2020.03.01";
+const SHARED_DIR: &str = "/tmp/archlinux/shared";
+const CONFIG_NAMES: &str = "./ci/configs/*.conf";
 
 // An absolutely end-to-end test of ruwi:
-// * Downloads, starts, and gets a shell within a Linux VM
+// * Downloads and starts a Linux VM
+// * Starts a root terminal session
 // * Creates virtual wifi radios
 // * Starts access points
 // * Connects to them using ruwi.
+//
+// Requires:
+// * A working Internet connection
+// * A moderately up-to-date ARCH_VERSION
+// * qemu-system-x86_64
+//
+// Running:
+//   cargo test -- --ignored --nocapture --test test_full_integration_with_archlinux_vm
 #[test]
 #[ignore]
 fn test_full_integration_with_archlinux_vm() -> Result<()> {
@@ -15,7 +28,12 @@ fn test_full_integration_with_archlinux_vm() -> Result<()> {
 
     eprintln!("[TEST]: Copying files into place...");
     shell_for_copying_files_into_shared_dir.execute(
-        "mkdir -p /tmp/archlinux/shared && cp -r ./target/debug/ruwi ./ci/configs/*.conf /tmp/archlinux/shared && echo COPIEDDD",
+        &format!(
+            "mkdir -p {SHARED_DIR} && cp -r {BINARY_NAME} {CONFIG_NAMES} {SHARED_DIR} && echo COPIEDDD",
+            BINARY_NAME=BINARY_NAME,
+            CONFIG_NAMES=CONFIG_NAMES,
+            SHARED_DIR=SHARED_DIR
+        ),
         "COPIEDDD",
     )?;
     shell_for_copying_files_into_shared_dir.wait_for_prompt()?;
@@ -38,13 +56,11 @@ fn test_full_integration_with_archlinux_vm() -> Result<()> {
     eprintln!("[TEST]: Starting VM.");
     let mut p = spawn_bash(Some(90000))?;
     let qemu_command = format!(
-        "qemu-system-x86_64 -cdrom /tmp/archlinux/archlinux-{ARCH_VERSION}-x86_64.iso -m 1024 -enable-kvm -nographic -vga none -virtfs local,path=/tmp/archlinux/shared,mount_tag=host0,security_model=passthrough,id=host0", 
+        "qemu-system-x86_64 -cdrom /tmp/archlinux/archlinux-{ARCH_VERSION}-x86_64.iso -m 1024 -enable-kvm -nographic -vga none -virtfs local,path={SHARED_DIR},mount_tag=host0,security_model=passthrough,id=host0",
         ARCH_VERSION=ARCH_VERSION,
+        SHARED_DIR=SHARED_DIR,
     );
-    p.execute(
-        &qemu_command,
-        "Arch Linux"
-    )?;
+    p.execute(&qemu_command, "Arch Linux")?;
     eprintln!("[TEST]: Reached kernel options...");
     p.send_control('i')?;
     p.exp_string("vmlinuz")?;

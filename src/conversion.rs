@@ -35,7 +35,7 @@ mod tests {
         let ident = NetctlIdentifier::from(&nw);
         assert_eq!("FU_ARK", ident.as_ref());
     }
-    
+
     #[test]
     fn test_wireless_netctl_conversion() {
         let essid = "FU ARK";

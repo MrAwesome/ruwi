@@ -97,7 +97,7 @@ where
                 return Err(rerr!(
                     RuwiErrorKind::IWSynchronousScanRanOutOfRetries,
                     format!(
-                        "Ran out of retries waiting for {} to become available for scanning with `iw`. Is NetworkManager or another service running?", 
+                        "Ran out of retries waiting for {} to become available for scanning with `iw`. Is NetworkManager or another service running?",
                         interface.get_ifname()
                         ),
                 ));
@@ -118,7 +118,7 @@ fn run_iw_scan_synchronous_cmd<O>(
 where
     O: Global,
 {
-    SystemCommandRunner::new( 
+    SystemCommandRunner::new(
         options,
         "iw",
         &[interface.get_ifname(), "scan"],
@@ -147,7 +147,7 @@ where
     O: Global,
 {
     // Initiate a rescan. This command should return instantaneously.
-    SystemCommandRunner::new( 
+    SystemCommandRunner::new(
         options,
         "iw",
         &[interface.get_ifname(), "scan", "trigger"],

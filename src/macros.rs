@@ -61,12 +61,13 @@ macro_rules! string_container {
                 $name::new(string)
             }
         }
+
         impl From<&str> for $name {
             fn from(string: &str) -> $name {
                 $name::new(string)
             }
         }
-        
+
         impl PartialEq<str> for $name {
             fn eq(&self, other: &str) -> bool {
                 self.as_ref() == other

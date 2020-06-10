@@ -7,7 +7,6 @@ pub(crate) fn run_wpa_cli_scan<O>(options: &O, wifi_scan_type: WifiScanType) -> 
 where
     O: Global,
 {
-    
     let err_msg = concat!(
         "Failed to scan with `wpa_cli scan_results`. ",
         "Is wpa_supplicant running? Is it installed? ",

@@ -20,12 +20,12 @@ pub(crate) static SYNCHRONOUS_RETRY_DELAY_SECS: f64 = 0.2;
 pub(crate) static DEVICE_OR_RESOURCE_BUSY_EXIT_CODE: i32 = 240;
 
 pub(crate) fn wifi_scan<O>(
-    options: &O, 
+    options: &O,
     interface: &WifiIPInterface,
     synchronous_rescan: &Option<SynchronousRescanType>
-) -> Result<ScanResult, RuwiError> 
-where 
-    O: Global + Wifi 
+) -> Result<ScanResult, RuwiError>
+where
+    O: Global + Wifi
 {
     let sm = options.get_scan_method().clone();
     let st = options.get_scan_type().clone();
@@ -38,7 +38,7 @@ where
                 WifiScanType::Nmcli => run_nmcli_scan(options, interface, st, synchronous_rescan),
                 WifiScanType::WpaCli => run_wpa_cli_scan(options, st),
                 WifiScanType::IW => run_iw_scan(options, interface, st, synchronous_rescan),
-                WifiScanType::RuwiJSON => 
+                WifiScanType::RuwiJSON =>
                     Err(rerr!(
                         RuwiErrorKind::InvalidScanTypeAndMethod,
                         "There is currently no binary for providing JSON results, you must format them yourself and pass in via stdin or from a file.",

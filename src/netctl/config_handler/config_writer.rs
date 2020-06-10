@@ -42,7 +42,7 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
                 .map_err(|e| rerr!(RuwiErrorKind::FailedToWriteNetctlConfig, e.to_string()))?;
             eprintln!("[NOTE]: Wrote netctl config: {}", &fullpath);
             eprintln!(
-                "[NOTE]: If you encounter problems with your connection, try 
+                "[NOTE]: If you encounter problems with your connection, try \
                 editing that file directly and/or running `netctl switch-to {}` as root.",
                 netctl_file_name
             );

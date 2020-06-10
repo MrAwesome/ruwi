@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 // Ensure serious cleanliness:
 #![warn(clippy::pedantic)]
 // But these are a bit too pedantic:
@@ -7,8 +9,6 @@
 // And TypedBuilder is triggering these:
 #![allow(clippy::default_trait_access)]
 #![allow(clippy::used_underscore_binding)]
-
-#![forbid(unsafe_code)]
 
 extern crate clap;
 extern crate serde;
@@ -71,6 +71,7 @@ use errors::RuwiError;
 // TODO(high): implement speed/connection/dns test - see `nmcli networking connectivity` for networkmanager mode
 // TODO(high): implement bluetooth
 // TODO(high): write benchmark tests: ~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/liballoc/benches/slice.rs
+// TODO(mid): make --clear-first flag to clear before connecting
 // TODO(mid): add colors to output / use a real logging library / set debugging levels
 // TODO(mid): ability to do -o "wired.connect_via=netctl", overriding config file entries
 // TODO(mid): add a "list seen networks" mode?

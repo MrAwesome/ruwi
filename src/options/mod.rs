@@ -8,6 +8,7 @@ pub(crate) mod command;
 pub mod traits;
 pub(crate) mod wifi;
 pub(crate) mod wired;
+pub(crate) mod clear;
 
 use crate::enums::SelectionMethod;
 
