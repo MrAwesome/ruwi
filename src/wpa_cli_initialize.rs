@@ -74,8 +74,17 @@ pub(crate) fn kill_wpa_supplicant<O>(options: &O) -> Result<(), RuwiError>
 where
     O: Global,
 {
-    SystemCommandRunner::new(options, "pkill", &["wpa_supplicant"]).run_command_pass(
-        RuwiErrorKind::FailedToStopWpaSupplicant,
-        "Failed to stop wpa_supplicant! Are you running as root?",
-    )
+    let procs = SystemCommandRunner::new(options, "pgrep", &["wpa_supplicant"]).run_command_pass_stdout(
+        RuwiErrorKind::FailedToLookForWpaSupplicantProc,
+        "Failed to find running wpa_supplicant processes! Is `pgrep` installed?",
+    )?;
+
+    if !procs.is_empty() {
+        SystemCommandRunner::new(options, "pkill", &["wpa_supplicant"]).run_command_pass(
+            RuwiErrorKind::FailedToStopWpaSupplicant,
+            "Failed to stop wpa_supplicant! Are you running as root?",
+        )
+    } else {
+        Ok(())
+    }
 }

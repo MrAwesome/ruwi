@@ -16,6 +16,7 @@ pub enum RuwiErrorKind {
     FailedToConnectViaNetctl,
     FailedToConnectViaNetworkManager,
     FailedToListKnownNetworksWithNetworkManager,
+    FailedToLookForWpaSupplicantProc,
     FailedToParseIPLinkOutput,
     FailedToParseSelectedLine,
     FailedToRawConnectViaDhclient,

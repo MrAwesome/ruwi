@@ -44,15 +44,19 @@ impl LinuxIPLinkInterface {
     }
 
     fn from_json(stdout: &str) -> Result<Vec<Self>, RuwiError> {
-        serde_json::from_str(&stdout).or_else(|_e| {
-            Err(rerr!(
-                RuwiErrorKind::FailedToParseIPLinkOutput,
-                format!(
-                    "Failed to parse this `ip -j link show` output as JSON: {}",
-                    stdout
-                )
-            ))
-        })
+        if stdout.is_empty() {
+            Ok(vec![])
+        } else {
+            serde_json::from_str(&stdout).or_else(|_e| {
+                Err(rerr!(
+                    RuwiErrorKind::FailedToParseIPLinkOutput,
+                    format!(
+                        "Failed to parse this `ip -j link show` output as JSON: {}",
+                        stdout
+                    )
+                ))
+            })
+        }
     }
 
 }

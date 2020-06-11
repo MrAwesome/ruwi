@@ -49,11 +49,7 @@ pub(crate) trait TypedLinuxInterfaceFinder: TryFrom<LinuxIPLinkInterface> {
             .into_iter()
             .filter_map(|x| Self::try_from(x).ok())
             .collect::<Vec<_>>();
-        if raw_interfaces.is_empty() {
-            Err(Self::none_found_error())
-        } else {
-            Ok(raw_interfaces)
-        }
+        Ok(raw_interfaces)
     }
 }
 

@@ -202,11 +202,17 @@ fn test_check_system_for_wifi_no_args_run() -> Result<()> {
 fn test_clear() -> Result<()> {
     let mut p = spawn_dryrun("clear")?;
     p.exp_string("Running in dryrun mode!")?;
-    let text = p.exp_eof()?;
-    dbg!(&text);
+
+    p.exp_string("Bringing down all wired interfaces...")?;
+    p.exp_string("Not running command in dryrun mode: `ip -j link show`")?;
+    p.exp_string("Bringing down all wifi interfaces...")?;
+    p.exp_string("Not running command in dryrun mode: `ip -j link show`")?;
+
 
     // This is a little inflexible, but since `ruwi clear` can give results in any order because it's
     // threaded, ensuring we do kill everything we expect to kill seems like a small price to pay.
+    let text = p.exp_eof()?;
+    dbg!(&text);
     let stopped_all_netctl_profiles =
         text.contains("Not running command in dryrun mode: `netctl stop-all`");
     let killed_netctl =
@@ -214,7 +220,7 @@ fn test_clear() -> Result<()> {
     let killed_nwmgr =
         text.contains("Not running command in dryrun mode: `systemctl stop NetworkManager`");
     let killed_wpa_supp =
-        text.contains("Not running command in dryrun mode: `pkill wpa_supplicant`");
+        text.contains("Not running command in dryrun mode: `pgrep wpa_supplicant`");
     dbg!(
         &stopped_all_netctl_profiles,
         &killed_netctl,

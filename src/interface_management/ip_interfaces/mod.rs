@@ -42,6 +42,13 @@ pub(crate) trait LinuxIPInterface: Sized + From<String> {
         Ok(interfaces)
     }
 
+    fn bring_all_down<O: Global>(opts: &O) -> Result<(), RuwiError> {
+        for iface in Self::get_all(opts)? {
+            iface.bring_down(opts)?
+        }
+        Ok(())
+    }
+
     fn from_name_or_all<O: Global>(
         opts: &O,
         maybe_name: &Option<String>,
