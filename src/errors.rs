@@ -8,11 +8,12 @@ use std::fmt;
 pub enum RuwiErrorKind {
     BinaryWritableByNonRootWhenRunningAsRoot,
     CmdLineOptParserSafeFailedInTest,
-    CommandNotFound,
     CommandFindingSpawnError,
+    CommandNotFound,
     ErrorReadingNetctlDir,
     FailedToBringLinuxNetworkingInterfaceDown,
     FailedToBringLinuxNetworkingInterfaceUp,
+    FailedToConnectViaBluetoothCtl,
     FailedToConnectViaNetctl,
     FailedToConnectViaNetworkManager,
     FailedToFindDevicesWithBluetoothCtl,

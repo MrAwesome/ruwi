@@ -8,17 +8,19 @@ mod utils;
 use config_finder::{NetctlConfigFinderCriteria, WiredNetctlConfigFinderCriteria};
 #[cfg(not(test))]
 use config_reader::reader_implementation::read_all_netctl_config_files;
-use structs::{NetctlConfig, NetctlRawConfig, NetctlRawParsedFields, WifiNetctlConfig, WiredNetctlConfig};
 #[cfg(test)]
 use structs::NetctlRawConfigContents;
+use structs::{
+    NetctlConfig, NetctlRawConfig, NetctlRawParsedFields, WifiNetctlConfig, WiredNetctlConfig,
+};
 
-use crate::prelude::*;
 use crate::interface_management::ip_interfaces::{WifiIPInterface, WiredIPInterface};
+use crate::prelude::*;
 use std::convert::TryFrom;
 use typed_builder::TypedBuilder;
 
-use super::DEFAULT_NETCTL_CFG_DIR;
 use super::NetctlIdentifier;
+use super::DEFAULT_NETCTL_CFG_DIR;
 
 #[derive(Debug, Clone, PartialEq, Eq, TypedBuilder)]
 pub(crate) struct NetctlConfigHandler<'a, O: Global> {
@@ -145,9 +147,9 @@ impl<'a, O: Global> NetctlConfigHandler<'a, O> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use super::structs::NetctlConnectionType;
     use super::config_finder::WifiNetctlConfigFinderCriteria;
+    use super::structs::NetctlConnectionType;
+    use super::*;
 
     use crate::options::GlobalOptions;
 
@@ -176,8 +178,7 @@ mod tests {
         }
     }
 
-    fn get_sample_configs(
-    ) -> Vec<(NetctlIdentifier, NetctlRawConfigContents)> {
+    fn get_sample_configs() -> Vec<(NetctlIdentifier, NetctlRawConfigContents)> {
         let locations = get_sample_filenames();
         locations
             .into_iter()

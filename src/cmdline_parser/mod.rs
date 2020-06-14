@@ -1,15 +1,17 @@
+mod bluetooth;
 mod utils;
 mod wifi;
 mod wired;
 
+use bluetooth::get_bluetooth_cmd;
 use utils::handle_cmdline_parsing_error;
 use wifi::get_wifi_cmd;
 use wired::get_wired_cmd;
 
-use crate::prelude::*;
+use crate::options::clear::ClearOptions;
 use crate::options::command::RuwiCommand;
 use crate::options::GlobalOptions;
-use crate::options::clear::ClearOptions;
+use crate::prelude::*;
 use crate::strum_utils::{get_val_as_enum, possible_string_vals};
 
 use std::env;
@@ -17,9 +19,12 @@ use std::env;
 use clap::{App, Arg, ArgMatches, SubCommand};
 use strum::AsStaticRef;
 
+const BLUETOOTH_TOKEN: &str = "bluetooth";
 const CLEAR_TOKEN: &str = "clear";
 const WIFI_TOKEN: &str = "wifi";
 const WIRED_TOKEN: &str = "wired";
+
+const BLUETOOTH_CONNECT_TOKEN: &str = "connect";
 
 const WIRED_CONNECT_TOKEN: &str = "connect";
 
@@ -29,7 +34,8 @@ const WIFI_CONNECT_TOKEN: &str = "connect";
 const PRETEND_TO_BE_ROOT_TOKEN: &str = "PRETEND_TO_BE_ROOT";
 
 const CMDLINE_BAILOUT_TOKEN: &str = "ONLY_PARSE_CMDLINE";
-const CMDLINE_BAILOUT_MSG: &str = "Command line parsing was successful, but cmdline bailout was requested!";
+const CMDLINE_BAILOUT_MSG: &str =
+    "Command line parsing was successful, but cmdline bailout was requested!";
 
 // TODO: find a better place for interface to live (perhaps not on options at all?)
 // TODO: add help for connect and clear and select!
@@ -47,10 +53,9 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .long("debug")
         .help("Print out debug information on what ruwi sees.");
 
-    let dry_run = Arg::with_name("dry_run")
-        .short("D")
-        .long("dry-run")
-        .help("Don't write to or read from any files, interfaces, or networks. Mostly just useful for integration tests.");
+    let dry_run = Arg::with_name("dry_run").short("D").long("dry-run").help(
+        "Don't write/read/run any files/interfaces/networks/binaries, besides selection programs.",
+    );
 
     let input_file = Arg::with_name("input_file")
         .short("F")
@@ -137,6 +142,14 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .possible_values(&possible_string_vals::<WiredConnectionType, _>())
         .help("Which network management suite to use to connect on the given interface.");
 
+    let bluetooth_connect_via = Arg::with_name("connect_via")
+        .short("c")
+        .long("connect-via")
+        .takes_value(true)
+        .default_value(&BluetoothConnectionType::default().as_static())
+        .possible_values(&possible_string_vals::<BluetoothConnectionType, _>())
+        .help("Which bluetooth utility or library to use to connect to a device.");
+
     let connection_manager_profile = Arg::with_name("profile")
         .short("p")
         .long("profile")
@@ -150,7 +163,16 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .arg(debug)
         .arg(dry_run)
         .arg(selection_method)
-        .subcommand(SubCommand::with_name(CLEAR_TOKEN).help("Stop all managed networking services (netctl, NetworkManager, wpa_supplicant, etc.)"))
+        .subcommand(SubCommand::with_name(CLEAR_TOKEN)
+            .help("Stop all managed networking services (netctl, NetworkManager, wpa_supplicant, etc.)")
+        )
+        .subcommand(SubCommand::with_name(BLUETOOTH_TOKEN)
+            .help("Scan/connect to Bluetooth devices.")
+            .subcommand(SubCommand::with_name(BLUETOOTH_CONNECT_TOKEN)
+                .arg(bluetooth_connect_via)
+                .help("Scan for, select, and connect to a Bluetooth device.")
+            )
+        )
         .subcommand(SubCommand::with_name(WIRED_TOKEN)
             .arg(networking_interface.clone())
             .subcommand(SubCommand::with_name(WIRED_CONNECT_TOKEN)
@@ -212,6 +234,8 @@ fn get_command_from_command_line_impl(m: &ArgMatches) -> Result<RuwiCommand, Ruw
         RuwiCommand::Clear(clear_opts)
     } else if command_name == WIRED_TOKEN {
         RuwiCommand::Wired(get_wired_cmd(globals, maybe_cmd_matcher)?)
+    } else if command_name == BLUETOOTH_TOKEN {
+        RuwiCommand::Bluetooth(get_bluetooth_cmd(globals, maybe_cmd_matcher)?)
     } else {
         handle_cmdline_parsing_error(command_name, maybe_cmd_matcher)?
     };
@@ -243,13 +267,15 @@ fn only_parse_cmdline_check() -> Result<(), RuwiError> {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    use crate::options::command::{RuwiCommand, RuwiWifiCommand, RuwiWiredCommand};
+    use crate::options::command::{
+        RuwiBluetoothCommand, RuwiCommand, RuwiWifiCommand, RuwiWiredCommand,
+    };
 
+    use crate::options::bluetooth::connect::BluetoothConnectOptions;
     use crate::options::wifi::connect::WifiConnectOptions;
     use crate::options::wired::connect::WiredConnectOptions;
 
@@ -303,6 +329,17 @@ mod tests {
         }
     }
 
+    fn expect_bluetooth_connect_opts(cmd: RuwiCommand) -> BluetoothConnectOptions {
+        if let RuwiCommand::Bluetooth(RuwiBluetoothCommand::Connect(opts)) = cmd {
+            opts
+        } else {
+            panic!(
+                "Expected command to be 'bluetooth connect', but got: {:?}",
+                cmd
+            );
+        }
+    }
+
     fn getopts_safe(args: &[&str]) -> Result<RuwiCommand, RuwiError> {
         dbg!(&args);
         let matcher = get_matches_safe(args).map_err(|e| {
@@ -333,8 +370,13 @@ mod tests {
 
     #[test]
     fn test_clear() {
-        let opts = expect_clear_opts(getopts(&["clear"]));
-        assert![!opts.d()];
+        expect_clear_opts(getopts(&["clear"]));
+    }
+
+    #[test]
+    fn test_bluetooth_connect_basic() {
+        expect_bluetooth_connect_opts(getopts(&["bluetooth"]));
+        expect_bluetooth_connect_opts(getopts(&["bluetooth", "connect"]));
     }
 
     #[test]
@@ -356,7 +398,10 @@ mod tests {
         let opts = expect_wifi_connect_opts(getopts(&["wifi", "-i", "BFUGG"]));
         assert_eq![opts.get_given_interface_name(), &Some("BFUGG".to_string())];
         let opts = expect_wifi_connect_opts(getopts(&["wifi", "--interface", "BLEEBLOO"]));
-        assert_eq![opts.get_given_interface_name(), &Some("BLEEBLOO".to_string())];
+        assert_eq![
+            opts.get_given_interface_name(),
+            &Some("BLEEBLOO".to_string())
+        ];
     }
 
     #[test]
@@ -537,7 +582,6 @@ mod tests {
         dbg!(&err);
         assert_eq![err.kind, RuwiErrorKind::InvalidScanTypeAndConnectType];
     }
-
 
     #[test]
     fn test_wired_connect_via() {

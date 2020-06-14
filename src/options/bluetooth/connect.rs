@@ -1,23 +1,35 @@
 use typed_builder::TypedBuilder;
 
-use crate::prelude::*;
 use crate::options::bluetooth::BluetoothOptions;
+use crate::prelude::*;
 
 #[derive(Debug, Clone, TypedBuilder)]
 pub struct BluetoothConnectOptions {
     bluetooth: BluetoothOptions,
-    //#[builder(default)]
-    //auto_mode: AutoMode,
-    //#[builder(default)]
-    //connect_via: BluetoothConnectionType,
+    #[builder(default)]
+    auto_mode: AutoMode,
+    #[builder(default)]
+    connect_via: BluetoothConnectionType,
+}
+
+impl BluetoothConnect for BluetoothConnectOptions {
+    fn get_connect_via(&self) -> &BluetoothConnectionType {
+        &self.connect_via
+    }
+}
+
+impl AutoSelect for BluetoothConnectOptions {
+    fn get_auto_mode(&self) -> &AutoMode {
+        &self.auto_mode
+    }
 }
 
 impl Default for BluetoothConnectOptions {
     fn default() -> Self {
         Self {
             bluetooth: BluetoothOptions::default(),
-            //connect_via: BluetoothConnectionType::default(),
-            //auto_mode: AutoMode::default(),
+            connect_via: BluetoothConnectionType::default(),
+            auto_mode: AutoMode::default(),
         }
     }
 }
@@ -58,17 +70,5 @@ impl Global for BluetoothConnectOptions {
 //    }
 //    fn get_given_interface_name(&self) -> &Option<String> {
 //        self.bluetooth.get_given_interface_name()
-//    }
-//}
-//
-//impl BluetoothConnect for BluetoothConnectOptions {
-//    fn get_force_ask_password(&self) -> bool {
-//        self.force_ask_password
-//    }
-//    fn get_given_essid(&self) -> &Option<String> {
-//        &self.given_essid
-//    }
-//    fn get_given_encryption_key(&self) -> &Option<String> {
-//        &self.given_encryption_key
 //    }
 //}

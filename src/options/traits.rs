@@ -47,6 +47,10 @@ pub trait WiredConnect {
     fn get_given_profile_name(&self) -> &Option<String>;
 }
 
+pub trait BluetoothConnect {
+    fn get_connect_via(&self) -> &BluetoothConnectionType;
+}
+
 pub trait WifiDataGatherer {
     fn get_wifi_data(
         &self,

@@ -170,6 +170,7 @@ impl Identifiable for AnnotatedWiredNetwork {
                     netident.as_ref()
                 },
                 NetworkServiceIdentifier::NetworkManager => ifname,
+                NetworkServiceIdentifier::Bluetooth(_) => unreachable!("Bluetooth network given for wired network! This is a bug, please report."),
             }
         } else {
             ifname

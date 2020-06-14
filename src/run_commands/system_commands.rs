@@ -80,9 +80,8 @@ impl<'a, O: Global> SystemCommandRunner<'a, O> {
 
         let mut cmd = get_output_command(self.opts, self.cmd_name, &self.args)?;
         let output_res = spawn_and_await_output_command(self.opts, &mut cmd);
-        output_res.map_err(|e| {
-            format_failure_to_run_command_and_given_err(&cmd, &e, err_kind, err_msg)
-        })
+        output_res
+            .map_err(|e| format_failure_to_run_command_and_given_err(&cmd, &e, err_kind, err_msg))
     }
 
     pub(crate) fn run_command_status_dumb(&self) -> bool {

@@ -92,6 +92,18 @@ impl Default for WiredConnectionType {
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
 #[strum(serialize_all = "snake_case")]
+pub enum BluetoothConnectionType {
+    Bluetoothctl,
+}
+
+impl Default for BluetoothConnectionType {
+    fn default() -> Self {
+        Self::Bluetoothctl
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
+#[strum(serialize_all = "snake_case")]
 pub enum AutoMode {
     Ask,
     KnownOrAsk,
@@ -126,6 +138,7 @@ pub(crate) enum NetworkingService {
 pub enum NetworkServiceIdentifier {
     Netctl(String),
     NetworkManager,
+    Bluetooth(String),
 }
 
 impl NetworkServiceIdentifier {

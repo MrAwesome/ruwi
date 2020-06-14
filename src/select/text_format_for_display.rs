@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::bluetooth::BluetoothDevice;
 
 pub static KNOWN_TOKEN: &str = "K";
 pub static OPEN_TOKEN: &str = "O";
@@ -14,6 +15,12 @@ impl Selectable for AnnotatedWirelessNetwork {
 impl Selectable for AnnotatedWiredNetwork {
     fn get_display_string(&self) -> String {
         self.get_public_name().to_string()
+    }
+}
+
+impl Selectable for BluetoothDevice {
+    fn get_display_string(&self) -> String {
+        self.get_name().to_string()
     }
 }
 
