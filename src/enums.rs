@@ -119,6 +119,7 @@ impl Default for AutoMode {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SynchronousRescanType {
+    NoneSeen,
     ManuallyRequested,
     Automatic,
 }

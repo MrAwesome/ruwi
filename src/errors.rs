@@ -63,6 +63,7 @@ pub enum RuwiErrorKind {
     NoWiredInterfacesFound,
     NotImplementedError,
     OnlyParseCmdlineBailout,
+    PromptCommandBailoutRequested,
     PromptCommandFailed,
     PromptCommandSpawnFailed,
     RefreshRequested,

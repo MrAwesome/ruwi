@@ -183,6 +183,16 @@ fn test_no_nmcli_connect_with_non_nmcli_scan() -> Result<()> {
 }
 
 #[test]
+fn test_bluetooth_connect() -> Result<()> {
+    let mut p = spawn_dryrun("bluetooth connect -c bluetoothctl")?;
+    p.exp_string("Not running command in dryrun mode: `bluetoothctl devices`")?;
+    p.exp_string("Not running command in dryrun mode: `bluetoothctl --timeout 10 scan on`")?;
+    p.send_control('c')?;
+    Ok(())
+}
+
+
+#[test]
 fn test_check_system_for_no_args_run() -> Result<()> {
     let mut p = spawn_dryrun_noargs()?;
     p.exp_string("No value was explicitly given for \"scan_type\", will check the system to determine the best value.")?;

@@ -6,7 +6,7 @@ use crate::interface_management::ip_interfaces::{LinuxIPInterface, WifiIPInterfa
 use crate::known_networks::WifiKnownNetworks;
 use crate::parse::parse_result;
 use crate::sort_networks::SortedFilteredNetworks;
-use crate::synchronous_retry_logic::should_auto_retry_with_synchronous_scan;
+use crate::synchronous_retry_logic::{should_auto_retry_with_synchronous_scan, manual_refresh_requested};
 use crate::utils::{await_thread, loop_check};
 use crate::select::Selector;
 use crate::wifi_scan::wifi_scan;
@@ -68,15 +68,6 @@ where
     let scan_result = await_thread(get_scan_results)??;
 
     Ok((known_network_names, scan_result))
-}
-
-pub(super) fn manual_refresh_requested<T>(res: &Result<T, RuwiError>) -> bool {
-    if let Err(err) = res {
-        if err.kind == RuwiErrorKind::RefreshRequested {
-            return true;
-        }
-    }
-    false
 }
 
 pub(super) fn get_network_from_given_essid<O>(

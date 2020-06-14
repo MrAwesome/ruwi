@@ -1,12 +1,13 @@
 use crate::prelude::*;
 
-pub(crate) fn should_auto_retry_with_synchronous_scan<O>(
+pub(crate) fn should_auto_retry_with_synchronous_scan<O, N>(
     options: &O,
-    networks: &[AnnotatedWirelessNetwork],
+    networks: &[N],
     synchronous_retry: &Option<SynchronousRescanType>,
 ) -> bool
 where
     O: Global + AutoSelect,
+    N: Known
 {
     synchronous_retry.is_none()
         && (networks.is_empty()
@@ -14,6 +15,15 @@ where
                 AutoMode::KnownOrAsk | AutoMode::KnownOrFail => !networks.iter().any(|x| x.is_known()),
                 AutoMode::First | AutoMode::Ask => false,
             })
+}
+
+pub(crate) fn manual_refresh_requested<T>(res: &Result<T, RuwiError>) -> bool {
+    if let Err(err) = res {
+        if err.kind == RuwiErrorKind::RefreshRequested {
+            return true;
+        }
+    }
+    false
 }
 
 #[cfg(test)]

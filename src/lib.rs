@@ -62,6 +62,7 @@ use errors::RuwiError;
 // Arch dependencies: wireless_tools, netctl, iw, bluetooth things?, iptools
 // Arch optional dependencies: dmenu, NetworkManager, fzf
 
+// TODO(high): document bluetooth usage
 // TODO(high): remove defaults for wired and selection method in cmdline_parser, and have them check system
 // TODO(high): add `clear` success messages (and note that it's expected to see some error messages there, or just hide all of them)
 // TODO(high): `clear` should be `wifi clear`? or at least call into it? i guess wired and wireless may use the same services. bluetooth also will have services i suppose. should ip/bt be different service types?
