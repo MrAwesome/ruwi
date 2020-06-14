@@ -3,6 +3,7 @@ use crate::options::clear::ClearOptions;
 use crate::options::wifi::connect::WifiConnectOptions;
 use crate::options::wifi::select::WifiSelectOptions;
 use crate::options::wired::connect::WiredConnectOptions;
+use crate::options::bluetooth::connect::BluetoothConnectOptions;
 use crate::runner::Runner;
 
 use strum_macros::{AsRefStr, AsStaticStr, Display, EnumIter, EnumString};
@@ -33,7 +34,7 @@ impl RuwiCommand {
             Self::Wifi(RuwiWifiCommand::Connect(options)) => options.run(),
             Self::Wifi(RuwiWifiCommand::Select(options)) => options.run(),
             Self::Wired(RuwiWiredCommand::Connect(options)) => options.run(),
-            Self::Bluetooth(RuwiBluetoothCommand::Pair) => unimplemented!(),
+            Self::Bluetooth(RuwiBluetoothCommand::Connect(options)) => options.run(),
             // TODO: give clear its own options, and make it match this format
             Self::Clear(options) => options.run(),
         }
@@ -68,11 +69,11 @@ impl Default for RuwiWiredCommand {
 #[strum(serialize_all = "snake_case")]
 #[derive(Debug, Clone, EnumString, EnumIter, Display, AsStaticStr, AsRefStr)]
 pub enum RuwiBluetoothCommand {
-    Pair,
+    Connect(BluetoothConnectOptions),
 }
 
 impl Default for RuwiBluetoothCommand {
     fn default() -> Self {
-        Self::Pair
+        Self::Connect(BluetoothConnectOptions::default())
     }
 }

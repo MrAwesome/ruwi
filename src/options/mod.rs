@@ -4,11 +4,12 @@
 #![allow(clippy::default_trait_access)]
 #![allow(clippy::used_underscore_binding)]
 
+pub(crate) mod bluetooth;
+pub(crate) mod clear;
 pub(crate) mod command;
 pub mod traits;
 pub(crate) mod wifi;
 pub(crate) mod wired;
-pub(crate) mod clear;
 
 use crate::enums::SelectionMethod;
 

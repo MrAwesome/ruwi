@@ -62,11 +62,8 @@ use errors::RuwiError;
 // Arch dependencies: wireless_tools, netctl, iw, bluetooth things?, iptools
 // Arch optional dependencies: dmenu, NetworkManager, fzf
 
-// TODO(high): make `clear` take down networking interfaces
 // TODO(high): remove defaults for wired and selection method in cmdline_parser, and have them check system
 // TODO(high): add `clear` success messages (and note that it's expected to see some error messages there, or just hide all of them)
-// TODO(high): make `ruwi` with no arguments still go through system checks
-// TODO(high): include netctl profile name with annotated wired/wireless networks, for connecting to known networks with non-ruwified names - have known netctl networks return essid + config name, for matching/annotation with config name
 // TODO(high): `clear` should be `wifi clear`? or at least call into it? i guess wired and wireless may use the same services. bluetooth also will have services i suppose. should ip/bt be different service types?
 // TODO(high): implement speed/connection/dns test - see `nmcli networking connectivity` for networkmanager mode
 // TODO(high): implement bluetooth

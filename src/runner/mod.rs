@@ -1,5 +1,6 @@
 use crate::errors::RuwiError;
 
+mod bluetooth;
 mod wifi;
 mod wired;
 mod clear;
