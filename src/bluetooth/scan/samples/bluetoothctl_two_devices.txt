@@ -1,0 +1,2 @@
+Device 00:0D:44:BE:7D:EB UE Boombox
+Device 04:52:C7:C3:73:11 Gleez Head

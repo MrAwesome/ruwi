@@ -12,7 +12,7 @@ use typed_builder::TypedBuilder;
 // TODO: trust device, pair device, connect to device
 // TODO: synchronous rescan logic during selection, or when devices returns nothing
 
-#[derive(Debug, Clone, TypedBuilder)]
+#[derive(Debug, Clone, TypedBuilder, Eq, PartialEq)]
 pub(crate) struct BluetoothDevice {
     name: String,
     addr: String,

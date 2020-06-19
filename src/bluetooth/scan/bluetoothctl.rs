@@ -5,8 +5,8 @@ use std::fmt::Display;
 use crate::prelude::*;
 use crate::run_commands::SystemCommandRunner;
 
-use super::BluetoothDeviceScanner;
 use super::super::BluetoothDevice;
+use super::BluetoothDeviceScanner;
 
 pub(crate) struct BluetoothCtlDeviceScanner<'a, O: Global> {
     opts: &'a O,
@@ -14,9 +14,7 @@ pub(crate) struct BluetoothCtlDeviceScanner<'a, O: Global> {
 
 impl<'a, O: Global> BluetoothCtlDeviceScanner<'a, O> {
     pub(crate) fn new(opts: &'a O) -> Self {
-       Self {
-           opts
-       }
+        Self { opts }
     }
 }
 
@@ -25,6 +23,8 @@ impl<'a, O: Global> BluetoothDeviceScanner<O> for BluetoothCtlDeviceScanner<'a, 
         self.opts
     }
 
+    /// The output of `bluetoothctl scan on` is not used directly. Instead, we scan for devices for
+    /// a set amount of time, and then use `bluetoothctl devices` to view and present them.
     fn scan(&self, scan_secs: usize) -> Result<(), RuwiError> {
         SystemCommandRunner::new(
             self.get_opts(),
@@ -36,18 +36,17 @@ impl<'a, O: Global> BluetoothDeviceScanner<O> for BluetoothCtlDeviceScanner<'a, 
             "Failed to scan for bluetooth devices using bluetoothctl! Are you running as root?",
         )
     }
-    fn get_devices(&self) -> Result<Vec<BluetoothDevice>, RuwiError> {
-        let output = SystemCommandRunner::new(
-            self.get_opts(),
-            "bluetoothctl",
-            &["devices"],
-        )
-        .run_command_pass_stdout(
-            RuwiErrorKind::FailedToFindDevicesWithBluetoothCtl,
-            "Failed to list bluetooth devices using bluetoothctl!",
-        )?;
 
-        parse_bluetoothctl_devices_output(output)
+    /// Simply query bluetoothctl for the devices it knows, parse the output, and return our
+    /// BluetoothDevice for use elsewhere.
+    fn get_devices(&self) -> Result<Vec<BluetoothDevice>, RuwiError> {
+        let output = SystemCommandRunner::new(self.get_opts(), "bluetoothctl", &["devices"])
+            .run_command_pass_stdout(
+                RuwiErrorKind::FailedToFindDevicesWithBluetoothCtl,
+                "Failed to list bluetooth devices using bluetoothctl!",
+            )?;
+
+        parse_bluetoothctl_devices_output(&output)
     }
 }
 
@@ -60,7 +59,7 @@ impl Display for ParseError {
     }
 }
 
-fn parse_bluetoothctl_devices_output(output: String) -> Result<Vec<BluetoothDevice>, RuwiError> {
+fn parse_bluetoothctl_devices_output(output: &str) -> Result<Vec<BluetoothDevice>, RuwiError> {
     let mut devices = vec![];
     for line in output.lines() {
         let res = parse_bluetoothctl_devices_line(line);
@@ -88,10 +87,41 @@ fn parse_bluetoothctl_devices_line(line: &str) -> Result<BluetoothDevice, ParseE
     let escaped_name = name_tokens.join(" ");
     let name = escaped_name;
 
-    let dev = BluetoothDevice::builder()
-        .name(name)
-        .addr(addr)
-        .build();
+    let dev = BluetoothDevice::builder().name(name).addr(addr).build();
 
     Ok(dev)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn two_devices() -> Result<(), RuwiError> {
+        let output = include_str!("samples/bluetoothctl_two_devices.txt");
+        let devices = parse_bluetoothctl_devices_output(output)?;
+        let expected_dev1 = BluetoothDevice::builder()
+            .addr("00:0D:44:BE:7D:EB")
+            .name("UE Boombox")
+            .build();
+
+        let expected_dev2 = BluetoothDevice::builder()
+            .addr("04:52:C7:C3:73:11")
+            .name("Gleez Head")
+            .build();
+
+        assert![devices.contains(&expected_dev1)];
+        assert![devices.contains(&expected_dev2)];
+
+        Ok(())
+    }
+
+    #[test]
+    fn no_devices() -> Result<(), RuwiError> {
+        let output = "";
+        let devices = parse_bluetoothctl_devices_output(output)?;
+        assert![devices.is_empty()];
+
+        Ok(())
+    }
 }
