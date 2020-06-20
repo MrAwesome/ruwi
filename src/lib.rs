@@ -59,7 +59,7 @@ pub(crate) mod wpa_cli_initialize;
 use cmdline_parser::get_command_from_command_line;
 use errors::RuwiError;
 
-// Arch dependencies: wireless_tools, netctl, iw, bluetooth things?, iptools
+// Arch dependencies: wireless_tools, netctl, iw, bluetooth things?, iptools, bluez, bluez-utils
 // Arch optional dependencies: dmenu, NetworkManager, fzf
 
 // TODO(high): document bluetooth usage
