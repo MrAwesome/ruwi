@@ -203,8 +203,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::additional_options_for_manual_selection::SelectionOption;
+    use super::*;
     use crate::options::wifi::connect::WifiConnectOptions;
     use crate::options::wifi::WifiOptions;
     use crate::sort_networks::SortedFilteredNetworks;
@@ -230,14 +230,14 @@ mod tests {
     fn get_3_networks_first_known() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
         let mut networks = get_3_networks();
         networks.get_networks_mut()[0]
-            .set_service_identifier_for_tests(NetworkServiceIdentifier::netctl_nw("some_id"));
+            .set_service_identifier_for_tests(NetworkingServiceIdentifier::netctl_nw("some_id"));
         networks
     }
 
     fn get_3_networks_last_known() -> SortedFilteredNetworks<AnnotatedWirelessNetwork> {
         let mut networks = get_3_networks();
         networks.get_networks_mut()[2]
-            .set_service_identifier_for_tests(NetworkServiceIdentifier::netctl_nw("some_id"));
+            .set_service_identifier_for_tests(NetworkingServiceIdentifier::netctl_nw("some_id"));
         networks
     }
 
@@ -331,7 +331,6 @@ mod tests {
         Ok(())
     }
 
-
     #[test]
     fn test_auto_fallback() -> Result<(), RuwiError> {
         let options = WifiConnectOptions::builder()
@@ -383,7 +382,7 @@ mod tests {
         let networks = SortedFilteredNetworks::new(vec![
             AnnotatedWirelessNetwork::builder()
                 .essid("FAKE NEWS LOL OK")
-                .service_identifier(NetworkServiceIdentifier::netctl_nw("some_id"))
+                .service_identifier(NetworkingServiceIdentifier::netctl_nw("some_id"))
                 .is_encrypted(true)
                 .build(),
             AnnotatedWirelessNetwork::builder()
@@ -393,7 +392,7 @@ mod tests {
                 .build(),
             AnnotatedWirelessNetwork::builder()
                 .essid("LOOK, DISCOURSE")
-                .service_identifier(NetworkServiceIdentifier::netctl_nw("some_id"))
+                .service_identifier(NetworkingServiceIdentifier::netctl_nw("some_id"))
                 .is_encrypted(false)
                 .build(),
             AnnotatedWirelessNetwork::builder()

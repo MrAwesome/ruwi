@@ -12,7 +12,6 @@ pub(crate) struct PromptCommandRunner<'a, O: Global> {
     //expected_output: Result<String, RuwiError>,
 }
 
-
 impl<'a, O: Global> PromptCommandRunner<'a, O> {
     pub(crate) fn new(
         opts: &'a O,
@@ -52,10 +51,11 @@ impl<'a, O: Global> PromptCommandRunner<'a, O> {
                         "Prompt command exited with non-zero exit code."
                     ))
                 }
-            },
-            Err(err) => Err(rerr!(RuwiErrorKind::PromptCommandSpawnFailed, format!("{}", err))),
+            }
+            Err(err) => Err(rerr!(
+                RuwiErrorKind::PromptCommandSpawnFailed,
+                format!("{}", err)
+            )),
         }
-
-
     }
 }

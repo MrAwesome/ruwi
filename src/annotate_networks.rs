@@ -47,7 +47,7 @@ mod tests {
         let nw = WirelessNetwork::builder().essid(essid.clone()).build();
         let known_networks = WifiKnownNetworks::new(vec![(
             essid.clone(),
-            NetworkServiceIdentifier::NetworkManager,
+            NetworkingServiceIdentifier::NetworkManager,
         )]);
         let annotated_networks: Vec<AnnotatedWirelessNetwork> =
             annotate_networks(&WifiConnectOptions::default(), &[nw], &known_networks);

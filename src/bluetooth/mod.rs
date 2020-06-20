@@ -12,29 +12,36 @@ use typed_builder::TypedBuilder;
 // TODO: trust device, pair device, connect to device
 // TODO: synchronous rescan logic during selection, or when devices returns nothing
 
+string_container! {BluetoothDeviceName, BluetoothDeviceAddress}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BluetoothKnownDeviceIdentifier {}
+
 #[derive(Debug, Clone, TypedBuilder, Eq, PartialEq)]
 pub(crate) struct BluetoothDevice {
-    name: String,
-    addr: String,
+    name: BluetoothDeviceName,
+    addr: BluetoothDeviceAddress,
     #[builder(default = None)]
-    service_identifier: Option<NetworkServiceIdentifier>,
+    known_identifier: Option<BluetoothKnownDeviceIdentifier>,
 }
 
 impl BluetoothDevice {
     pub(crate) fn get_name(&self) -> &str {
-        &self.name
+        &self.name.as_ref()
     }
 
     pub(crate) fn get_addr(&self) -> &str {
-        &self.addr
+        &self.addr.as_ref()
     }
 }
 
 impl Known for BluetoothDevice {
+    type ServiceIdentifier = BluetoothKnownDeviceIdentifier;
+
     fn is_known(&self) -> bool {
-        self.service_identifier.is_some()
+        self.known_identifier.is_some()
     }
-    fn get_service_identifier(&self) -> Option<&NetworkServiceIdentifier> {
-        self.service_identifier.as_ref()
+    fn get_service_identifier(&self) -> Option<&BluetoothKnownDeviceIdentifier> {
+        self.known_identifier.as_ref()
     }
 }

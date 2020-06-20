@@ -136,15 +136,16 @@ pub(crate) enum NetworkingService {
 // stored here. Otherwise, we just store the type of connection, and use
 // the network's public identifier, usually ESSID.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum NetworkServiceIdentifier {
+pub enum NetworkingServiceIdentifier {
     Netctl(String),
     NetworkManager,
-    Bluetooth(String),
 }
 
-impl NetworkServiceIdentifier {
+//Bluetooth(String),
+
+impl NetworkingServiceIdentifier {
     #[cfg(test)]
-    pub(crate) fn netctl_nw(essid: &str) -> Option<NetworkServiceIdentifier> {
+    pub(crate) fn netctl_nw(essid: &str) -> Option<NetworkingServiceIdentifier> {
         Some(Self::Netctl(essid.to_string()))
     }
 }

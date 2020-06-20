@@ -1,5 +1,5 @@
-use crate::prelude::*;
 use crate::bluetooth::BluetoothDevice;
+use crate::prelude::*;
 
 pub static KNOWN_TOKEN: &str = "K";
 pub static OPEN_TOKEN: &str = "O";
@@ -57,7 +57,7 @@ mod tests {
     ) {
         let essid = "YEEEEEEE".to_string();
         let service_identifier = if is_known {
-            NetworkServiceIdentifier::netctl_nw("is_known_nw")
+            NetworkingServiceIdentifier::netctl_nw("is_known_nw")
         } else {
             None
         };

@@ -3,9 +3,9 @@
 
 use crate::prelude::*;
 
+use crate::interface_management::ip_interfaces::{LinuxIPInterface, WiredIPInterface};
 use std::fmt::Debug;
 use typed_builder::TypedBuilder;
-use crate::interface_management::ip_interfaces::{LinuxIPInterface, WiredIPInterface};
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ScanResult {
@@ -62,11 +62,14 @@ pub struct AnnotatedWirelessNetwork {
 
     // Non-scan annotated fields
     #[builder(default = None)]
-    service_identifier: Option<NetworkServiceIdentifier>,
+    service_identifier: Option<NetworkingServiceIdentifier>,
 }
 
 impl Annotated<WirelessNetwork> for AnnotatedWirelessNetwork {
-    fn from_nw(nw: WirelessNetwork, service_identifier: Option<&NetworkServiceIdentifier>) -> Self {
+    fn from_nw(
+        nw: WirelessNetwork,
+        service_identifier: Option<&NetworkingServiceIdentifier>,
+    ) -> Self {
         let essid = nw.essid;
         let is_encrypted = nw.is_encrypted;
         let bssid = nw.bssid;
@@ -106,7 +109,7 @@ impl AnnotatedWirelessNetwork {
     #[cfg(test)]
     pub(crate) fn set_service_identifier_for_tests(
         &mut self,
-        service_identifier: Option<NetworkServiceIdentifier>,
+        service_identifier: Option<NetworkingServiceIdentifier>,
     ) {
         self.service_identifier = service_identifier
     }
@@ -126,10 +129,12 @@ impl Identifiable for AnnotatedWirelessNetwork {
 }
 
 impl Known for AnnotatedWirelessNetwork {
+    type ServiceIdentifier = NetworkingServiceIdentifier;
+
     fn is_known(&self) -> bool {
         self.service_identifier.is_some()
     }
-    fn get_service_identifier(&self) -> Option<&NetworkServiceIdentifier> {
+    fn get_service_identifier(&self) -> Option<&NetworkingServiceIdentifier> {
         self.service_identifier.as_ref()
     }
 }
@@ -142,7 +147,7 @@ pub struct AnnotatedWiredNetwork {
     interface: WiredIPInterface,
 
     #[builder(default = None)]
-    service_identifier: Option<NetworkServiceIdentifier>,
+    service_identifier: Option<NetworkingServiceIdentifier>,
 }
 
 impl AnnotatedWiredNetwork {
@@ -152,10 +157,12 @@ impl AnnotatedWiredNetwork {
 }
 
 impl Known for AnnotatedWiredNetwork {
+    type ServiceIdentifier = NetworkingServiceIdentifier;
+
     fn is_known(&self) -> bool {
         self.service_identifier.is_some()
     }
-    fn get_service_identifier(&self) -> Option<&NetworkServiceIdentifier> {
+    fn get_service_identifier(&self) -> Option<&NetworkingServiceIdentifier> {
         self.service_identifier.as_ref()
     }
 }
@@ -165,12 +172,11 @@ impl Identifiable for AnnotatedWiredNetwork {
         let ifname = self.interface.get_ifname();
         if let Some(ident) = self.get_service_identifier() {
             match ident {
-                NetworkServiceIdentifier::Netctl(netident) => {
+                NetworkingServiceIdentifier::Netctl(netident) => {
                     // TODO: just the identifier? mention netctl?
                     netident.as_ref()
-                },
-                NetworkServiceIdentifier::NetworkManager => ifname,
-                NetworkServiceIdentifier::Bluetooth(_) => unreachable!("Bluetooth network given for wired network! This is a bug, please report."),
+                }
+                NetworkingServiceIdentifier::NetworkManager => ifname,
             }
         } else {
             ifname
@@ -186,7 +192,7 @@ pub struct ConfigResult {
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ConfigData {
-    pub identifier: Option<NetworkServiceIdentifier>,
+    pub identifier: Option<NetworkingServiceIdentifier>,
     pub config_path: Option<String>,
 }
 

@@ -32,10 +32,10 @@ impl Runner for BluetoothConnectOptions {
         // TODO: mark devices as known if seen in devices output, and don't pair with them
         // TODO: you can use rexpect for pairing via bluetoothctl to detect, if necessary
         //dev.pair(self)?;
-        // TODO: take optional device name
+        // TODO: take optional device name or addr (one field for either?)
         dev.connect(self)?;
 
-        // "Not using libraries directly because Ruwi should not know implementation details, and 
+        // "Not using libraries directly because Ruwi should not know implementation details, and
         // as poor as their APIs may be, these tools are the gold standard for implementations."
         //
         // TODO: include pulseaudio/pulsemixer/etc instructions? or handle that in Ruwi?
@@ -46,6 +46,7 @@ impl Runner for BluetoothConnectOptions {
 }
 
 // TODO: integration test reading devices from file and "connecting" to one with this
+// TODO: move this up a level, it's not connect-specific
 fn TODO_bluetoothctl_startup_bluetooth_stack<O>(opts: &O) -> Result<(), RuwiError>
 where
     O: Global,

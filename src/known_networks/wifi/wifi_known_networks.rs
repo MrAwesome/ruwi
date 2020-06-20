@@ -1,15 +1,16 @@
-use crate::enums::NetworkServiceIdentifier;
+use crate::enums::NetworkingServiceIdentifier;
 use std::collections::HashMap;
 use std::iter::FromIterator;
 
 type Essid = String;
 
 // For netctl, this is the filename of the config. For NetworkManager, it is just the essid.
-pub(super) type UnfilteredKnownNetworkNamesAndIdentifiers = Vec<(Essid, NetworkServiceIdentifier)>;
+pub(super) type UnfilteredKnownNetworkNamesAndIdentifiers =
+    Vec<(Essid, NetworkingServiceIdentifier)>;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct WifiKnownNetworks {
-    essid_to_identifiers: HashMap<Essid, NetworkServiceIdentifier>,
+    essid_to_identifiers: HashMap<Essid, NetworkingServiceIdentifier>,
 }
 
 impl Default for WifiKnownNetworks {
@@ -28,11 +29,14 @@ impl WifiKnownNetworks {
         }
     }
 
-//    pub(crate) fn check_for_essid(&self, essid: &str) -> bool {
-//        self.essid_to_identifiers.contains_key(essid)
-//    }
-//
-    pub(crate) fn get_service_identifier_for_essid(&self, essid: &str) -> Option<&NetworkServiceIdentifier> {
+    //    pub(crate) fn check_for_essid(&self, essid: &str) -> bool {
+    //        self.essid_to_identifiers.contains_key(essid)
+    //    }
+    //
+    pub(crate) fn get_service_identifier_for_essid(
+        &self,
+        essid: &str,
+    ) -> Option<&NetworkingServiceIdentifier> {
         self.essid_to_identifiers.get(essid)
     }
 }

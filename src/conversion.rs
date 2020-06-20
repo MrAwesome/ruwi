@@ -1,10 +1,10 @@
-use crate::prelude::*;
 use crate::netctl::NetctlIdentifier;
+use crate::prelude::*;
 
 impl From<&AnnotatedWirelessNetwork> for NetctlIdentifier {
     fn from(nw: &AnnotatedWirelessNetwork) -> Self {
         let ident = match nw.get_service_identifier() {
-            Some(NetworkServiceIdentifier::Netctl(ident)) => ident.clone(),
+            Some(NetworkingServiceIdentifier::Netctl(ident)) => ident.clone(),
             _ => nw.get_public_name().replace(" ", "_"),
         };
         Self::new(ident)
@@ -14,8 +14,8 @@ impl From<&AnnotatedWirelessNetwork> for NetctlIdentifier {
 impl From<&AnnotatedWiredNetwork> for NetctlIdentifier {
     fn from(nw: &AnnotatedWiredNetwork) -> Self {
         let ident = match nw.get_service_identifier() {
-            Some(NetworkServiceIdentifier::Netctl(ident)) => ident,
-            _ => nw.get_ifname()
+            Some(NetworkingServiceIdentifier::Netctl(ident)) => ident,
+            _ => nw.get_ifname(),
         };
         Self::new(ident)
     }
@@ -29,9 +29,7 @@ mod tests {
     #[test]
     fn test_wireless_non_netctl_conversion() {
         let essid = "FU ARK";
-        let nw = AnnotatedWirelessNetwork::builder()
-            .essid(essid)
-            .build();
+        let nw = AnnotatedWirelessNetwork::builder().essid(essid).build();
         let ident = NetctlIdentifier::from(&nw);
         assert_eq!("FU_ARK", ident.as_ref());
     }
@@ -40,7 +38,7 @@ mod tests {
     fn test_wireless_netctl_conversion() {
         let essid = "FU ARK";
         let given_identifier = "fuark_my_home_network";
-        let stored_identifier = NetworkServiceIdentifier::Netctl(given_identifier.to_string());
+        let stored_identifier = NetworkingServiceIdentifier::Netctl(given_identifier.to_string());
         let nw = AnnotatedWirelessNetwork::builder()
             .essid(essid)
             .service_identifier(stored_identifier)
@@ -65,7 +63,7 @@ mod tests {
         let ifname = "wlp69s420";
         let interface = WiredIPInterface::new(ifname);
         let given_identifier = "fuark_my_home_network";
-        let stored_identifier = NetworkServiceIdentifier::Netctl(given_identifier.to_string());
+        let stored_identifier = NetworkingServiceIdentifier::Netctl(given_identifier.to_string());
         let nw = AnnotatedWiredNetwork::builder()
             .interface(interface)
             .service_identifier(stored_identifier)

@@ -22,7 +22,7 @@ impl Runner for WiredConnectOptions {
                 );
                 vec![AnnotatedWiredNetwork::builder()
                     .interface(interface.clone())
-                    .service_identifier(NetworkServiceIdentifier::Netctl(ident.clone()))
+                    .service_identifier(NetworkingServiceIdentifier::Netctl(ident.clone()))
                     .build()]
             }
             None => match self.get_connect_via() {

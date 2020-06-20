@@ -113,7 +113,7 @@ impl fmt::Display for WifiNetctlConfig {
 impl WiredNetctlConfig {
     pub(super) fn new(interface: &WiredIPInterface, network: &AnnotatedWiredNetwork) -> Self {
         let maybe_ident = network.get_service_identifier();
-        let identifier = if let Some(NetworkServiceIdentifier::Netctl(ident)) = maybe_ident {
+        let identifier = if let Some(NetworkingServiceIdentifier::Netctl(ident)) = maybe_ident {
             ident.clone()
         } else {
             format!("ethernet-{}", interface.get_ifname())

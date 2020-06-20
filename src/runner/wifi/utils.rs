@@ -1,14 +1,16 @@
 use std::thread;
 
 use crate::annotate_networks::annotate_networks;
-use crate::prelude::*;
 use crate::interface_management::ip_interfaces::{LinuxIPInterface, WifiIPInterface};
 use crate::known_networks::WifiKnownNetworks;
 use crate::parse::parse_result;
-use crate::sort_networks::SortedFilteredNetworks;
-use crate::synchronous_retry_logic::{should_auto_retry_with_synchronous_scan, manual_refresh_requested};
-use crate::utils::{await_thread, loop_check};
+use crate::prelude::*;
 use crate::select::Selector;
+use crate::sort_networks::SortedFilteredNetworks;
+use crate::synchronous_retry_logic::{
+    manual_refresh_requested, should_auto_retry_with_synchronous_scan,
+};
+use crate::utils::{await_thread, loop_check};
 use crate::wifi_scan::wifi_scan;
 
 const LOOP_MAX: u16 = 1000;

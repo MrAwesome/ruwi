@@ -5,10 +5,12 @@ use crate::run_commands::SystemCommandRunner;
 
 use crate::netctl::NetctlConfigHandler;
 
-use super::{WifiKnownNetworks, UnfilteredKnownNetworkNamesAndIdentifiers};
+use super::{UnfilteredKnownNetworkNamesAndIdentifiers, WifiKnownNetworks};
 
 impl WifiKnownNetworks {
-    pub(crate) fn find_known_networks_from_system<O>(options: &O) -> Result<WifiKnownNetworks, RuwiError>
+    pub(crate) fn find_known_networks_from_system<O>(
+        options: &O,
+    ) -> Result<WifiKnownNetworks, RuwiError>
     where
         O: Global + Wifi + WifiConnect,
     {
@@ -41,7 +43,9 @@ where
 }
 
 #[cfg(test)]
-fn find_known_networkmanager_networks<O>(_options: &O) -> Result<UnfilteredKnownNetworkNamesAndIdentifiers, RuwiError>
+fn find_known_networkmanager_networks<O>(
+    _options: &O,
+) -> Result<UnfilteredKnownNetworkNamesAndIdentifiers, RuwiError>
 where
     O: Global,
 {
@@ -49,7 +53,9 @@ where
 }
 
 #[cfg(not(test))]
-fn find_known_networkmanager_networks<O>(options: &O) -> Result<UnfilteredKnownNetworkNamesAndIdentifiers, RuwiError>
+fn find_known_networkmanager_networks<O>(
+    options: &O,
+) -> Result<UnfilteredKnownNetworkNamesAndIdentifiers, RuwiError>
 where
     O: Global,
 {
@@ -61,18 +67,27 @@ where
     ).run_command_pass_stdout(
         RuwiErrorKind::FailedToListKnownNetworksWithNetworkManager,
         "Failed to list known networks with NetworkManager. Try running `nmcli -g NAME connection show`.",
-    ).map(|x| x.lines().map(|x| (x.to_string(), NetworkServiceIdentifier::NetworkManager)).collect());
+    ).map(|x| x.lines().map(|x| (x.to_string(), NetworkingServiceIdentifier::NetworkManager)).collect());
     NetworkingService::NetworkManager.stop(options)?;
     output
 }
 
-fn find_known_netctl_networks<O>(options: &O) -> Result<UnfilteredKnownNetworkNamesAndIdentifiers, RuwiError>
+fn find_known_netctl_networks<O>(
+    options: &O,
+) -> Result<UnfilteredKnownNetworkNamesAndIdentifiers, RuwiError>
 where
     O: Global,
 {
     let handler = NetctlConfigHandler::new(options);
-    let configs = handler.get_wifi_essids_and_identifiers()?.into_iter().map(|(essid, identifier)| (essid, NetworkServiceIdentifier::Netctl(identifier.to_string()))).collect();
+    let configs = handler
+        .get_wifi_essids_and_identifiers()?
+        .into_iter()
+        .map(|(essid, identifier)| {
+            (
+                essid,
+                NetworkingServiceIdentifier::Netctl(identifier.to_string()),
+            )
+        })
+        .collect();
     Ok(configs)
-                    //Some((escaped_essid, NetworkServiceIdentifier::Netctl(identifier)))
-
 }

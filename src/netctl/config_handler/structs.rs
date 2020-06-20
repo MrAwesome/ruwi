@@ -1,8 +1,9 @@
-use super::config_finder::{NetctlConfigFinderCriteria, WifiNetctlConfigFinderCriteria, WiredNetctlConfigFinderCriteria};
+use super::config_finder::{
+    NetctlConfigFinderCriteria, WifiNetctlConfigFinderCriteria, WiredNetctlConfigFinderCriteria,
+};
 use super::utils::{check_connection_type, check_for_field};
 use super::NetctlIdentifier;
 
-use crate::string_container;
 use crate::prelude::*;
 
 use strum_macros::AsStaticStr;
@@ -48,12 +49,12 @@ impl<'a> TryFrom<&NetctlRawConfig<'a>> for NetctlRawParsedFields {
         let identifier = raw.identifier.clone();
         // TODO TODO: decide if netctl parse errors should own some error text to present to the
         // user later
-        let connection_type_text =
-            raw.get_connection_type()
-                .ok_or_else(|| NetctlParseError::MissingFieldInNetctlConfig(format!(
-                    "No connection type found for config {}!",
-                    raw.identifier.as_ref()
-                )))?;
+        let connection_type_text = raw.get_connection_type().ok_or_else(|| {
+            NetctlParseError::MissingFieldInNetctlConfig(format!(
+                "No connection type found for config {}!",
+                raw.identifier.as_ref()
+            ))
+        })?;
         let connection_type =
             NetctlConnectionType::from_str(&connection_type_text).map_err(|_e| {
                 NetctlParseError::MissingFieldInNetctlConfig(format!(
@@ -62,12 +63,12 @@ impl<'a> TryFrom<&NetctlRawConfig<'a>> for NetctlRawParsedFields {
                     raw.identifier.as_ref()
                 ))
             })?;
-        let interface_name =
-            raw.get_interface()
-                .ok_or_else(|| NetctlParseError::MissingFieldInNetctlConfig(format!(
-                    "No interface found for config {}!",
-                    raw.identifier.as_ref()
-                )))?;
+        let interface_name = raw.get_interface().ok_or_else(|| {
+            NetctlParseError::MissingFieldInNetctlConfig(format!(
+                "No interface found for config {}!",
+                raw.identifier.as_ref()
+            ))
+        })?;
 
         let essid = raw.get_essid();
         let encryption_key = raw.get_encryption_key();
@@ -140,7 +141,9 @@ impl From<&WiredNetctlConfig> for AnnotatedWiredNetwork {
     fn from(config: &WiredNetctlConfig) -> Self {
         AnnotatedWiredNetwork::builder()
             .interface(config.interface_name.clone())
-            .service_identifier(NetworkServiceIdentifier::Netctl(config.identifier.as_ref().to_string()))
+            .service_identifier(NetworkingServiceIdentifier::Netctl(
+                config.identifier.as_ref().to_string(),
+            ))
             .build()
     }
 }

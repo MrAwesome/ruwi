@@ -32,7 +32,10 @@ where
                 if options.get_force_ask_password()
                     || (!selected_network.is_known() && selected_network.is_encrypted())
                 {
-                    Some(prompt_func(options, selected_network.get_public_name().as_ref())?)
+                    Some(prompt_func(
+                        options,
+                        selected_network.get_public_name().as_ref(),
+                    )?)
                 } else {
                     None
                 }
@@ -74,7 +77,7 @@ mod tests {
         let options = WifiConnectOptions::default();
         let nw = AnnotatedWirelessNetwork::builder()
             .essid("MADE_UP")
-            .service_identifier(NetworkServiceIdentifier::netctl_nw("I_AM_KNOWN"))
+            .service_identifier(NetworkingServiceIdentifier::netctl_nw("I_AM_KNOWN"))
             .is_encrypted(true)
             .build();
         let output = possibly_get_encryption_key_impl(&options, &nw, should_not_run)?;
