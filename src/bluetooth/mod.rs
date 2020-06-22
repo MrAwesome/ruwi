@@ -1,6 +1,7 @@
 mod connect;
 // mod disconnect;
 // mod pair;
+pub(crate) mod utils;
 pub(crate) mod scan;
 // mod service_management;
 
@@ -23,6 +24,12 @@ pub(crate) struct BluetoothDevice {
     addr: BluetoothDeviceAddress,
     #[builder(default = None)]
     known_identifier: Option<BluetoothKnownDeviceIdentifier>,
+}
+
+impl fmt::Display for BluetoothDevice {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(&format!("{} ({})", self.name.as_ref(), self.addr.as_ref()))
+    }
 }
 
 impl BluetoothDevice {

@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use crate::runner::Runner;
 
+use crate::bluetooth::utils::get_first_matching_device;
 use crate::bluetooth::scan::bluetoothctl::*;
 use crate::bluetooth::scan::*;
 use crate::bluetooth::BluetoothDevice;
@@ -16,8 +17,10 @@ const LOOP_MAX: u16 = 1000;
 
 impl Runner for BluetoothConnectOptions {
     fn run(&self) -> Result<(), RuwiError> {
+        // TODO: make prefix matching work for essids as well
         // TODO: cmdline options for bluetooth connect, pair, scan, etc
         // TODO: integration and unit tests for bluetoothctl scanning
+        // TODO: read from file/stdin, so you can do integration tests
         // TODO(high): bluetoothctl paired-devices as known
         // TODO: bluetoothctl disconnect / clear
         // TODO(wishlist): refactor all of this runner / datagatherer logic?
@@ -26,8 +29,17 @@ impl Runner for BluetoothConnectOptions {
         //
         //
         // use service for scanning? or service for connection? or just start up before both if necessary?
-        TODO_bluetoothctl_startup_bluetooth_stack(self)?;
-        let dev = scan_and_select_device(self)?;
+        // TODO: capture output of "scan on" and use for new devices, "devices" gives known devices
+        todo_bluetoothctl_startup_bluetooth_stack(self)?;
+        // TODO: unit or integration test
+        let dev = if let Some(addr) = self.get_given_device_addr() {
+            BluetoothDevice::builder()
+                .addr(addr)
+                .name("<Anonymous device with given address>")
+                .build()
+        } else {
+            scan_and_select_device(self)?
+        };
         // TODO: make pair work with stdin if pairing is needed (check devices output)
         // TODO: mark devices as known if seen in devices output, and don't pair with them
         // TODO: you can use rexpect for pairing via bluetoothctl to detect, if necessary
@@ -35,9 +47,6 @@ impl Runner for BluetoothConnectOptions {
         // TODO: take optional device name or addr (one field for either?)
         dev.connect(self)?;
 
-        // "Not using libraries directly because Ruwi should not know implementation details, and
-        // as poor as their APIs may be, these tools are the gold standard for implementations."
-        //
         // TODO: include pulseaudio/pulsemixer/etc instructions? or handle that in Ruwi?
         // TODO: --use-audio?
 
@@ -47,7 +56,7 @@ impl Runner for BluetoothConnectOptions {
 
 // TODO: integration test reading devices from file and "connecting" to one with this
 // TODO: move this up a level, it's not connect-specific
-fn TODO_bluetoothctl_startup_bluetooth_stack<O>(opts: &O) -> Result<(), RuwiError>
+fn todo_bluetoothctl_startup_bluetooth_stack<O>(opts: &O) -> Result<(), RuwiError>
 where
     O: Global,
 {
@@ -75,7 +84,7 @@ where
 
 fn scan_and_select_device<O>(opts: &O) -> Result<BluetoothDevice, RuwiError>
 where
-    O: Global + AutoSelect,
+    O: Global + AutoSelect + BluetoothConnect, // TODO: Bluetooth?
 {
     // TODO: add sync retry flag
     // TODO: remove code duplication between this and src/runner/wifi/utils.rs
@@ -97,6 +106,7 @@ where
         // NOTE: this logic could reside in the scanner itself
         if devs.is_empty() && loop_protection < 3 {
             synchronous_retry = Some(SynchronousRescanType::NoneSeen);
+            eprintln!("[NOTE]: No Bluetooth devices seen, retrying...");
             continue;
         }
 
@@ -105,14 +115,28 @@ where
             continue;
         }
 
-        let dev = devs.select_network(opts);
+        if let Some(prefix) = opts.get_given_device_name_prefix() {
+            match get_first_matching_device(&devs, prefix).map(Clone::clone) {
+                Ok(dev) => return Ok(dev),
+                Err(err) => {
+                    if loop_protection < 3 {
+                        eprintln!("{}", err);
+                        continue;
+                    } else {
+                        return Err(err)
+                    }
+                }
+            }
+        };
 
-        if manual_refresh_requested(&dev) {
+        let select_result = devs.select_network(opts);
+
+        if manual_refresh_requested(&select_result) {
             synchronous_retry = Some(SynchronousRescanType::ManuallyRequested);
             continue;
         }
 
-        return dev;
+        return select_result;
     }
 }
 

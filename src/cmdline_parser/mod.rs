@@ -31,6 +31,9 @@ const WIRED_CONNECT_TOKEN: &str = "connect";
 const WIFI_SELECT_TOKEN: &str = "select";
 const WIFI_CONNECT_TOKEN: &str = "connect";
 
+const BLUETOOTH_DEV_NAME_TOKEN: &str = "device_name";
+const BLUETOOTH_DEV_ADDR_TOKEN: &str = "device_addr";
+
 const PRETEND_TO_BE_ROOT_TOKEN: &str = "PRETEND_TO_BE_ROOT";
 
 const CMDLINE_BAILOUT_TOKEN: &str = "ONLY_PARSE_CMDLINE";
@@ -150,6 +153,19 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .possible_values(&possible_string_vals::<BluetoothConnectionType, _>())
         .help("Which bluetooth utility or library to use to connect to a device.");
 
+    let bluetooth_device_name = Arg::with_name("device_name")
+        .short("n")
+        .long("device-name")
+        .takes_value(true)
+        .help("The name of a Bluetooth device to connect with. \
+               Prefix matches work, so you only need the first few characters of the name.");
+
+    let bluetooth_device_addr = Arg::with_name("device_addr")
+        .short("a")
+        .long("device-addr")
+        .takes_value(true)
+        .help("The BD_ADDR (Bluetooth Device Address) to connect to. This is the thing that looks like a MAC address. Expects an exact match, and bypasses scanning and selection steps.");
+
     let connection_manager_profile = Arg::with_name("profile")
         .short("p")
         .long("profile")
@@ -164,16 +180,19 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .arg(dry_run)
         .arg(selection_method)
         .subcommand(SubCommand::with_name(CLEAR_TOKEN)
-            .help("Stop all managed networking services (netctl, NetworkManager, wpa_supplicant, etc.)")
+            .about("Stop all managed networking services (netctl, NetworkManager, wpa_supplicant, etc.)")
         )
         .subcommand(SubCommand::with_name(BLUETOOTH_TOKEN)
-            .help("Scan/connect to Bluetooth devices.")
+            .about("Scan for and connect to Bluetooth devices.")
             .subcommand(SubCommand::with_name(BLUETOOTH_CONNECT_TOKEN)
                 .arg(bluetooth_connect_via)
-                .help("Scan for, select, and connect to a Bluetooth device.")
+                .arg(bluetooth_device_addr)
+                .arg(bluetooth_device_name)
+                .about("Scan for, select, and connect to a Bluetooth device.")
             )
         )
         .subcommand(SubCommand::with_name(WIRED_TOKEN)
+            .about("Find and connect on wired Ethernet interfaces.")
             .arg(networking_interface.clone())
             .subcommand(SubCommand::with_name(WIRED_CONNECT_TOKEN)
                 .arg(wired_connect_via)
@@ -181,6 +200,7 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
             )
         )
         .subcommand(SubCommand::with_name(WIFI_TOKEN)
+            .about("Scan for and connect to wireless networks.")
             .arg(ignore_known)
             .arg(input_file)
             .arg(input_stdin)

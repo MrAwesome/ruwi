@@ -60,6 +60,7 @@ pub enum RuwiErrorKind {
     MalformedIWOutput,
     NoInterfaceFoundWithGivenName,
     NoKnownNetworksFound,
+    NoMatchingBluetoothDeviceFoundForPrefix,
     NoNetworksFoundMatchingSelectionResult,
     NoNetworksFoundWhenLookingForFirst,
     NoNetworksSeenWithIWScanDump,

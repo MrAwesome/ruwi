@@ -10,11 +10,23 @@ pub struct BluetoothConnectOptions {
     auto_mode: AutoMode,
     #[builder(default)]
     connect_via: BluetoothConnectionType,
+    #[builder(default)]
+    given_device_name_prefix: Option<String>,
+    #[builder(default)]
+    given_device_addr: Option<String>,
 }
 
 impl BluetoothConnect for BluetoothConnectOptions {
     fn get_connect_via(&self) -> &BluetoothConnectionType {
         &self.connect_via
+    }
+
+    fn get_given_device_name_prefix(&self) -> &Option<String> {
+        &self.given_device_name_prefix
+    }
+
+    fn get_given_device_addr(&self) -> &Option<String> {
+        &self.given_device_addr
     }
 }
 
@@ -30,6 +42,8 @@ impl Default for BluetoothConnectOptions {
             bluetooth: BluetoothOptions::default(),
             connect_via: BluetoothConnectionType::default(),
             auto_mode: AutoMode::default(),
+            given_device_addr: None,
+            given_device_name_prefix: None,
         }
     }
 }
