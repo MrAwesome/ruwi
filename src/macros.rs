@@ -5,6 +5,7 @@ macro_rules! rerr {
             kind: $kind,
             desc: String::from($desc),
             extra_data: None,
+            exit_code: None,
         }
     };
     ( $kind:expr, $desc:expr, $($tag:expr => $data:expr),* ) => {{
@@ -13,6 +14,7 @@ macro_rules! rerr {
             kind: $kind,
             desc: String::from($desc),
             extra_data: Some(data),
+            exit_code: None,
         }
     }};
 }

@@ -61,7 +61,7 @@ where
     O: Global,
 {
     use crate::run_commands::SystemCommandRunner;
-    // TODO: generic systemctl unit starter
+    // TODO: generic systemctl unit starter?
     SystemCommandRunner::new(opts, "systemctl", &["start", "bluetooth"]).run_command_pass(
         RuwiErrorKind::FailedToStartBluetoothService,
         "Failed to start the bluetooth service!",

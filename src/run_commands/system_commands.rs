@@ -89,7 +89,12 @@ impl<'a, O: Global> SystemCommandRunner<'a, O> {
             dbg!(&self.cmd_name, &self.args);
         }
 
-        let mut cmd = get_output_command(self.opts, self.cmd_name, &self.args).unwrap();
+        let mut cmd = get_output_command(self.opts, self.cmd_name, &self.args)
+            .unwrap_or_else(|err| {
+                err.print_error();
+                std::process::exit(err.get_linux_exit_code());
+            }
+        );
 
         let spawn_res = spawn_and_await_output_command(self.opts, &mut cmd);
 

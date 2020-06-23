@@ -1,5 +1,5 @@
-use crate::prelude::*;
 use crate::interface_management::ip_interfaces::LinuxIPInterface;
+use crate::prelude::*;
 use crate::run_commands::SystemCommandRunner;
 
 use std::thread;
@@ -18,13 +18,6 @@ where
     O: Global,
     T: LinuxIPInterface,
 {
-    //        /etc/wpa_supplicant/wpa_supplicant.conf
-    //    ctrl_interface=/run/wpa_supplicant
-    //    ctrl_interface_group=wheel
-    //    update_config=1
-
-    // The simplest way to ensure
-    // https://wiki.archlinux.org/index.php/WPA_supplicant#Connecting_with_wpa_cli
     if wpa_ping_success(options) {
         return Ok(());
     } else {
@@ -74,12 +67,11 @@ pub(crate) fn kill_wpa_supplicant<O>(options: &O) -> Result<(), RuwiError>
 where
     O: Global,
 {
-    let procs = SystemCommandRunner::new(options, "pgrep", &["wpa_supplicant"]).run_command_pass_stdout(
-        RuwiErrorKind::FailedToLookForWpaSupplicantProc,
-        "Failed to find running wpa_supplicant processes! Is `pgrep` installed?",
-    )?;
-
-    if !procs.is_empty() {
+    // pkill doesn't differentiate "could not kill a process" and "no processes with that name found" except
+    // in its stderr, so we instead check pgrep first and just pkill if a process was seen.
+    let running_wpa_supplicant =
+        SystemCommandRunner::new(options, "pgrep", &["wpa_supplicant"]).run_command_status_dumb();
+    if running_wpa_supplicant {
         SystemCommandRunner::new(options, "pkill", &["wpa_supplicant"]).run_command_pass(
             RuwiErrorKind::FailedToStopWpaSupplicant,
             "Failed to stop wpa_supplicant! Are you running as root?",

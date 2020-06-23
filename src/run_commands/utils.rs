@@ -58,7 +58,7 @@ impl FullCommandPath {
                         RuwiErrorKind::CommandNotFound,
                         format!("`{}` is not installed or is not in $PATH.", cmd_name),
                         "`which` stderr" => String::from_utf8_lossy(&output.stderr),
-                        "`which` stdout" => String::from_utf8_lossy(&output.stderr)
+                        "`which` stdout" => String::from_utf8_lossy(&output.stdout)
                     ))
                 }
             }

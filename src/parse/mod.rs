@@ -14,9 +14,7 @@ where
     O: Global,
 {
     let st = scan_result.scan_type.clone();
-    // let TODO = "detangle scan type wifi etc?";
     let res = match &st {
-        // Impl on ScanResult, match ScanType and then WifiScanType, then this all becomes scan_result.parse()
         ScanType::Wifi(WifiScanType::Nmcli) => {
             parse_nmcli_scan(options, &scan_result.scan_output, st)
         }
