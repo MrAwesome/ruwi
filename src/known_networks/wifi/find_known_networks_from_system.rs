@@ -59,6 +59,8 @@ fn find_known_networkmanager_networks<O>(
 where
     O: Global,
 {
+    eprintln!("[NOTE]: Checking nmcli for known networks...");
+
     NetworkingService::NetworkManager.start(options)?;
     let output = SystemCommandRunner::new(
         options,
@@ -78,6 +80,8 @@ fn find_known_netctl_networks<O>(
 where
     O: Global,
 {
+    eprintln!("[NOTE]: Checking netctl config files for known networks...");
+
     let handler = NetctlConfigHandler::new(options);
     let configs = handler
         .get_wifi_essids_and_identifiers()?

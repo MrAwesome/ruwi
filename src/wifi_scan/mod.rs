@@ -34,6 +34,7 @@ where
         ScanMethod::ByRunning => {
             // TODO: integration test that service is only started on byrunning scan
             st.get_service(Some(interface)).start(options)?;
+
             match &st {
                 WifiScanType::Nmcli => run_nmcli_scan(options, interface, st, synchronous_rescan),
                 WifiScanType::WpaCli => run_wpa_cli_scan(options, st),

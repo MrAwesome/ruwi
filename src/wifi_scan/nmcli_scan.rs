@@ -18,6 +18,9 @@ where
     O: Global + Wifi,
 {
     interface.bring_up(options)?;
+
+    eprintln!("[NOTE]: Scanning for wifi networks using nmcli...");
+
     let scan_output = if options.get_force_synchronous_scan() || synchronous_rescan.is_some() {
         run_nmcli_scan_cmd_synchronous(options)?
     } else {
