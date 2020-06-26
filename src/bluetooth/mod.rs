@@ -1,8 +1,8 @@
 mod connect;
+mod bluetoothctl;
 // mod disconnect;
 // mod pair;
 pub(crate) mod utils;
-pub(crate) mod scan;
 // mod service_management;
 
 use crate::prelude::*;
@@ -13,7 +13,17 @@ use typed_builder::TypedBuilder;
 // TODO: trust device, pair device, connect to device
 // TODO: synchronous rescan logic during selection, or when devices returns nothing
 
-string_container! {BluetoothDeviceName, BluetoothDeviceAddress}
+pub(crate) use bluetoothctl::BluetoothCtlController as TODOBluetoothCtlController;
+
+pub(crate) trait BluetoothService<O: Global> {
+    fn get_opts(&self) -> &O;
+    fn list_devices(&self) -> Result<Vec<BluetoothDevice>, RuwiError>;
+    fn start_bluetooth_service(&self) -> Result<(), RuwiError>;
+    fn stop_bluetooth_service(&self) -> Result<(), RuwiError>;
+    fn power_on(&self) -> Result<(), RuwiError>;
+    fn power_off(&self) -> Result<(), RuwiError>;
+    fn scan(&self, scan_secs: usize) -> Result<(), RuwiError>;
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BluetoothKnownDeviceIdentifier {}
@@ -25,6 +35,8 @@ pub(crate) struct BluetoothDevice {
     #[builder(default = None)]
     known_identifier: Option<BluetoothKnownDeviceIdentifier>,
 }
+
+string_container! {BluetoothDeviceName, BluetoothDeviceAddress}
 
 impl fmt::Display for BluetoothDevice {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

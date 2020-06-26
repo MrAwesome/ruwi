@@ -1,9 +1,8 @@
 use crate::prelude::*;
 use crate::runner::Runner;
 
+use crate::bluetooth::{TODOBluetoothCtlController, BluetoothService};
 use crate::bluetooth::utils::get_first_matching_device;
-use crate::bluetooth::scan::bluetoothctl::*;
-use crate::bluetooth::scan::*;
 use crate::bluetooth::BluetoothDevice;
 use crate::options::bluetooth::connect::BluetoothConnectOptions;
 use crate::synchronous_retry_logic::{
@@ -94,14 +93,17 @@ where
         loop_check(&mut loop_protection, LOOP_MAX)?;
 
         // TODO: generic scanner based on value of scan_via
-        let scanner = BluetoothCtlDeviceScanner::new(opts);
-        //let known_devs = scanner.get_known_devices()?;
-        let devs = scanner.get_devices()?;
+        let controller = TODOBluetoothCtlController::new(opts);
 
         if synchronous_retry.is_some() {
             eprintln!("[NOTE]: Scanning for bluetooth devices...");
-            scanner.scan(10)?;
+            controller.scan(10)?;
         }
+
+        //let known_devs = scanner.get_known_devices()?;
+        eprintln!("[NOTE]: Looking for known bluetooth devices...");
+        let devs = controller.list_devices()?;
+
 
         // NOTE: this logic could reside in the scanner itself
         if devs.is_empty() && loop_protection < 3 {

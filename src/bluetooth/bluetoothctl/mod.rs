@@ -1,30 +1,62 @@
+use crate::run_commands::SystemCommandRunner;
+
+use super::*;
+
 use std::error::Error;
 use std::fmt;
 use std::fmt::Display;
 
-use crate::prelude::*;
-use crate::run_commands::SystemCommandRunner;
-
-use super::super::BluetoothDevice;
-use super::BluetoothDeviceScanner;
-
-pub(crate) struct BluetoothCtlDeviceScanner<'a, O: Global> {
+pub(crate) struct BluetoothCtlController<'a, O: Global> {
     opts: &'a O,
 }
 
-impl<'a, O: Global> BluetoothCtlDeviceScanner<'a, O> {
+impl<'a, O: Global> BluetoothCtlController<'a, O> {
     pub(crate) fn new(opts: &'a O) -> Self {
         Self { opts }
     }
 }
 
-impl<'a, O: Global> BluetoothDeviceScanner<O> for BluetoothCtlDeviceScanner<'a, O> {
+impl<'a, O: Global> BluetoothService<O> for BluetoothCtlController<'a, O> {
     fn get_opts(&self) -> &O {
         self.opts
     }
+    fn list_devices(&self) -> Result<Vec<BluetoothDevice>, RuwiError> {
+        let output = SystemCommandRunner::new(self.get_opts(), "bluetoothctl", &["devices"])
+            .run_command_pass_stdout(
+                RuwiErrorKind::FailedToFindDevicesWithBluetoothCtl,
+                "Failed to list bluetooth devices using bluetoothctl!",
+            )?;
 
-    /// The output of `bluetoothctl scan on` is not used directly. Instead, we scan for devices for
-    /// a set amount of time, and then use `bluetoothctl devices` to view and present them.
+        parse_bluetoothctl_devices_output(&output)
+    }
+    fn start_bluetooth_service(&self) -> Result<(), RuwiError> {
+        SystemCommandRunner::new(self.get_opts(), "systemctl", &["start", "bluetooth"])
+            .run_command_pass(
+                RuwiErrorKind::FailedToStartBluetoothService,
+                "Failed to start the bluetooth service!",
+            )
+    }
+    fn stop_bluetooth_service(&self) -> Result<(), RuwiError> {
+        SystemCommandRunner::new(self.get_opts(), "systemctl", &["stop", "bluetooth"])
+            .run_command_pass(
+                RuwiErrorKind::FailedToStopBluetoothService,
+                "Failed to start the bluetooth service!",
+            )
+    }
+    fn power_on(&self) -> Result<(), RuwiError> {
+        SystemCommandRunner::new(self.get_opts(), "bluetoothctl", &["power", "on"])
+            .run_command_pass(
+                RuwiErrorKind::FailedToRunBluetoothCtlPowerOn,
+                "Failed to power on bluetooth device using bluetoothctl!",
+            )
+    }
+    fn power_off(&self) -> Result<(), RuwiError> {
+        SystemCommandRunner::new(self.get_opts(), "bluetoothctl", &["power", "off"])
+            .run_command_pass(
+                RuwiErrorKind::FailedToRunBluetoothCtlPowerOff,
+                "Failed to power off bluetooth device using bluetoothctl!",
+            )
+    }
     fn scan(&self, scan_secs: usize) -> Result<(), RuwiError> {
         SystemCommandRunner::new(
             self.get_opts(),
@@ -35,18 +67,6 @@ impl<'a, O: Global> BluetoothDeviceScanner<O> for BluetoothCtlDeviceScanner<'a, 
             RuwiErrorKind::FailedToScanWithBluetoothCtl,
             "Failed to scan for bluetooth devices using bluetoothctl! Are you running as root?",
         )
-    }
-
-    /// Simply query bluetoothctl for the devices it knows, parse the output, and return our
-    /// BluetoothDevice for use elsewhere.
-    fn get_devices(&self) -> Result<Vec<BluetoothDevice>, RuwiError> {
-        let output = SystemCommandRunner::new(self.get_opts(), "bluetoothctl", &["devices"])
-            .run_command_pass_stdout(
-                RuwiErrorKind::FailedToFindDevicesWithBluetoothCtl,
-                "Failed to list bluetooth devices using bluetoothctl!",
-            )?;
-
-        parse_bluetoothctl_devices_output(&output)
     }
 }
 

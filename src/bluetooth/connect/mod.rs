@@ -7,11 +7,16 @@ impl BluetoothDevice {
     pub(crate) fn connect<O: Global + BluetoothConnect>(&self, opts: &O) -> Result<(), RuwiError> {
         match opts.get_connect_via() {
             BluetoothConnectionType::Bluetoothctl => {
+                eprintln!(
+                    "[NOTE]: Connecting to \"{}\" ({}) using `bluetoothctl connect`...",
+                    self.get_name(),
+                    self.get_addr()
+                );
                 SystemCommandRunner::new(opts, "bluetoothctl", &["connect", self.get_addr()])
                     .run_command_pass(
                         RuwiErrorKind::FailedToConnectViaBluetoothCtl,
                         &format!(
-                            "Failed to connect to {} ({}) using `bluetoothctl connect`!",
+                            "Failed to connect to \"{}\" ({}) using `bluetoothctl connect`!",
                             self.get_name(),
                             self.get_addr()
                         ),
