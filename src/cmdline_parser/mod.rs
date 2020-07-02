@@ -145,13 +145,13 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .possible_values(&possible_string_vals::<WiredConnectionType, _>())
         .help("Which network management suite to use to connect on the given interface.");
 
-    let bluetooth_connect_via = Arg::with_name("connect_via")
+    let bluetooth_controller = Arg::with_name("controller")
         .short("c")
-        .long("connect-via")
+        .long("controller")
         .takes_value(true)
-        .default_value(&BluetoothConnectionType::default().as_static())
-        .possible_values(&possible_string_vals::<BluetoothConnectionType, _>())
-        .help("Which bluetooth utility or library to use to connect to a device.");
+        .default_value(&BluetoothController::default().as_static())
+        .possible_values(&possible_string_vals::<BluetoothController, _>())
+        .help("The bluetooth library or utility to use for scanning/pairing/connecting devices.");
 
     let bluetooth_device_name = Arg::with_name("device_name")
         .short("n")
@@ -185,7 +185,7 @@ fn get_arg_app<'a, 'b>() -> App<'a, 'b> {
         .subcommand(SubCommand::with_name(BLUETOOTH_TOKEN)
             .about("Scan for and connect to Bluetooth devices.")
             .subcommand(SubCommand::with_name(BLUETOOTH_CONNECT_TOKEN)
-                .arg(bluetooth_connect_via)
+                .arg(bluetooth_controller)
                 .arg(bluetooth_device_addr)
                 .arg(bluetooth_device_name)
                 .about("Scan for, select, and connect to a Bluetooth device.")

@@ -10,7 +10,7 @@ pub(crate) fn annotate_networks<O, T, U>(
 where
     O: Global,
     T: RuwiNetwork,
-    U: Annotated<T>,
+    U: Annotated<Orig = T>,
 {
     let networks = networks
         .iter()

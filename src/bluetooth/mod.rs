@@ -1,4 +1,5 @@
 mod connect;
+pub(crate) mod blurz;
 mod bluetoothctl;
 // mod disconnect;
 // mod pair;
@@ -6,27 +7,46 @@ pub(crate) mod utils;
 // mod service_management;
 
 use crate::prelude::*;
+use crate::run_commands::SystemCommandRunner;
 use typed_builder::TypedBuilder;
 
+// TODO: strum, add to cmdline, use based on that
 // TODO: agent on, pairable on, power on, etc
 // TODO: if bluetoothctl devices shows anything, just open that up for selection
 // TODO: trust device, pair device, connect to device
 // TODO: synchronous rescan logic during selection, or when devices returns nothing
 
+// TODO: make transparent
 pub(crate) use bluetoothctl::BluetoothCtlController as TODOBluetoothCtlController;
 
-pub(crate) trait BluetoothService<O: Global> {
-    fn get_opts(&self) -> &O;
+pub(crate) trait BluetoothService where Self: Sized {
+    type Opts: Global + Sized;
+    fn get_opts(&self) -> &Self::Opts;
     fn list_devices(&self) -> Result<Vec<BluetoothDevice>, RuwiError>;
-    fn start_bluetooth_service(&self) -> Result<(), RuwiError>;
-    fn stop_bluetooth_service(&self) -> Result<(), RuwiError>;
     fn power_on(&self) -> Result<(), RuwiError>;
     fn power_off(&self) -> Result<(), RuwiError>;
     fn scan(&self, scan_secs: usize) -> Result<(), RuwiError>;
+
+    fn start_bluetooth_service(&self) -> Result<(), RuwiError> {
+        SystemCommandRunner::new(self.get_opts(), "systemctl", &["start", "bluetooth"])
+            .run_command_pass(
+                RuwiErrorKind::FailedToStartBluetoothService,
+                "Failed to start the bluetooth service!",
+            )
+    }
+    fn stop_bluetooth_service(&self) -> Result<(), RuwiError> {
+        SystemCommandRunner::new(self.get_opts(), "systemctl", &["stop", "bluetooth"])
+            .run_command_pass(
+                RuwiErrorKind::FailedToStopBluetoothService,
+                "Failed to start the bluetooth service!",
+            )
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum BluetoothKnownDeviceIdentifier {}
+pub enum BluetoothKnownDeviceIdentifier {
+    Blurz(String)
+}
 
 #[derive(Debug, Clone, TypedBuilder, Eq, PartialEq)]
 pub(crate) struct BluetoothDevice {

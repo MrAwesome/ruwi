@@ -9,7 +9,7 @@ pub struct BluetoothConnectOptions {
     #[builder(default)]
     auto_mode: AutoMode,
     #[builder(default)]
-    connect_via: BluetoothConnectionType,
+    controller: BluetoothController,
     #[builder(default)]
     given_device_name_prefix: Option<String>,
     #[builder(default)]
@@ -17,8 +17,8 @@ pub struct BluetoothConnectOptions {
 }
 
 impl BluetoothConnect for BluetoothConnectOptions {
-    fn get_connect_via(&self) -> &BluetoothConnectionType {
-        &self.connect_via
+    fn get_controller(&self) -> &BluetoothController {
+        &self.controller
     }
 
     fn get_given_device_name_prefix(&self) -> &Option<String> {
@@ -40,7 +40,7 @@ impl Default for BluetoothConnectOptions {
     fn default() -> Self {
         Self {
             bluetooth: BluetoothOptions::default(),
-            connect_via: BluetoothConnectionType::default(),
+            controller: BluetoothController::default(),
             auto_mode: AutoMode::default(),
             given_device_addr: None,
             given_device_name_prefix: None,

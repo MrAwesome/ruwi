@@ -23,8 +23,9 @@ pub trait Selectable {
 // This exists so that AnnotatedRuwiNetwork does not need to have the
 // associated type defined everywhere it is used, since associated trait
 // bounds are unstable right now (Q1 2020).
-pub trait Annotated<T>: Known + Debug {
-    fn from_nw(nw: T, service_identifier: Option<&NetworkingServiceIdentifier>) -> Self;
+pub trait Annotated: Known + Debug {
+    type Orig;
+    fn from_nw(nw: Self::Orig, service_identifier: Option<&NetworkingServiceIdentifier>) -> Self;
 }
 
 pub trait RuwiNetwork: Identifiable + Debug + Clone {}

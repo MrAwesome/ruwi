@@ -65,7 +65,9 @@ pub struct AnnotatedWirelessNetwork {
     service_identifier: Option<NetworkingServiceIdentifier>,
 }
 
-impl Annotated<WirelessNetwork> for AnnotatedWirelessNetwork {
+impl Annotated for AnnotatedWirelessNetwork {
+    type Orig = WirelessNetwork;
+
     fn from_nw(
         nw: WirelessNetwork,
         service_identifier: Option<&NetworkingServiceIdentifier>,

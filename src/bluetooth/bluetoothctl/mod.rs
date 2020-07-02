@@ -16,7 +16,9 @@ impl<'a, O: Global> BluetoothCtlController<'a, O> {
     }
 }
 
-impl<'a, O: Global> BluetoothService<O> for BluetoothCtlController<'a, O> {
+impl<'a, O: Global> BluetoothService for BluetoothCtlController<'a, O> {
+    type Opts = O;
+
     fn get_opts(&self) -> &O {
         self.opts
     }
@@ -28,20 +30,6 @@ impl<'a, O: Global> BluetoothService<O> for BluetoothCtlController<'a, O> {
             )?;
 
         parse_bluetoothctl_devices_output(&output)
-    }
-    fn start_bluetooth_service(&self) -> Result<(), RuwiError> {
-        SystemCommandRunner::new(self.get_opts(), "systemctl", &["start", "bluetooth"])
-            .run_command_pass(
-                RuwiErrorKind::FailedToStartBluetoothService,
-                "Failed to start the bluetooth service!",
-            )
-    }
-    fn stop_bluetooth_service(&self) -> Result<(), RuwiError> {
-        SystemCommandRunner::new(self.get_opts(), "systemctl", &["stop", "bluetooth"])
-            .run_command_pass(
-                RuwiErrorKind::FailedToStopBluetoothService,
-                "Failed to start the bluetooth service!",
-            )
     }
     fn power_on(&self) -> Result<(), RuwiError> {
         SystemCommandRunner::new(self.get_opts(), "bluetoothctl", &["power", "on"])

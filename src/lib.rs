@@ -10,6 +10,7 @@
 #![allow(clippy::default_trait_access)]
 #![allow(clippy::used_underscore_binding)]
 
+extern crate blurz;
 extern crate clap;
 extern crate serde;
 extern crate serde_derive;

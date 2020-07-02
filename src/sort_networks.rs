@@ -11,7 +11,9 @@ pub(crate) struct SortedFilteredNetworks<N: Debug> {
     networks: Vec<N>,
 }
 
-impl<N: AnnotatedRuwiNetwork> Selector<N> for SortedFilteredNetworks<N> {
+impl<N: AnnotatedRuwiNetwork> Selector for SortedFilteredNetworks<N> {
+    type Item = N;
+
     fn get_networks(&self) -> &[N] {
         &self.networks
     }

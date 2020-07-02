@@ -148,7 +148,9 @@ impl Identifiable for BluetoothDevice {
     }
 }
 
-impl Selector<BluetoothDevice> for Vec<BluetoothDevice> {
+impl Selector for Vec<BluetoothDevice> {
+    type Item = BluetoothDevice;
+
     fn get_networks(&self) -> &[BluetoothDevice] {
         self
     }

@@ -15,11 +15,10 @@ use std::fmt::Debug;
 // TODO: make a trait/API for selection
 // TODO: make a trait/API for selectors
 
-pub trait Selector<N>: Sized + Debug
-where
-    N: Selectable + Identifiable + Clone + Debug + Known,
+pub trait Selector: Sized + Debug
 {
-    fn get_networks(&self) -> &[N];
+    type Item: Selectable + Identifiable + Clone + Debug + Known;
+    fn get_networks(&self) -> &[Self::Item];
 
     fn get_network_tokens(&self) -> Vec<String> {
         self.get_networks()
@@ -35,17 +34,17 @@ where
             .collect()
     }
 
-    fn select_network<O>(&self, options: &O) -> Result<N, RuwiError>
+    fn select_network<O>(&self, options: &O) -> Result<Self::Item, RuwiError>
     where
         O: Global + AutoSelect,
     {
         self.select_network_impl(options, Self::prompt_user_for_selection::<O>)
     }
 
-    fn select_network_impl<O, F>(&self, options: &O, manual_selector: F) -> Result<N, RuwiError>
+    fn select_network_impl<O, F>(&self, options: &O, manual_selector: F) -> Result<Self::Item, RuwiError>
     where
         O: Global + AutoSelect,
-        F: FnOnce(&Self, &O) -> Result<N, RuwiError>,
+        F: FnOnce(&Self, &O) -> Result<Self::Item, RuwiError>,
     {
         let selected_network_res = match options.get_auto_mode() {
             AutoMode::Ask => manual_selector(self, options),
@@ -73,7 +72,7 @@ where
         selected_network_res
     }
 
-    fn prompt_user_for_selection<O>(&self, options: &O) -> Result<N, RuwiError>
+    fn prompt_user_for_selection<O>(&self, options: &O) -> Result<Self::Item, RuwiError>
     where
         O: Global,
     {
@@ -108,7 +107,7 @@ where
         selector(options, &selection_tokens).map(|x| x.trim().into())
     }
 
-    fn select_first_known<O>(&self, _options: &O) -> Result<N, RuwiError>
+    fn select_first_known<O>(&self, _options: &O) -> Result<Self::Item, RuwiError>
     where
         O: Global,
     {
@@ -124,7 +123,7 @@ where
             .map(Clone::clone)
     }
 
-    fn select_first<O>(&self, _options: &O) -> Result<N, RuwiError>
+    fn select_first<O>(&self, _options: &O) -> Result<Self::Item, RuwiError>
     where
         O: Global,
     {
@@ -141,7 +140,7 @@ where
     }
 
     #[cfg(test)]
-    fn select_last<O>(&self, _options: &O) -> Result<N, RuwiError>
+    fn select_last<O>(&self, _options: &O) -> Result<Self::Item, RuwiError>
     where
         O: Global,
     {
@@ -158,7 +157,7 @@ where
     }
 
     #[cfg(test)]
-    fn select_refresh<O>(&self, _options: &O) -> Result<N, RuwiError>
+    fn select_refresh<O>(&self, _options: &O) -> Result<Self::Item, RuwiError>
     where
         O: Global,
     {
@@ -167,7 +166,7 @@ where
     }
 
     #[cfg(test)]
-    fn err_should_not_have_used_manual<O>(&self, _opt: &O) -> Result<N, RuwiError>
+    fn err_should_not_have_used_manual<O>(&self, _opt: &O) -> Result<Self::Item, RuwiError>
     where
         O: Global,
     {
