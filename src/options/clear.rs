@@ -16,6 +16,14 @@ impl Default for ClearOptions {
 }
 
 impl Global for ClearOptions {
+    fn get_post_parse_context(&self) -> PostParseContext {
+        PostParseContext {
+            network_or_device: NetworkOrDevice::default()
+        }
+    }
+} 
+
+impl PreParseGlobal for ClearOptions {
     fn d(&self) -> bool {
         self.get_debug()
     }

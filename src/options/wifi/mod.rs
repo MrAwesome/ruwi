@@ -62,6 +62,15 @@ impl Wifi for WifiOptions {
 }
 
 impl Global for WifiOptions {
+    fn get_post_parse_context(&self) -> PostParseContext {
+        PostParseContext {
+            network_or_device: NetworkOrDevice::Network
+            
+        }
+    }
+} 
+
+impl PreParseGlobal for WifiOptions {
     fn d(&self) -> bool {
         self.get_debug()
     }

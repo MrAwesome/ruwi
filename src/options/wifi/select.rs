@@ -27,6 +27,12 @@ impl AutoSelect for WifiSelectOptions {
 }
 
 impl Global for WifiSelectOptions {
+    fn get_post_parse_context(&self) -> PostParseContext {
+        self.wifi.get_post_parse_context()
+    }
+} 
+
+impl PreParseGlobal for WifiSelectOptions {
     fn d(&self) -> bool {
         self.get_debug()
     }

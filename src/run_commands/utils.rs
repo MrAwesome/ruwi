@@ -29,7 +29,7 @@ pub(super) struct FullCommandPath {
 impl FullCommandPath {
     fn new_from<O>(opts: &O, short_cmd_name: &str) -> Result<Self, RuwiError>
     where
-        O: Global,
+        O: PreParseGlobal,
     {
         let full_pathname = Self::get_full_command_path(opts, short_cmd_name)?;
         Ok(Self {
@@ -40,7 +40,7 @@ impl FullCommandPath {
 
     fn get_full_command_path<O>(opts: &O, cmd_name: &str) -> Result<String, RuwiError>
     where
-        O: Global,
+        O: PreParseGlobal,
     {
         let mut cmd = Command::new("/bin/which");
         cmd.arg(cmd_name)
@@ -85,7 +85,7 @@ impl FullCommandPath {
 
 pub(super) fn spawn_and_await_output_command<O>(opts: &O, cmd: &mut Command) -> io::Result<Output>
 where
-    O: Global,
+    O: PreParseGlobal,
 {
     #[cfg(test)]
     {
@@ -118,7 +118,7 @@ pub(super) fn get_output_command<O>(
     args: &[&str],
 ) -> Result<Command, RuwiError>
 where
-    O: Global,
+    O: PreParseGlobal,
 {
     Ok(if opts.get_dry_run() {
         empty_command_dryrun(cmd_name, args)
@@ -131,7 +131,7 @@ where
 
 pub(super) fn check_command_exists<O>(opts: &O, cmd_name: &str) -> bool
 where
-    O: Global,
+    O: PreParseGlobal,
 {
     FullCommandPath::get_full_command_path(opts, cmd_name).is_ok()
 }
@@ -142,7 +142,7 @@ pub(super) fn get_prompt_command<O>(
     args: &[&str],
 ) -> Result<Command, RuwiError>
 where
-    O: Global,
+    O: PreParseGlobal,
 {
     let full_path = FullCommandPath::new_from(opts, cmd_name)?;
     verify_command_safety(opts, &full_path)?;
@@ -181,7 +181,7 @@ pub(super) fn spawn_and_await_prompt_command<O>(
     elements: &[String],
 ) -> io::Result<Output>
 where
-    O: Global,
+    O: PreParseGlobal,
 {
     #[cfg(test)]
     {
@@ -222,7 +222,7 @@ pub(super) fn verify_command_safety<O>(
     cmd_path: &FullCommandPath,
 ) -> Result<(), RuwiError>
 where
-    O: Global,
+    O: PreParseGlobal,
 {
     #[cfg(test)]
     dbg!(&opts.pretend_to_be_root(), &cmd_path);
@@ -237,7 +237,7 @@ fn verify_command_safety_while_running_as_root<O>(
     cmd_path: &FullCommandPath,
 ) -> Result<(), RuwiError>
 where
-    O: Global,
+    O: PreParseGlobal,
 {
     if opts.pretend_to_be_root() || running_as_root() {
         let path_obj = cmd_path.as_path();

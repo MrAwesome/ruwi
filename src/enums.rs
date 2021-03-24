@@ -149,3 +149,15 @@ impl Default for BluetoothController {
     }
 }
 
+#[strum(serialize_all = "lowercase")]
+#[derive(Debug, Clone, PartialEq, Eq, EnumString, EnumIter, Display, AsStaticStr)]
+pub enum NetworkOrDevice {
+    Network,
+    Device,
+}
+impl Default for NetworkOrDevice {
+    fn default() -> Self {
+        Self::Network
+    }
+}
+

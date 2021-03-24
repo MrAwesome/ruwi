@@ -32,6 +32,12 @@ impl Default for WifiConnectOptions {
 }
 
 impl Global for WifiConnectOptions {
+    fn get_post_parse_context(&self) -> PostParseContext {
+        self.wifi.get_post_parse_context()
+    }
+} 
+
+impl PreParseGlobal for WifiConnectOptions {
     fn d(&self) -> bool {
         self.get_debug()
     }

@@ -21,6 +21,15 @@ impl Default for WiredOptions {
 }
 
 impl Global for WiredOptions {
+    fn get_post_parse_context(&self) -> PostParseContext {
+        PostParseContext {
+            network_or_device: NetworkOrDevice::Device
+            
+        }
+    }
+} 
+
+impl PreParseGlobal for WiredOptions {
     fn d(&self) -> bool {
         self.get_debug()
     }

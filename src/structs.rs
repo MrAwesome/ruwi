@@ -205,3 +205,9 @@ pub struct ConnectionResult {
     //ipv4_addr: Option<String>,
     //ipv6_addr: Option<String>,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct PostParseContext {
+    pub network_or_device: NetworkOrDevice,
+}
+

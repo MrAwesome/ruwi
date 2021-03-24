@@ -185,16 +185,20 @@ fn pass_tokens_to_selection_program<O>(
 where
     O: Global,
 {
+    let target = options.get_post_parse_context().network_or_device.to_string();
+
     match options.get_selection_method() {
         SelectionMethod::NoCurses => run_select_nocurses(
             options,
-            "Select a network (\"refresh\" or \".\" to rescan, Enter to select the top option): ",
+            &format!("Select a {} (\"refresh\" or \".\" to rescan, Enter to select the top option): ", target),
             &selection_tokens,
         ),
-        SelectionMethod::Dmenu => run_dmenu(options, "Select a network: ", &selection_tokens),
+        SelectionMethod::Dmenu => run_dmenu(options, 
+            &format!("Select a {}: ", target),
+            &selection_tokens),
         SelectionMethod::Fzf => run_fzf(
             options,
-            "Select a network (ctrl-r or \"refresh\" to refresh results): ",
+            &format!("Select a {} (ctrl-r or \"refresh\" to refresh results): ", target),
             &selection_tokens,
         ),
     }

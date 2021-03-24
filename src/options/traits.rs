@@ -10,13 +10,17 @@ use crate::known_networks::WifiKnownNetworks;
 
 use crate::structs::ScanResult;
 
-pub trait Global {
+pub trait PreParseGlobal {
     fn d(&self) -> bool;
     fn get_debug(&self) -> bool;
     fn get_dry_run(&self) -> bool;
     fn get_selection_method(&self) -> &SelectionMethod;
     fn is_test_or_dry_run(&self) -> bool;
     fn pretend_to_be_root(&self) -> bool;
+}
+
+pub trait Global: PreParseGlobal {
+    fn get_post_parse_context(&self) -> PostParseContext;
 }
 
 pub trait Wifi {

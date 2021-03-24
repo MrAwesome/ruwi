@@ -6,7 +6,7 @@ use std::io;
 use std::process::{Command, Output};
 //use std::path::Path;
 
-pub(crate) struct SystemCommandRunner<'a, O: Global> {
+pub(crate) struct SystemCommandRunner<'a, O: PreParseGlobal> {
     opts: &'a O,
     cmd_name: &'a str,
     args: &'a [&'a str],
@@ -14,7 +14,7 @@ pub(crate) struct SystemCommandRunner<'a, O: Global> {
     //expected_output: Result<String, RuwiError>,
 }
 
-impl<'a, O: Global> SystemCommandRunner<'a, O> {
+impl<'a, O: PreParseGlobal> SystemCommandRunner<'a, O> {
     pub(crate) fn new(opts: &'a O, cmd_name: &'a str, args: &'a [&'a str]) -> Self {
         Self {
             opts,

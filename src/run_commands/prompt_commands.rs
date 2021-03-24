@@ -2,7 +2,7 @@ use super::utils::{get_prompt_command, spawn_and_await_prompt_command};
 
 use crate::prelude::*;
 
-pub(crate) struct PromptCommandRunner<'a, O: Global> {
+pub(crate) struct PromptCommandRunner<'a, O: PreParseGlobal> {
     opts: &'a O,
     cmd_name: &'a str,
     args: &'a [&'a str],
@@ -12,7 +12,7 @@ pub(crate) struct PromptCommandRunner<'a, O: Global> {
     //expected_output: Result<String, RuwiError>,
 }
 
-impl<'a, O: Global> PromptCommandRunner<'a, O> {
+impl<'a, O: PreParseGlobal> PromptCommandRunner<'a, O> {
     pub(crate) fn new(
         opts: &'a O,
         cmd_name: &'a str,

@@ -151,7 +151,7 @@ mod tests {
     use super::structs::NetctlConnectionType;
     use super::*;
 
-    use crate::options::GlobalOptions;
+    use crate::options::wifi::connect::WifiConnectOptions;
 
     pub(super) static ETHERNET_SAMPLE_FILENAME: &str = "ethernet_dhcp";
     pub(super) static WIRELESS_OPEN_SAMPLE_FILENAME: &str = "Chateau_de_Chine_Hotel";
@@ -258,7 +258,7 @@ mod tests {
 
     #[test]
     fn test_find_and_parse_untyped_configs() {
-        let opts = GlobalOptions::default();
+        let opts = WifiConnectOptions::default();
         let handler = get_sample_handler(&opts);
 
         let untyped_configs = handler.get_all_parsed_but_untyped_configs().unwrap();
@@ -273,7 +273,7 @@ mod tests {
 
     #[test]
     fn test_find_and_parse_wifi_configs() {
-        let opts = GlobalOptions::default();
+        let opts = WifiConnectOptions::default();
         let handler = get_sample_handler(&opts);
 
         let wifi_configs: Vec<WifiNetctlConfig> = handler.get_all_typed_configs().unwrap();
@@ -305,7 +305,7 @@ mod tests {
 
     #[test]
     fn test_find_and_parse_wired_configs() {
-        let opts = GlobalOptions::default();
+        let opts = WifiConnectOptions::default();
         let handler = get_sample_handler(&opts);
 
         let wired_configs: Vec<WiredNetctlConfig> = handler.get_all_typed_configs().unwrap();
@@ -333,7 +333,7 @@ mod tests {
 
     #[test]
     fn test_get_matching_config() {
-        let opts = GlobalOptions::default();
+        let opts = WifiConnectOptions::default();
         let handler = get_sample_handler(&opts);
 
         let interface_name = "wlp3s1";

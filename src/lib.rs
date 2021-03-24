@@ -63,7 +63,8 @@ use errors::RuwiError;
 // Arch dependencies: wireless_tools, netctl, iw, bluetooth things?, iptools, bluez, bluez-utils
 // Arch optional dependencies: dmenu, NetworkManager, fzf
 
-// TODO(high): remove unnecessary deps: s/serde/nanoserde/
+
+// TODO(high): create integration tests for blurz (mock controller that just prints?)
 // TODO(high): document bluetooth usage
 // TODO(high): remove defaults for wired and selection method in cmdline_parser, and have them check system
 // TODO(high): add `clear` success messages (and note that it's expected to see some error messages there, or just hide all of them)
@@ -74,6 +75,7 @@ use errors::RuwiError;
 // TODO(high): write benchmark tests: ~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/liballoc/benches/slice.rs
 // TODO(mid): make --clear-first flag to clear before connecting
 // TODO(mid): add colors to output / use a real logging library / set debugging levels
+// TODO(mid): configurable `ruwi default` that `ruwi` and `ruwi -a` can use
 // TODO(mid): ability to do -o "wired.connect_via=netctl", overriding config file entries
 // TODO(mid): add a "list seen networks" mode?
 // TODO(mid): use string_container where you would normally pass around String or an existing less-nice string container

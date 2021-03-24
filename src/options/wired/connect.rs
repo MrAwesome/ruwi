@@ -23,6 +23,12 @@ impl Default for WiredConnectOptions {
 }
 
 impl Global for WiredConnectOptions {
+    fn get_post_parse_context(&self) -> PostParseContext {
+        self.wired.get_post_parse_context()
+    }
+} 
+
+impl PreParseGlobal for WiredConnectOptions {
     fn d(&self) -> bool {
         self.get_debug()
     }

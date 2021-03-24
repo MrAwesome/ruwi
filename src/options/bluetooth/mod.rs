@@ -31,6 +31,14 @@ impl Default for BluetoothOptions {
 }
 
 impl Global for BluetoothOptions {
+    fn get_post_parse_context(&self) -> PostParseContext {
+        PostParseContext {
+            network_or_device: NetworkOrDevice::Device
+        }
+    }
+} 
+
+impl PreParseGlobal for BluetoothOptions {
     fn d(&self) -> bool {
         self.get_debug()
     }

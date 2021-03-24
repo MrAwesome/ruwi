@@ -13,7 +13,7 @@ pub(crate) mod wired;
 
 use crate::enums::SelectionMethod;
 
-use traits::Global;
+use traits::PreParseGlobal;
 
 use typed_builder::TypedBuilder;
 pub static PROG_NAME: &str = "ruwi";
@@ -30,7 +30,7 @@ pub struct GlobalOptions {
     pretend_to_be_root: bool,
 }
 
-impl Global for GlobalOptions {
+impl PreParseGlobal for GlobalOptions {
     fn d(&self) -> bool {
         self.get_debug()
     }

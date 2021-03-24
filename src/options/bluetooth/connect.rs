@@ -49,6 +49,12 @@ impl Default for BluetoothConnectOptions {
 }
 
 impl Global for BluetoothConnectOptions {
+    fn get_post_parse_context(&self) -> PostParseContext {
+        self.bluetooth.get_post_parse_context()
+    }
+} 
+
+impl PreParseGlobal for BluetoothConnectOptions {
     fn d(&self) -> bool {
         self.get_debug()
     }

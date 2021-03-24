@@ -1,30 +1,24 @@
 use super::SystemChecksImpl;
 
-use crate::options::traits::Global;
+use crate::options::traits::PreParseGlobal;
 use crate::run_commands::SystemCommandRunner;
 
-pub(crate) struct SystemCheckerReal<'a, O: Global> {
-    opts: &'a O
+pub(crate) struct SystemCheckerReal<'a, O: PreParseGlobal> {
+    opts: &'a O,
 }
 
-
-impl<'a, O: Global> SystemCheckerReal<'a, O> {
+impl<'a, O: PreParseGlobal> SystemCheckerReal<'a, O> {
     pub(crate) fn new(opts: &'a O) -> Self {
-        Self {
-            opts
-        }
+        Self { opts }
     }
 
     fn check_systemd_unit(&self, unit: &str) -> bool {
-        SystemCommandRunner::new(
-            self.opts,
-        "systemctl",
-        &["is-active", "--quiet", unit],
-        ).run_command_status_dumb()
+        SystemCommandRunner::new(self.opts, "systemctl", &["is-active", "--quiet", unit])
+            .run_command_status_dumb()
     }
 }
 
-impl<'a, O: Global> SystemChecksImpl for SystemCheckerReal<'a, O> {
+impl<'a, O: PreParseGlobal> SystemChecksImpl for SystemCheckerReal<'a, O> {
     fn check_networkmanager_running(&self) -> bool {
         self.check_systemd_unit("NetworkManager")
     }
