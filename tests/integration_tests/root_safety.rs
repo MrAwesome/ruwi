@@ -1,5 +1,6 @@
 use rexpect::errors::Result;
 use rexpect::spawn_bash;
+use tempfile;
 
 use super::utils::{get_unguarded_cmd_with_args, UNGUARDED_TIMEOUT_MS};
 
@@ -29,18 +30,18 @@ fn get_shell_cmd_for_creating_malicious_binary_named(full_filename: &str) -> Str
 fn impl_test_malicious_binary(malicious_binary_name: &str, ruwi_args: &str) -> Result<()> {
     let mut p = spawn_bash(UNGUARDED_TIMEOUT_MS)?;
 
-    p.send_line("mktemp -d && echo MADE_TEMP")?;
-    let malicious_dir_untrimmed = p.exp_string("MADE_TEMP")?;
-    let malicious_dir = malicious_dir_untrimmed.trim();
+    let tmpdir = tempfile::tempdir().unwrap();
+
+    let malicious_dir = tmpdir.path().as_os_str().to_str().unwrap();
     dbg!(&malicious_dir);
-    p.wait_for_prompt()?;
 
     p.execute(
         &format!("export PATH=\"{}:$PATH\" && echo PATH_SET_UP", malicious_dir),
         "PATH_SET_UP",
     )?;
 
-    p.execute("echo $PATH", malicious_dir)?;
+    p.send_line("echo $PATH")?;
+    p.exp_string(malicious_dir)?;
     p.wait_for_prompt()?;
 
 

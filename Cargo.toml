@@ -23,5 +23,6 @@ nix = "0.15"
 
 [dev-dependencies]
 rexpect = "0.3"
+tempfile = "3"
 mockall = "0.6"
 paste = "0.1"
