@@ -2,11 +2,11 @@
 
 Ruwi simplifies connecting to the Internet on Linux.
 
-It does this by providing a simple CLI for interacting with many different Linux existing networking and selection utilities.
+It does this by providing a simple CLI for interacting with many different existing Linux networking and selection utilities.
 
 Bluetooth support is planned, but currently not in progress.
 
-Ruwi is still heavily under construction, but feel free to tinker away. Wired and wireless connections are heavily tested and working well. If something doesn't work for you, feel free to create an issue on GitHub.
+Ruwi is still heavily under construction, but feel free to tinker away. Wired and wireless connections are thoroughly tested and working well. If something doesn't work for you, feel free to create an issue on GitHub.
 
 Ruwi is written in 100% safe Rust, and will stay that way.
 
@@ -36,7 +36,7 @@ Ruwi is written in 100% safe Rust, and will stay that way.
 # Philosophy
 
 ### Ruwi is:
-* Fast (from a computational point of view). Generally, a dryrun of Ruwi will take less than one hundredth of a second. You still need to wait on the kernel and networking stack, but Ruwi gets itself out of the way blazingly fast.
+* Fast (from a computational point of view). Generally, a dryrun of Ruwi will take less than one hundredth of a second. In normal runs you will still need to wait on the networking stack, but Ruwi gets itself out of the way blazingly fast.
 * Fast (from a human interaction point of view). Ruwi will never ask for a non-essential piece of information from you. By relying on well-designed and battle-tested selection programs such as `fzf` and `dmenu`, Ruwi can help you connect to a new wireless network faster than any other program on the planet.<sup id="a1">[1](#f1)</sup>
 * Keyboard-driven. Ruwi is designed to be run in two ways: from a terminal, or bound to a hotkey in your window manager. You'll never need to click anything in Ruwi.
 * Written in 100% safe Rust.

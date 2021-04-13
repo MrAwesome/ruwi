@@ -64,6 +64,8 @@ use errors::RuwiError;
 // Arch optional dependencies: dmenu, NetworkManager, fzf
 
 
+// TODO(high): have wired fall back to dhcpcd/etc if netctl doesn't work (try netctl stop/start first? fallbacks for wifi too?)
+// TODO(high): determine if verify_command_safety_while_running_as_root should also check parent directories
 // TODO(high): create integration tests for blurz (mock controller that just prints?)
 // TODO(high): document bluetooth usage
 // TODO(high): remove defaults for wired and selection method in cmdline_parser, and have them check system
@@ -82,6 +84,7 @@ use errors::RuwiError;
 // TODO(mid): kill, or suggest killing, wpa_supplicant if netctl fails to connect (clear does this, can you just suggest clear in error messages?)
 // TODO(mid): have `ruwi -a` detect wired, try to connect to it, then try wifi -a if not. check "/sys/class/net/{IFNAME}/operstate" after bringing up the interface
 // TODO(low): add support for WWAN connections
+// TODO(low): fix iw scan not working on system startup
 // TODO(low): implement Selectable for netctl profiles, for wired connections (and wifi as well, since that seems like a reasonable use case)
 // TODO(low): kill wpa_supplicant if trying to use raw iw or networkmanager
 // TODO(low): flag to disable looking for known networks
